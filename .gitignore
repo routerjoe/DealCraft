@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build output
+dist/
+*.js
+*.js.map
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Database files (these stay in ~/RedRiver/)
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Attachments and exports (stored in ~/RedRiver/)
+attachments/
+exports/
+
+# MCP server config (may contain sensitive paths)
+claude_desktop_config.json

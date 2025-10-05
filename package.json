@@ -1,0 +1,36 @@
+{
+  "name": "red-river-sales-automation",
+  "version": "1.0.0",
+  "description": "Comprehensive MCP server for Red River sales operations - RFQ processing, CRM, and analytics",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "dev": "tsc && node dist/index.js",
+    "start": "node dist/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "sales",
+    "automation",
+    "rfq",
+    "crm"
+  ],
+  "author": "Red River Technology",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "csv-parse": "^5.5.3",
+    "date-fns": "^3.0.6",
+    "googleapis": "^131.0.0",
+    "sql.js": "^1.10.3",
+    "yaml": "^2.3.4",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@types/sql.js": "^1.4.9",
+    "typescript": "^5.3.3"
+  }
+}
