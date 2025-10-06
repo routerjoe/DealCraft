@@ -202,6 +202,9 @@ Claude will:
 RED_RIVER_BASE_DIR=/Users/joe/RedRiver
 OBSIDIAN_VAULT_PATH=/Users/joe/Documents/RedRiverSales
 
+# Attachments (set to your Google Drive folder to sync)
+ATTACHMENTS_DIR="/Users/joe/Library/CloudStorage/GoogleDrive-your_email@domain.com/My Drive/RedRiver/attachments"
+
 # Optional
 GOOGLE_APPLICATION_CREDENTIALS=/path/to/credentials.json
 SQLITE_DB_PATH=/custom/path/rfq_tracking.db
@@ -322,3 +325,69 @@ For issues or questions:
 ## License
 
 MIT
+
+## RFQ Draft Emails Tool - Outlook (macOS Legacy)
+
+Tool summary:
+- Name: create_rfq_drafts
+- Description: Create OEM + Internal RFQ draft emails in Outlook with optional attachments. Local-only; writes to Drafts.
+- Returns: "OK" on success; otherwise an "ERROR: ..." string surfaced from AppleScript.
+
+Security and platform:
+- Local-only: No network I/O. Invokes osascript with a JSON payload.
+- Requires Legacy Outlook app scriptable as Microsoft Outlook. If using New Outlook, switch to Legacy in Outlook menu.
+- Grant Automation permissions: System Settings → Privacy & Security → Automation → allow your terminal/host app to control Microsoft Outlook.
+
+Arguments (JSON):
+- customer string
+- command string
+- oem string
+- rfq_id string
+- contract_vehicle string
+- due_date string (YYYY-MM-DD)
+- est_value number (optional)
+- poc_name string
+- poc_email string
+- folder_path string (for context)
+- attachments string[] (absolute POSIX file paths; non-existent files are skipped and logged)
+
+Environment variables:
+- INSIDE_TEAM_EMAIL
+- INSIDE_SALES_NAME
+- INSIDE_SALES_EMAIL
+- SE_NAME
+- SE_EMAIL
+- OEM_REP_NAME
+- OEM_REP_EMAIL
+- ACCOUNT_EXEC_NAME
+- ACCOUNT_EXEC_EMAIL
+- ACCOUNT_EXEC_PHONE
+
+Create and configure .env:
+- Copy .env.example to .env and update values. Do not commit .env.
+- Reference: [.env.example](.env.example)
+
+Runtime script path:
+- AppleScript is bundled at [scripts/create_rfq_drafts.applescript](scripts/create_rfq_drafts.applescript). The TypeScript wrapper resolves this path at runtime.
+
+Dev test (manual):
+- Ensure Legacy Outlook is running and .env is configured at repo root.
+- Run:
+  - npm run test:rfq-drafts
+  - This builds the project then runs dist/dev/test_create_rfq_drafts.js with the default sample payload at [red-river-rfq-email-drafts/sample_rfq.json](red-river-rfq-email-drafts/sample_rfq.json)
+  - Optionally supply a custom payload path: npm run build &amp;&amp; node dist/dev/test_create_rfq_drafts.js /absolute/path/to/payload.json
+
+Expected result:
+- The tool prints "OK".
+- Two Outlook drafts appear:
+  - OEM Registration / Quote Request (to your OEM rep if provided)
+  - Internal Team Notification (to INSIDE_TEAM_EMAIL with CCs based on .env)
+- If attachments were provided and exist, they are attached to both draft messages.
+
+Troubleshooting:
+- If you see "ERROR: ..." output, it is surfaced directly from the AppleScript. Common causes:
+  - New Outlook instead of Legacy
+  - Missing Automation permissions
+  - Invalid JSON (ensure the payload is valid)
+  - Attachment paths do not exist (they are skipped; warnings logged)
+- Check server logs in ~/RedRiver/logs for details.

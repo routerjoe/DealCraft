@@ -11,16 +11,20 @@
  * - SQLite analytics
  */
 
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
-
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { initializeDatabase } from './database/init.js';
 import { logger } from './utils/logger.js';
 import { validateEnv } from './utils/env.js';
+
+// Load .env from project root (one level up from dist)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 // Import tool handlers
 import { outlookTools, handleOutlookTool } from './tools/outlook/index.js';
@@ -77,6 +81,9 @@ class RedRiverMCPServer {
         if (name.startsWith('outlook_')) {
           return await handleOutlookTool(name, args);
         } else if (name.startsWith('rfq_')) {
+          return await handleRfqTool(name, args);
+        } else if (name === 'create_rfq_drafts') {
+          // Special-case RFQ draft tool without rfq_ prefix
           return await handleRfqTool(name, args);
         } else if (name.startsWith('sales_')) {
           return await handleSalesTool(name, args);
