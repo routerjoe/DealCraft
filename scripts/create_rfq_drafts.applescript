@@ -107,7 +107,9 @@ on run argv
 					make new attachment at oemMsg with properties {file:p_alias}
 				end try
 			end repeat
-			save oemMsg
+			try
+				save oemMsg
+			end try
 			
 			-- Internal Draft
 			set teamMsg to make new outgoing message with properties {subject:team_subject, content:team_body}
@@ -127,7 +129,9 @@ on run argv
 					make new attachment at teamMsg with properties {file:p_alias}
 				end try
 			end repeat
-			save teamMsg
+			try
+				save teamMsg
+			end try
 		end tell
 		
 		return "OK"
