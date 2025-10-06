@@ -50,6 +50,11 @@ if [ ! -f .env ]; then
 # Base directory for all Red River files
 RED_RIVER_BASE_DIR=$BASE_DIR
 
+# Attachments directory (set to Google Drive to sync)
+# Example (Google Drive for Desktop):
+# ATTACHMENTS_DIR="$HOME/Library/CloudStorage/GoogleDrive-your_email@domain.com/My Drive/RedRiver/attachments"
+ATTACHMENTS_DIR=$BASE_DIR/attachments
+
 # Obsidian vault path (update this!)
 OBSIDIAN_VAULT_PATH=$HOME/Documents/RedRiverSales
 
@@ -91,7 +96,8 @@ cat << EOF
       "args": ["$(pwd)/dist/index.js"],
       "env": {
         "RED_RIVER_BASE_DIR": "$BASE_DIR",
-        "OBSIDIAN_VAULT_PATH": "$HOME/Documents/RedRiverSales"
+        "OBSIDIAN_VAULT_PATH": "$HOME/Documents/RedRiverSales",
+        "ATTACHMENTS_DIR": "$BASE_DIR/attachments"
       }
     }
   }

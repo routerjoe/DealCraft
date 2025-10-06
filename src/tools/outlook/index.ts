@@ -5,6 +5,8 @@ import {
   downloadOutlookAttachments,
   markOutlookEmailAsRead,
 } from '../../outlook/index.js';
+import { join } from 'path';
+import { getAttachmentsDir } from '../../utils/env.js';
 
 export const outlookTools: Tool[] = [
   {
@@ -106,9 +108,8 @@ export async function handleOutlookTool(name: string, args: any) {
         args.email_id,
         args.output_dir
       );
-      
-      const baseDir = process.env.RED_RIVER_BASE_DIR || process.cwd();
-      const attachmentDir = args.output_dir || `${baseDir}/attachments/${args.email_id}`;
+      const attachmentDir = args.output_dir || join(getAttachmentsDir(), args.email_id);
+       
       
       return {
         content: [
@@ -126,14 +127,15 @@ export async function handleOutlookTool(name: string, args: any) {
     }
 
     case 'outlook_mark_as_read': {
-      await markOutlookEmailAsRead(args.email_id);
+      const success = await markOutlookEmailAsRead(args.email_id);
       return {
         content: [
           {
             type: 'text',
             text: JSON.stringify({
               email_id: args.email_id,
-              status: 'marked as read',
+              success,
+              status: success ? 'marked as read' : 'not modified',
             }, null, 2),
           },
         ],

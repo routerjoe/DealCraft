@@ -2,6 +2,8 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs/promises';
 import path from 'path';
+import { logger } from '../utils/logger.js';
+import { getAttachmentsDir } from '../utils/env.js';
 
 const execAsync = promisify(exec);
 
@@ -27,23 +29,30 @@ async function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/**
+ * Normalize AppleScript/osascript output line endings (handles CR-only returns).
+ */
+function normalizeEol(text: string): string {
+  return text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+}
+
 async function executeAppleScript(script: string, retries = MAX_RETRIES): Promise<string> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const { stdout, stderr } = await execAsync(`osascript -e '${script.replace(/'/g, "'\\''")}'`);
       
       if (stderr) {
-        console.error('AppleScript stderr:', stderr);
+        logger.warn('AppleScript stderr', { stderr });
       }
       
       return stdout.trim();
     } catch (error: any) {
-      console.error(`AppleScript execution failed (attempt ${attempt}/${retries}):`, error.message);
+      logger.error('AppleScript execution failed', { attempt, retries, error: error?.message || String(error) });
       
       if (attempt < retries) {
         await delay(RETRY_DELAY);
       } else {
-        throw new Error(`AppleScript failed: ${error.message}`);
+        throw new Error(`AppleScript failed: ${error?.message || String(error)}`);
       }
     }
   }
@@ -63,7 +72,7 @@ export async function getOutlookBidBoardEmails(
       set redRiverFolder to missing value
       repeat with subFolder in mail folders of inboxFolder
         try
-          if name of subFolder contains "05 Internal" or name of subFolder contains "Red River Ops" then
+          if name of subFolder is "05 Internal (Red River Ops)" or name of subFolder contains "05 Internal" or name of subFolder contains "Red River Ops" then
             set redRiverFolder to subFolder
             exit repeat
           end if
@@ -90,7 +99,7 @@ export async function getOutlookBidBoardEmails(
       end if
       
       -- Get messages
-      set messageList to messages in bidBoardFolder
+      set messageList to messages of bidBoardFolder
       set emailData to ""
       set counter to 0
       set maxCount to ${limit}
@@ -196,7 +205,42 @@ export async function getOutlookBidBoardEmails(
 export async function getOutlookEmailDetails(emailId: string): Promise<OutlookEmailDetails> {
   const script = `
     tell application "Microsoft Outlook"
-      set theMessage to first message whose id is ${emailId}
+      set theMessage to missing value
+      try
+        set theMessage to first message whose id is "${emailId}"
+      on error
+        -- Fallback: search the Bid Board folder and find by id as string
+        set inboxFolder to inbox
+        set redRiverFolder to missing value
+        repeat with subFolder in mail folders of inboxFolder
+          try
+            if name of subFolder is "05 Internal (Red River Ops)" or name of subFolder contains "05 Internal" or name of subFolder contains "Red River Ops" then
+              set redRiverFolder to subFolder
+              exit repeat
+            end if
+          end try
+        end repeat
+        if redRiverFolder is missing value then error "Red River folder not found"
+        set bidBoardFolder to missing value
+        repeat with subFolder in mail folders of redRiverFolder
+          try
+            if name of subFolder contains "Bid Board" then
+              set bidBoardFolder to subFolder
+              exit repeat
+            end if
+          end try
+        end repeat
+        if bidBoardFolder is missing value then error "Bid Board folder not found"
+        repeat with m in messages of bidBoardFolder
+          try
+            if (id of m as string) is equal to "${emailId}" then
+              set theMessage to m
+              exit repeat
+            end if
+          end try
+        end repeat
+        if theMessage is missing value then error "Message not found in Bid Board"
+      end try
       set emailData to ""
       
       -- Get ID
@@ -272,15 +316,50 @@ export async function downloadOutlookAttachments(
   emailId: string,
   outputDir?: string
 ): Promise<string[]> {
-  const baseDir = process.env.RED_RIVER_BASE_DIR || process.cwd();
-  const attachmentDir = outputDir || path.join(baseDir, 'attachments', emailId);
+  const baseAttachmentsDir = getAttachmentsDir();
+  const attachmentDir = outputDir || path.join(baseAttachmentsDir, emailId);
   
   // Create directory
   await fs.mkdir(attachmentDir, { recursive: true });
 
   const script = `
     tell application "Microsoft Outlook"
-      set theMessage to first message whose id is ${emailId}
+      set theMessage to missing value
+      try
+        set theMessage to first message whose id is "${emailId}"
+      on error
+        -- Fallback: search the Bid Board folder and find by id as string
+        set inboxFolder to inbox
+        set redRiverFolder to missing value
+        repeat with subFolder in mail folders of inboxFolder
+          try
+            if name of subFolder is "05 Internal (Red River Ops)" or name of subFolder contains "05 Internal" or name of subFolder contains "Red River Ops" then
+              set redRiverFolder to subFolder
+              exit repeat
+            end if
+          end try
+        end repeat
+        if redRiverFolder is missing value then error "Red River folder not found"
+        set bidBoardFolder to missing value
+        repeat with subFolder in mail folders of redRiverFolder
+          try
+            if name of subFolder contains "Bid Board" then
+              set bidBoardFolder to subFolder
+              exit repeat
+            end if
+          end try
+        end repeat
+        if bidBoardFolder is missing value then error "Bid Board folder not found"
+        repeat with m in messages of bidBoardFolder
+          try
+            if (id of m as string) is equal to "${emailId}" then
+              set theMessage to m
+              exit repeat
+            end if
+          end try
+        end repeat
+        if theMessage is missing value then error "Message not found in Bid Board"
+      end try
       set attachmentList to ""
       
       repeat with theAttachment in attachments of theMessage
@@ -305,7 +384,8 @@ export async function downloadOutlookAttachments(
   `;
 
   const output = await executeAppleScript(script);
-  const attachments = output
+  const normalized = output.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const attachments = normalized
     .split('\n')
     .filter(line => line && !line.startsWith('ERROR:'))
     .map(line => line.trim());
@@ -313,21 +393,68 @@ export async function downloadOutlookAttachments(
   return attachments;
 }
 
-export async function markOutlookEmailAsRead(emailId: string): Promise<void> {
+export async function markOutlookEmailAsRead(emailId: string): Promise<boolean> {
   const script = `
     tell application "Microsoft Outlook"
-      set theMessage to first message whose id is ${emailId}
-      set read status of theMessage to read
-      return "Success"
+      set resultText to "ERROR: Unknown"
+      try
+        set theMessage to missing value
+        try
+          set theMessage to first message whose id is "${emailId}"
+        on error
+          -- Fallback: search the Bid Board folder and find by id as string
+          set inboxFolder to inbox
+          set redRiverFolder to missing value
+          repeat with subFolder in mail folders of inboxFolder
+            try
+              if name of subFolder is "05 Internal (Red River Ops)" or name of subFolder contains "05 Internal" or name of subFolder contains "Red River Ops" then
+                set redRiverFolder to subFolder
+                exit repeat
+              end if
+            end try
+          end repeat
+          if redRiverFolder is missing value then error "Red River folder not found"
+          set bidBoardFolder to missing value
+          repeat with subFolder in mail folders of redRiverFolder
+            try
+              if name of subFolder contains "Bid Board" then
+                set bidBoardFolder to subFolder
+                exit repeat
+              end if
+            end try
+          end repeat
+          if bidBoardFolder is missing value then error "Bid Board folder not found"
+          repeat with m in messages of bidBoardFolder
+            try
+              if (id of m as string) is equal to "${emailId}" then
+                set theMessage to m
+                exit repeat
+              end if
+            end try
+          end repeat
+          if theMessage is missing value then error "Message not found in Bid Board"
+        end try
+        try
+          set (read status of theMessage) to true
+          set resultText to "Success"
+        on error errMsg
+          set resultText to "ERROR: " & (errMsg as string)
+        end try
+      on error errMsg2
+        set resultText to "ERROR: " & (errMsg2 as string)
+      end try
+      return resultText
     end tell
   `;
 
-  await executeAppleScript(script);
+  const output = await executeAppleScript(script);
+  return output.trim() === "Success";
 }
 
 function parseOutlookEmails(output: string): OutlookEmail[] {
   const emails: OutlookEmail[] = [];
-  const emailBlocks = output.split('---EMAIL---').filter(block => block.trim());
+  const normalized = normalizeEol(output);
+  const emailBlocks = normalized.split('---EMAIL---').filter(block => block.trim());
 
   for (const block of emailBlocks) {
     try {
@@ -367,19 +494,20 @@ function parseOutlookEmails(output: string): OutlookEmail[] {
         emails.push(email as OutlookEmail);
       }
     } catch (error) {
-      console.error('Error parsing email block:', error);
+      logger.error('Error parsing email block', { error: error instanceof Error ? error.message : String(error) });
     }
   }
 
   if (emails.length === 0) {
-    throw new Error('No emails parsed from output');
+    logger.warn('No emails parsed from Outlook output');
+    return [];
   }
 
   return emails;
 }
 
 function parseOutlookEmailDetails(output: string): OutlookEmailDetails {
-  const lines = output.split('\n');
+  const lines = normalizeEol(output).split('\n');
   const details: Partial<OutlookEmailDetails> = {
     attachmentNames: []
   };

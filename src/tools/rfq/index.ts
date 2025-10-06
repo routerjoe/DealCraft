@@ -1,13 +1,14 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { getDb, saveDatabase } from '../../database/init.js';
 import { logger } from '../../utils/logger.js';
-import { getBaseDir } from '../../utils/env.js';
+import { getBaseDir, getAttachmentsDir } from '../../utils/env.js';
 import { handleOutlookTool } from '../outlook/index.js';
 import { existsSync, rmSync, readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { parse } from 'csv-parse/sync';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { createRfqDrafts } from './drafts.js';
 
 const execAsync = promisify(exec);
 
@@ -120,6 +121,27 @@ export const rfqTools: Tool[] = [
       },
     },
   },
+  {
+    name: 'create_rfq_drafts',
+    description: 'Create OEM + Internal RFQ draft emails in Outlook with optional attachments. Local-only; writes Drafts.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        customer: { type: 'string' },
+        command: { type: 'string' },
+        oem: { type: 'string' },
+        rfq_id: { type: 'string' },
+        contract_vehicle: { type: 'string' },
+        due_date: { type: 'string' },
+        est_value: { type: 'number' },
+        poc_name: { type: 'string' },
+        poc_email: { type: 'string' },
+        folder_path: { type: 'string' },
+        attachments: { type: 'array', items: { type: 'string' } }
+      },
+      required: ['customer','command','oem','rfq_id','contract_vehicle','due_date','poc_name','poc_email','folder_path']
+    },
+  }
 ];
 
 export async function handleRfqTool(name: string, args: any) {
@@ -142,6 +164,17 @@ export async function handleRfqTool(name: string, args: any) {
     case 'rfq_list_pending':
       return await listPending(args.status || 'pending');
     
+    case 'create_rfq_drafts': {
+      const status = await createRfqDrafts(args);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: status || 'OK',
+          },
+        ],
+      };
+    }
     default:
       throw new Error(`Unknown RFQ tool: ${name}`);
   }
@@ -373,9 +406,8 @@ async function cleanupDeclined(rfqIds: number[], deleteFromOutlook: boolean = tr
     rfqColumns.forEach((col, i) => rfq[col] = rfqValues[i]);
     
     // Delete attachment files
-    const baseDir = getBaseDir();
     const emailId = rfq.email_id;
-    const attachDir = join(baseDir, 'attachments', emailId);
+    const attachDir = join(getAttachmentsDir(), emailId);
     
     if (existsSync(attachDir)) {
       rmSync(attachDir, { recursive: true, force: true });

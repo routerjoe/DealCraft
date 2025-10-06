@@ -1,6 +1,7 @@
 import initSqlJs, { Database as SqlJsDatabase } from 'sql.js';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
+import { createRequire } from 'module';
 import { getDbPath } from '../utils/env.js';
 import { logger } from '../utils/logger.js';
 
@@ -25,7 +26,13 @@ export async function initializeDatabase(): Promise<void> {
   }
 
   // Initialize SQL.js
-  SQL = await initSqlJs();
+  {
+    const require = createRequire(import.meta.url);
+    const wasmPath = require.resolve('sql.js/dist/sql-wasm.wasm');
+    SQL = await initSqlJs({
+      locateFile: (file: string) => join(dirname(wasmPath), file),
+    });
+  }
 
   // Load existing database or create new one
   if (existsSync(dbPath)) {

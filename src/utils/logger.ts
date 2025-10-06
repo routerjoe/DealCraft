@@ -17,7 +17,9 @@ class Logger {
   constructor() {
     this.logLevel = (process.env.LOG_LEVEL as LogLevel) || 'info';
     
-    const baseDir = process.env.RED_RIVER_BASE_DIR || process.cwd();
+    const home = process.env.HOME || process.env.USERPROFILE || '';
+    const defaultBaseDir = home ? join(home, 'RedRiver') : join(process.cwd(), 'RedRiver');
+    const baseDir = process.env.RED_RIVER_BASE_DIR || defaultBaseDir;
     const logDir = join(baseDir, 'logs');
     
     if (!existsSync(logDir)) {
