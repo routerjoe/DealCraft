@@ -2,6 +2,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { existsSync } from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { z } from 'zod';
 import { logger } from '../../utils/logger.js';
 
@@ -23,14 +24,18 @@ export type RfqDraftArgs = z.infer<typeof RfqDraftArgsSchema>;
 
 const execFileAsync = promisify(execFile);
 
+// ESM-compatible __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 function resolveAppleScriptPath(): string {
-  // When compiled, __dirname will be: dist/tools/rfq
-  // Project root is two levels up from dist (dist -> project root), so from dist/tools/rfq it is three levels up.
+  // When compiled, this file lives under dist/tools/rfq.
+  // Move up to project root and find scripts/create_rfq_drafts.applescript.
   const candidates = [
     path.resolve(__dirname, '../../../scripts/create_rfq_drafts.applescript'),
-    // Fallbacks for safety in different execution contexts (tests, direct runs)
+    // Fallbacks for tests or alternative run contexts
     path.resolve(process.cwd(), 'scripts/create_rfq_drafts.applescript'),
-    path.resolve(__dirname, '../../../../scripts/create_rfq_drafts.applescript'),
+    path.resolve(process.cwd(), 'red-river-rfq-email-drafts/scripts/create_rfq_drafts.applescript'),
   ];
   for (const p of candidates) {
     if (existsSync(p)) return p;
@@ -38,11 +43,11 @@ function resolveAppleScriptPath(): string {
   throw new Error('AppleScript not found at scripts/create_rfq_drafts.applescript');
 }
 
-function normalizeAttachments(attachments: string[] | undefined): string[] {
+function normalizeAttachments(attachments?: string[]): string[] {
   if (!attachments || attachments.length === 0) return [];
   const result: string[] = [];
-  for (const p of attachments) {
-    const abs = path.isAbsolute(p) ? p : path.resolve(p);
+  for (const pth of attachments) {
+    const abs = path.isAbsolute(pth) ? pth : path.resolve(pth);
     if (existsSync(abs)) {
       result.push(abs);
     } else {
