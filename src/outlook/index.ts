@@ -1,9 +1,5 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import fs from 'fs/promises';
-import path from 'path';
-
-const execAsync = promisify(exec);
+import { Tool } from "@anthropic-ai/sdk/resources/messages";
+import { executeAppleScript } from "../utils/applescript";
 
 interface OutlookEmail {
   id: string;
@@ -12,49 +8,35 @@ interface OutlookEmail {
   email: string;
   date: string;
   read: boolean;
-  attachments: number;
+  attachmentCount: number;
 }
 
-interface OutlookEmailDetails extends OutlookEmail {
-  body: string;
-  attachmentNames: string[];
-}
+export const outlookGetBidBoardEmails: Tool = {
+  name: "outlook_get_bid_board_emails",
+  description: "Retrieves emails from the Bid Board folder in Outlook",
+  input_schema: {
+    type: "object",
+    properties: {
+      limit: {
+        type: "number",
+        description: "Maximum number of emails to retrieve (default: 50)",
+        default: 50,
+      },
+      unread_only: {
+        type: "boolean",
+        description: "Only retrieve unread emails (default: false)",
+        default: false,
+      },
+    },
+  },
+};
 
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1500; // ms
+export async function handleOutlookGetBidBoardEmails(
+  input: any
+): Promise<string> {
+  const limit = input.limit || 50;
+  const unreadOnly = input.unread_only || false;
 
-async function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function executeAppleScript(script: string, retries = MAX_RETRIES): Promise<string> {
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    try {
-      const { stdout, stderr } = await execAsync(`osascript -e '${script.replace(/'/g, "'\\''")}'`);
-      
-      if (stderr) {
-        console.error('AppleScript stderr:', stderr);
-      }
-      
-      return stdout.trim();
-    } catch (error: any) {
-      console.error(`AppleScript execution failed (attempt ${attempt}/${retries}):`, error.message);
-      
-      if (attempt < retries) {
-        await delay(RETRY_DELAY);
-      } else {
-        throw new Error(`AppleScript failed: ${error.message}`);
-      }
-    }
-  }
-  
-  throw new Error('Failed to execute AppleScript after all retries');
-}
-
-export async function getOutlookBidBoardEmails(
-  limit: number = 50,
-  unreadOnly: boolean = false
-): Promise<OutlookEmail[]> {
   const script = `
     tell application "Microsoft Outlook"
       set inboxFolder to inbox
@@ -94,73 +76,80 @@ export async function getOutlookBidBoardEmails(
       set emailData to ""
       set counter to 0
       set maxCount to ${limit}
+      set filterUnread to ${unreadOnly}
       
       repeat with i from 1 to count of messageList
         try
           set theMessage to item i of messageList
           
-          -- Filter by read status if requested
-          ${unreadOnly ? 'if read status of theMessage is true then' : '-- No read filter'}
-          ${unreadOnly ? '  next repeat' : ''}
-          ${unreadOnly ? 'end if' : ''}
+          -- Check if we should process this message based on read status
+          set shouldProcess to true
+          if filterUnread is true then
+            if read status of theMessage is true then
+              set shouldProcess to false
+            end if
+          end if
           
-          set counter to counter + 1
-          if counter > maxCount then exit repeat
-          
-          set emailData to emailData & "---EMAIL---" & return
-          
-          -- Get ID
-          try
-            set emailData to emailData & "ID:" & (id of theMessage as string) & return
-          on error
-            set emailData to emailData & "ID:UNKNOWN" & return
-          end try
-          
-          -- Get Subject
-          try
-            set emailData to emailData & "SUBJECT:" & subject of theMessage & return
-          on error
-            set emailData to emailData & "SUBJECT:No Subject" & return
-          end try
-          
-          -- Get Sender Name
-          try
-            set theSender to sender of theMessage
-            set senderName to name of theSender
-            set emailData to emailData & "FROM:" & senderName & return
-          on error
-            set emailData to emailData & "FROM:Unknown" & return
-          end try
-          
-          -- Get Sender Email
-          try
-            set theSender to sender of theMessage
-            set senderEmail to address of theSender
-            set emailData to emailData & "EMAIL:" & senderEmail & return
-          on error
-            set emailData to emailData & "EMAIL:unknown@unknown.com" & return
-          end try
-          
-          -- Get Date
-          try
-            set emailData to emailData & "DATE:" & (time received of theMessage as string) & return
-          on error
-            set emailData to emailData & "DATE:Unknown" & return
-          end try
-          
-          -- Get Read Status
-          try
-            set emailData to emailData & "READ:" & (read status of theMessage as string) & return
-          on error
-            set emailData to emailData & "READ:false" & return
-          end try
-          
-          -- Get Attachment Count
-          try
-            set emailData to emailData & "ATTACHMENTS:" & (count of attachments of theMessage) & return
-          on error
-            set emailData to emailData & "ATTACHMENTS:0" & return
-          end try
+          -- Process the message if it matches our criteria
+          if shouldProcess is true then
+            set counter to counter + 1
+            if counter > maxCount then exit repeat
+            
+            set emailData to emailData & "---EMAIL---" & return
+            
+            -- Get ID
+            try
+              set emailData to emailData & "ID:" & (id of theMessage as string) & return
+            on error
+              set emailData to emailData & "ID:UNKNOWN" & return
+            end try
+            
+            -- Get Subject
+            try
+              set emailData to emailData & "SUBJECT:" & subject of theMessage & return
+            on error
+              set emailData to emailData & "SUBJECT:No Subject" & return
+            end try
+            
+            -- Get Sender Name
+            try
+              set theSender to sender of theMessage
+              set senderName to name of theSender
+              set emailData to emailData & "FROM:" & senderName & return
+            on error
+              set emailData to emailData & "FROM:Unknown" & return
+            end try
+            
+            -- Get Sender Email
+            try
+              set theSender to sender of theMessage
+              set senderEmail to address of theSender
+              set emailData to emailData & "EMAIL:" & senderEmail & return
+            on error
+              set emailData to emailData & "EMAIL:unknown@unknown.com" & return
+            end try
+            
+            -- Get Date
+            try
+              set emailData to emailData & "DATE:" & (time received of theMessage as string) & return
+            on error
+              set emailData to emailData & "DATE:Unknown" & return
+            end try
+            
+            -- Get Read Status
+            try
+              set emailData to emailData & "READ:" & (read status of theMessage as string) & return
+            on error
+              set emailData to emailData & "READ:false" & return
+            end try
+            
+            -- Get Attachment Count
+            try
+              set emailData to emailData & "ATTACHMENTS:" & (count of attachments of theMessage) & return
+            on error
+              set emailData to emailData & "ATTACHMENTS:0" & return
+            end try
+          end if
           
         on error errMsg
           -- Log error but continue processing other emails
@@ -177,254 +166,267 @@ export async function getOutlookBidBoardEmails(
     end tell
   `;
 
-  const output = await executeAppleScript(script);
-  
-  if (output.startsWith('ERROR:')) {
-    throw new Error(output);
+  try {
+    const result = await executeAppleScript(script);
+
+    if (result.startsWith("ERROR:")) {
+      throw new Error(result);
+    }
+
+    // Parse the email data
+    const emails = parseEmailData(result);
+
+    if (emails.length === 0) {
+      throw new Error("No emails parsed from output");
+    }
+
+    return JSON.stringify({ emails, count: emails.length }, null, 2);
+  } catch (error) {
+    throw error;
   }
-  
-  return parseOutlookEmails(output);
 }
 
-export async function getOutlookEmailDetails(emailId: string): Promise<OutlookEmailDetails> {
-  const script = `
-    tell application "Microsoft Outlook"
-      set theMessage to first message whose id is ${emailId}
-      set emailData to ""
-      
-      -- Get ID
-      set emailData to emailData & "ID:" & (id of theMessage as string) & return
-      
-      -- Get Subject
-      try
-        set emailData to emailData & "SUBJECT:" & subject of theMessage & return
-      on error
-        set emailData to emailData & "SUBJECT:No Subject" & return
-      end try
-      
-      -- Get Sender Name
-      try
-        set theSender to sender of theMessage
-        set senderName to name of theSender
-        set emailData to emailData & "FROM:" & senderName & return
-      on error
-        set emailData to emailData & "FROM:Unknown" & return
-      end try
-      
-      -- Get Sender Email
-      try
-        set theSender to sender of theMessage
-        set senderEmail to address of theSender
-        set emailData to emailData & "EMAIL:" & senderEmail & return
-      on error
-        set emailData to emailData & "EMAIL:unknown@unknown.com" & return
-      end try
-      
-      -- Get Date
-      try
-        set emailData to emailData & "DATE:" & (time received of theMessage as string) & return
-      on error
-        set emailData to emailData & "DATE:Unknown" & return
-      end try
-      
-      -- Get Read Status
-      try
-        set emailData to emailData & "READ:" & (read status of theMessage as string) & return
-      on error
-        set emailData to emailData & "READ:false" & return
-      end try
-      
-      -- Get Body
-      try
-        set emailData to emailData & "BODY:" & (plain text content of theMessage) & return
-      on error
-        set emailData to emailData & "BODY:" & return
-      end try
-      
-      -- Get Attachments
-      set emailData to emailData & "ATTACHMENTS:" & (count of attachments of theMessage) & return
-      
-      set attachmentList to ""
-      repeat with theAttachment in attachments of theMessage
-        try
-          set attachmentList to attachmentList & (name of theAttachment) & "|"
-        end try
-      end repeat
-      
-      set emailData to emailData & "ATTACHMENT_NAMES:" & attachmentList & return
-      
-      return emailData
-    end tell
-  `;
-
-  const output = await executeAppleScript(script);
-  return parseOutlookEmailDetails(output);
-}
-
-export async function downloadOutlookAttachments(
-  emailId: string,
-  outputDir?: string
-): Promise<string[]> {
-  const baseDir = process.env.BASE_DIR || process.cwd();
-  const attachmentDir = outputDir || path.join(baseDir, 'attachments', emailId);
-  
-  // Create directory
-  await fs.mkdir(attachmentDir, { recursive: true });
-
-  const script = `
-    tell application "Microsoft Outlook"
-      set theMessage to first message whose id is ${emailId}
-      set attachmentList to ""
-      
-      repeat with theAttachment in attachments of theMessage
-        try
-          set attachmentName to name of theAttachment
-          set savePath to "${attachmentDir.replace(/\\/g, '\\\\')}/" & attachmentName
-          
-          -- Create alias for save location
-          set saveLocation to POSIX file savePath
-          
-          -- Save the attachment
-          save theAttachment in saveLocation
-          
-          set attachmentList to attachmentList & attachmentName & return
-        on error errMsg
-          set attachmentList to attachmentList & "ERROR:" & errMsg & return
-        end try
-      end repeat
-      
-      return attachmentList
-    end tell
-  `;
-
-  const output = await executeAppleScript(script);
-  const attachments = output
-    .split('\n')
-    .filter(line => line && !line.startsWith('ERROR:'))
-    .map(line => line.trim());
-  
-  return attachments;
-}
-
-export async function markOutlookEmailAsRead(emailId: string): Promise<void> {
-  const script = `
-    tell application "Microsoft Outlook"
-      set theMessage to first message whose id is ${emailId}
-      set read status of theMessage to read
-      return "Success"
-    end tell
-  `;
-
-  await executeAppleScript(script);
-}
-
-function parseOutlookEmails(output: string): OutlookEmail[] {
+function parseEmailData(data: string): OutlookEmail[] {
   const emails: OutlookEmail[] = [];
-  const emailBlocks = output.split('---EMAIL---').filter(block => block.trim());
+  const emailBlocks = data.split("---EMAIL---").filter((block) => block.trim());
 
   for (const block of emailBlocks) {
-    try {
-      const lines = block.split('\n').filter(line => line.trim());
-      const email: Partial<OutlookEmail> = {};
+    const lines = block.split("\n").filter((line) => line.trim());
+    const email: any = {};
 
-      for (const line of lines) {
-        const [key, ...valueParts] = line.split(':');
-        const value = valueParts.join(':').trim();
+    for (const line of lines) {
+      const [key, ...valueParts] = line.split(":");
+      const value = valueParts.join(":").trim();
 
-        switch (key) {
-          case 'ID':
-            email.id = value;
-            break;
-          case 'SUBJECT':
-            email.subject = value;
-            break;
-          case 'FROM':
-            email.from = value;
-            break;
-          case 'EMAIL':
-            email.email = value;
-            break;
-          case 'DATE':
-            email.date = value;
-            break;
-          case 'READ':
-            email.read = value.toLowerCase() === 'true';
-            break;
-          case 'ATTACHMENTS':
-            email.attachments = parseInt(value) || 0;
-            break;
-        }
+      switch (key) {
+        case "ID":
+          email.id = value;
+          break;
+        case "SUBJECT":
+          email.subject = value;
+          break;
+        case "FROM":
+          email.from = value;
+          break;
+        case "EMAIL":
+          email.email = value;
+          break;
+        case "DATE":
+          email.date = value;
+          break;
+        case "READ":
+          email.read = value === "true";
+          break;
+        case "ATTACHMENTS":
+          email.attachmentCount = parseInt(value) || 0;
+          break;
       }
-
-      if (email.id && email.subject) {
-        emails.push(email as OutlookEmail);
-      }
-    } catch (error) {
-      console.error('Error parsing email block:', error);
     }
-  }
 
-  if (emails.length === 0) {
-    throw new Error('No emails parsed from output');
+    if (email.id) {
+      emails.push(email as OutlookEmail);
+    }
   }
 
   return emails;
 }
 
-function parseOutlookEmailDetails(output: string): OutlookEmailDetails {
-  const lines = output.split('\n');
-  const details: Partial<OutlookEmailDetails> = {
-    attachmentNames: []
-  };
+export const outlookGetEmailDetails: Tool = {
+  name: "outlook_get_email_details",
+  description:
+    "Gets full details of a specific email including body and attachments",
+  input_schema: {
+    type: "object",
+    properties: {
+      email_id: {
+        type: "string",
+        description: "The Outlook email ID",
+      },
+    },
+    required: ["email_id"],
+  },
+};
 
-  let inBody = false;
-  let bodyLines: string[] = [];
+export async function handleOutlookGetEmailDetails(
+  input: any
+): Promise<string> {
+  const emailId = input.email_id;
 
-  for (const line of lines) {
-    if (inBody && !line.startsWith('ATTACHMENTS:') && !line.startsWith('ATTACHMENT_NAMES:')) {
-      bodyLines.push(line);
-      continue;
+  const script = `
+    tell application "Microsoft Outlook"
+      try
+        set theMessage to first message whose id is ${emailId}
+        
+        set emailData to ""
+        set emailData to emailData & "---EMAIL-DETAILS---" & return
+        
+        -- Get ID
+        set emailData to emailData & "ID:" & (id of theMessage as string) & return
+        
+        -- Get Subject
+        try
+          set emailData to emailData & "SUBJECT:" & subject of theMessage & return
+        on error
+          set emailData to emailData & "SUBJECT:No Subject" & return
+        end try
+        
+        -- Get Body
+        try
+          set emailData to emailData & "BODY:" & return
+          set emailData to emailData & content of theMessage & return
+          set emailData to emailData & "---END-BODY---" & return
+        on error
+          set emailData to emailData & "BODY:Unable to retrieve body" & return
+        end try
+        
+        -- Get Attachments
+        try
+          set theAttachments to attachments of theMessage
+          set emailData to emailData & "ATTACHMENT-COUNT:" & (count of theAttachments) & return
+          
+          repeat with att in theAttachments
+            set emailData to emailData & "ATTACHMENT:" & (name of att) & return
+          end repeat
+        on error
+          set emailData to emailData & "ATTACHMENT-COUNT:0" & return
+        end try
+        
+        return emailData
+        
+      on error errMsg
+        return "ERROR: " & errMsg
+      end try
+    end tell
+  `;
+
+  try {
+    const result = await executeAppleScript(script);
+
+    if (result.startsWith("ERROR:")) {
+      throw new Error(result);
     }
 
-    const [key, ...valueParts] = line.split(':');
-    const value = valueParts.join(':').trim();
-
-    switch (key) {
-      case 'ID':
-        details.id = value;
-        break;
-      case 'SUBJECT':
-        details.subject = value;
-        break;
-      case 'FROM':
-        details.from = value;
-        break;
-      case 'EMAIL':
-        details.email = value;
-        break;
-      case 'DATE':
-        details.date = value;
-        break;
-      case 'READ':
-        details.read = value.toLowerCase() === 'true';
-        break;
-      case 'BODY':
-        inBody = true;
-        break;
-      case 'ATTACHMENTS':
-        inBody = false;
-        details.attachments = parseInt(value) || 0;
-        break;
-      case 'ATTACHMENT_NAMES':
-        details.attachmentNames = value
-          .split('|')
-          .filter(name => name.trim())
-          .map(name => name.trim());
-        break;
-    }
+    return result;
+  } catch (error) {
+    throw error;
   }
+}
 
-  details.body = bodyLines.join('\n').trim();
+export const outlookDownloadAttachments: Tool = {
+  name: "outlook_download_attachments",
+  description: "Downloads all attachments from a specific email",
+  input_schema: {
+    type: "object",
+    properties: {
+      email_id: {
+        type: "string",
+        description: "The Outlook email ID",
+      },
+      output_dir: {
+        type: "string",
+        description: "Optional custom output directory for attachments",
+      },
+    },
+    required: ["email_id"],
+  },
+};
 
-  return details as OutlookEmailDetails;
+export async function handleOutlookDownloadAttachments(
+  input: any
+): Promise<string> {
+  const emailId = input.email_id;
+  const outputDir =
+    input.output_dir || `${process.env.HOME}/Downloads/RFQ_Attachments`;
+
+  const script = `
+    tell application "Microsoft Outlook"
+      try
+        set theMessage to first message whose id is ${emailId}
+        set theAttachments to attachments of theMessage
+        
+        set outputPath to "${outputDir}"
+        
+        -- Create directory if it doesn't exist
+        do shell script "mkdir -p " & quoted form of outputPath
+        
+        set downloadedFiles to ""
+        
+        repeat with att in theAttachments
+          set attName to name of att
+          set savePath to outputPath & "/" & attName
+          
+          try
+            save att in savePath
+            set downloadedFiles to downloadedFiles & savePath & return
+          on error errMsg
+            set downloadedFiles to downloadedFiles & "ERROR:" & attName & ":" & errMsg & return
+          end try
+        end repeat
+        
+        if downloadedFiles is "" then
+          return "No attachments found"
+        end if
+        
+        return downloadedFiles
+        
+      on error errMsg
+        return "ERROR: " & errMsg
+      end try
+    end tell
+  `;
+
+  try {
+    const result = await executeAppleScript(script);
+
+    if (result.startsWith("ERROR:")) {
+      throw new Error(result);
+    }
+
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export const outlookMarkAsRead: Tool = {
+  name: "outlook_mark_as_read",
+  description: "Marks an email as read in Outlook",
+  input_schema: {
+    type: "object",
+    properties: {
+      email_id: {
+        type: "string",
+        description: "The Outlook email ID",
+      },
+    },
+    required: ["email_id"],
+  },
+};
+
+export async function handleOutlookMarkAsRead(input: any): Promise<string> {
+  const emailId = input.email_id;
+
+  const script = `
+    tell application "Microsoft Outlook"
+      try
+        set theMessage to first message whose id is ${emailId}
+        set read status of theMessage to true
+        return "SUCCESS: Email marked as read"
+      on error errMsg
+        return "ERROR: " & errMsg
+      end try
+    end tell
+  `;
+
+  try {
+    const result = await executeAppleScript(script);
+
+    if (result.startsWith("ERROR:")) {
+      throw new Error(result);
+    }
+
+    return result;
+  } catch (error) {
+    throw error;
+  }
 }
