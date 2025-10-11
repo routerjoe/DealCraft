@@ -1,0 +1,16 @@
+Hi {{first_name}},
+
+I wanted to take a moment to personally introduce myself and the Red River team. I lead strategic accounts across the U.S. Air Force, Space Force, and Federal enterprise sectors — helping organizations like {{company}} modernize infrastructure, strengthen cybersecurity, and advance Zero Trust adoption.
+
+Our team includes senior engineers and solution architects with decades of experience supporting mission networks, hybrid cloud deployments, and enterprise security environments. Collectively, we’ve helped design and implement programs across the Air Force, Space Force, and other Defense agencies ensuring readiness, reliability, and compliance with evolving DoD Zero Trust mandates.
+
+Red River delivers complete solutions spanning networking, hybrid cloud, Zero Trust, cybersecurity, and managed services — backed by partnerships with Cisco, Nutanix, NetApp, Dell, VMware, and others. We deliver through proven federal and enterprise contract vehicles including SEWP, 2GIT, and CHESS.
+
+I’ve attached my latest Red River Line Card for your reference. It provides a quick overview of our core capabilities and OEM ecosystem.
+
+I’d welcome the opportunity to learn more about your current initiatives and share how our team has helped similar organizations accelerate modernization and security alignment. Would you be open to a brief conversation next week?
+
+Respectfully,  
+Joe Nolan  
+Account Executive | Red River  
+joe.nolan@redriver.com | 678.951.5584

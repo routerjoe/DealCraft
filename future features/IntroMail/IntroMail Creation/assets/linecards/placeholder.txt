@@ -1,0 +1,1 @@
+Place your current Red River Line Card PDF here and set INTROMAIL_ATTACHMENT_DEFAULT in your .env.

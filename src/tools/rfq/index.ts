@@ -9,6 +9,7 @@ import { parse } from 'csv-parse/sync';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { createRfqDrafts } from './drafts.js';
+import { sendRfqEmail } from '../../email/sendRfqEmail.js';
 
 const execAsync = promisify(exec);
 
@@ -141,6 +142,35 @@ export const rfqTools: Tool[] = [
       },
       required: ['customer','command','oem','rfq_id','contract_vehicle','due_date','poc_name','poc_email','folder_path']
     },
+  },
+  {
+    name: 'rfq_send_notification_email',
+    description: 'Send the internal RFQ notification email using the HTML template builder',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        to: { type: 'array', items: { type: 'string' }, description: 'Recipient email addresses' },
+        payload: {
+          type: 'object',
+          properties: {
+            customer: { type: 'string' },
+            oem: { type: 'string' },
+            rfq_id: { type: 'string' },
+            contract_vehicle: { type: 'string' },
+            due_date: { type: 'string' },
+            opportunity_name: { type: 'string' },
+            close_date: { type: 'string' },
+            pricing_guidance: { type: 'string' },
+            request_registration: { type: 'string' },
+            close_probability: { type: 'string' },
+            customer_contact: { type: 'string' },
+            timezone: { type: 'string' }
+          },
+          additionalProperties: true
+        }
+      },
+      required: ['to', 'payload']
+    },
   }
 ];
 
@@ -171,6 +201,18 @@ export async function handleRfqTool(name: string, args: any) {
           {
             type: 'text',
             text: status || 'OK',
+          },
+        ],
+      };
+    }
+    case 'rfq_send_notification_email': {
+      const to: string[] = Array.isArray(args.to) ? args.to : [String(args.to)];
+      await sendRfqEmail(args.payload || {}, to);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ sent: true, to }, null, 2),
           },
         ],
       };

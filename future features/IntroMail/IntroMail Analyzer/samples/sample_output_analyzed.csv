@@ -1,0 +1,4 @@
+email,first_name,last_name,company,title,notes,priority,score,recommended_subject
+alex.smith@example.com,Alex,Smith,USAF AFCENT,Deputy Director,Requested Cisco EBC and ZTA follow-up,High,74,Intro — Red River + USAF AFCENT (Priority: Cisco EBC)
+jane.doe@example.com,Jane,Doe,Space Systems Command,IT Director,Interested in SD-WAN and briefing,High,70,Intro — Red River + Space Systems Command (Priority: SD‑WAN)
+mike.lee@example.com,Mike,Lee,AETC,Engineer,Met at booth; general interest,Medium,39,Intro — Red River + AETC (Quick Connect)

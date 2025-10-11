@@ -9,7 +9,9 @@
     "watch": "tsc --watch",
     "dev": "tsc && node dist/index.js",
     "start": "node dist/index.js",
-    "test:rfq-drafts": "npm run build && node dist/dev/test_create_rfq_drafts.js"
+    "test:rfq-drafts": "npm run build && node dist/dev/test_create_rfq_drafts.js",
+    "test:rfq-email": "npm run build && node dist/dev/test_buildRfqEmail.js",
+    "test:oem-email": "npm run build && node dist/dev/test_buildOemRegistrationEmail.js"
   },
   "keywords": [
     "mcp",
@@ -24,15 +26,19 @@
     "@modelcontextprotocol/sdk": "^0.5.0",
     "csv-parse": "^5.5.3",
     "date-fns": "^3.0.6",
+    "date-fns-tz": "^3.0.0",
     "dotenv": "^16.4.5",
+    "glob": "^10.4.5",
     "googleapis": "^131.0.0",
+    "nodemailer": "^6.9.8",
     "sql.js": "^1.10.3",
     "yaml": "^2.3.4",
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@types/node": "^20.10.6",
+    "@types/node": "^20.19.19",
+    "@types/nodemailer": "^7.0.2",
     "@types/sql.js": "^1.4.9",
-    "typescript": "^5.3.3"
+    "typescript": "^5.9.3"
   }
 }
