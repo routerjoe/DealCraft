@@ -8,6 +8,7 @@
     "build": "tsc",
     "watch": "tsc --watch",
     "dev": "tsc && node dist/index.js",
+    "test:fleeting": "npm run build && node dist/dev/test_fleeting.js",
     "start": "node dist/index.js",
     "test:rfq-drafts": "npm run build && node dist/dev/test_create_rfq_drafts.js",
     "test:rfq-email": "npm run build && node dist/dev/test_buildRfqEmail.js",

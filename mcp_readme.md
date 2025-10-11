@@ -135,6 +135,24 @@ For AppleScript to access Outlook:
 - `analytics_pipeline_value` - Pipeline metrics
 - `analytics_decision_trends` - Decision patterns
 
+### Fleeting Notes Tools (1 tool)
+
+- `fleeting_process_notes` - Process Fleeting Notes from Daily Notes; extracts Meetings, Contacts/Companies, Tasks/Subtasks, Follow-ups, appends an Audit, and skips unchanged unless force. Supports scopes and dry-run.
+
+Env variables (optional; default from OBSIDIAN_VAULT_PATH):
+- DAILY_NOTES_DIR
+- MEETING_NOTES_DIR
+- PEOPLE_DIR
+- HUB_DIR
+- TODO_LIST_PATH
+- STATE_PATH
+- REVIEW_QUEUE_PATH
+
+Usage examples:
+- `fleeting_process_notes` with `{ "scope": "today" }`
+- `fleeting_process_notes` with `{ "scope": "this-week", "dry_run": true }`
+- `fleeting_process_notes` with `{ "scope": "range", "range": "2025-10-01..2025-10-31" }`
+
 ### Export Tools (3 tools)
 
 - `export_to_drive` - Export to Google Drive
