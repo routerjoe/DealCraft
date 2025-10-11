@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { existsSync, mkdirSync } from 'fs';
+import { dirname } from 'path';
 import { logger } from './logger.js';
 
 const HOME = process.env.HOME || process.env.USERPROFILE || '';
@@ -61,6 +62,39 @@ export function validateEnv(): boolean {
       logger.warn('GOOGLE_APPLICATION_CREDENTIALS file not found', {
         path: parsed.GOOGLE_APPLICATION_CREDENTIALS
       });
+    }
+
+    // Fleeting Notes optional path warnings (do not fail)
+    const vault = parsed.OBSIDIAN_VAULT_PATH;
+    const DAILY = process.env.DAILY_NOTES_DIR || `${vault}/00 Inbox/Daily Notes`;
+    const MEET = process.env.MEETING_NOTES_DIR || `${vault}/10 Literature/Meeting Notes`;
+    const PEOPLE = process.env.PEOPLE_DIR || `${vault}/30 Hubs/People`;
+    const HUB = process.env.HUB_DIR || `${vault}/30 Hubs`;
+    const TODO = process.env.TODO_LIST_PATH || `${DAILY}/To Do List.md`;
+    const STATE = process.env.STATE_PATH || `${process.cwd()}/.fleeting_state.json`;
+    const REVIEW = process.env.REVIEW_QUEUE_PATH || `${vault}/30 Hubs/_Review Queue.md`;
+
+    const dirChecks = [
+      { name: 'DAILY_NOTES_DIR', path: DAILY },
+      { name: 'MEETING_NOTES_DIR', path: MEET },
+      { name: 'PEOPLE_DIR', path: PEOPLE },
+      { name: 'HUB_DIR', path: HUB },
+      { name: 'REVIEW_QUEUE_DIR', path: dirname(REVIEW) },
+    ];
+    for (const d of dirChecks) {
+      if (!existsSync(d.path)) {
+        logger.warn(`Fleeting path missing (${d.name})`, { path: d.path });
+      }
+    }
+    // File parent warnings
+    const fileParents = [
+      { name: 'TODO_LIST_PATH parent', path: dirname(TODO) },
+      { name: 'STATE_PATH parent', path: dirname(STATE) },
+    ];
+    for (const fp of fileParents) {
+      if (!existsSync(fp.path)) {
+        logger.warn(`Fleeting file parent missing (${fp.name})`, { path: fp.path });
+      }
     }
 
     logger.info('Environment validated successfully', {
