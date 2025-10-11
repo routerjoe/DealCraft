@@ -381,9 +381,25 @@ function buildPeopleIndex(PEOPLE: string): Record<string, string> {
 }
 
 function linkifyAttendees(att: string[], idx: Record<string, string>): string[] {
-  return att.map(a => {
-    const key = a.replace(/\(.+?\)$/, '').trim().toLowerCase();
-    return idx[key] ? `[[${idx[key]}]]` : a;
+  return att.map(raw => {
+    // Support optional suffix " - Role - Org" (or with em dash)
+    const parts = raw.split(/\s+[—-]\s+/);
+    const namePart = (parts[0] || raw).trim();
+    const extraSuffix = parts.slice(1).join(' - ').trim();
+
+    const key = namePart.replace(/\(.+?\)$/, '').trim().toLowerCase();
+    const fileName = idx[key];
+
+    let link = fileName ? `[[${fileName}]]` : namePart;
+
+    // If no suffix provided, try to derive Title from People filename "(Title)"
+    let suffix = extraSuffix;
+    if (!suffix && fileName) {
+      const m = fileName.match(/\((.+?)\)$/);
+      if (m) suffix = m[1];
+    }
+
+    return suffix ? `${link} - ${suffix}` : link;
   });
 }
 
@@ -395,46 +411,45 @@ function fmMeeting(opts: { title: string; date: string; time?: string; attendees
     date: opts.date,
     time: opts.time || '',
     attendees: opts.attendees,
-    organizations: [], customer: '', related_opportunities: [], related_rfqs: [],
-    oems: [], distributors: [], contract_office: '',
-    status: 'open',
-    follow_up_due: opts.followup || '',
-    action_items: [],
-    links: opts.links,
-    created: '', updated: '', tags: ['meeting'],
+    customer: '',
+    opportunity: null,
+    oems: [],
+    distributors: [null],
+    contract: null,
+    contract_office: null,
+    tags: ['meeting'],
+    status: 'open'
   };
   return ['---', yamlStringify(fm, { lineWidth: 100 }).trim(), '---'].join('\n');
 }
 
 function bodyMeeting(discussion?: string[], extra?: { heading: string; lines: string[] }[], tasks?: string[]) {
-  const notes = (discussion || []).join('\n').trim();
+  const discLines = (discussion || []).map(l => l.trim()).filter(Boolean);
+  // Use first non-bullet line as a summary if available; else first line (without bullet); else em dash
+  const summary = discLines.find(l => !/^\s*[-*]/.test(l)) || (discLines[0] ? discLines[0].replace(/^\s*[-*]\s*/, '') : '—');
+  const notesSection = discLines.join('\n');
+
+  // Convert unchecked checkbox tasks into numbered ACTIONS list
+  const numberedActions = (tasks || []).map((t, i) => `${i + 1}. ${t.replace(/^\s*-\s*\[\s\]\s*/, '').trim()}`);
+
+  // Preserve any additional H3 sections under their headings (before Notes / Discussion)
   const extraBlocks = (extra || []).map(e => `### ${e.heading}\n${e.lines.join('\n')}`).join('\n\n');
-  const actions = (tasks || []);
-  return `
-\`\`\`dataviewjs
-const t = dv.current().title ?? dv.current().file.name;
-dv.header(1, t);
-\`\`\`
 
-## Agenda
--
-
-## Notes
-${notes}
-
-${extraBlocks ? extraBlocks + '\n' : ''}
-## Action Items
-${actions.length ? actions.join('\n') : '- [ ]'}
-
-## Cross-Links
-- Customer: \`= default(this.customer, "—")\`
-- Opportunities: \`= default(join(this.related_opportunities, ", "), "—")\`
-
-## Recent Attachments and Screens
-- Save to: \`60 Sources/screenshots/YYYY/MM/\`
-- Filename: \`YYYYMMDD-HHmm-context-entity.png\`
-- Example: ![[60 Sources/screenshots/2025/09/20250925-1535-meeting-EXAMPLE.png]]
-`;
+  return [
+    '### Summary',
+    summary || '—',
+    '',
+    extraBlocks ? extraBlocks + '\n' : '',
+    '### Notes / Discussion',
+    notesSection || '—',
+    '',
+    '### ACTIONS',
+    numberedActions.length ? numberedActions.join('\n') : '—',
+    '',
+    '### TARGETS / FOLLOW UPS',
+    '- —',
+    ''
+  ].join('\n');
 }
 
 function nextAvailablePath(dir: string, baseName: string): string {
