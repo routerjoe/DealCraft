@@ -32,6 +32,7 @@ export interface Result {
 export interface FleetingSummary extends Result {
   scope: string;
   dryRun: boolean;
+  state_path?: string;
 }
 
 /**
@@ -239,42 +240,124 @@ function savePerson(c: ParsedContact, PEOPLE: string, dry: boolean): { path: str
   const companyFolder = c.company ? path.join(PEOPLE, c.company) : path.join(PEOPLE, '_Triage');
   const fname = personFileName(c) + '.md';
   const p = path.join(companyFolder, fname);
-  const fmObj: any = {
-    type: 'person',
-    name: c.full_name || '',
-    title: c.title || '',
-    company: c.company || '',
-    emails: c.emails || [],
-    mobile: c.mobile || [],
-    office: c.office || [],
-    address: c.address || '',
-    source_note: c.sourceNote || '',
-  };
-  const body = ['---', yamlStringify(fmObj, { lineWidth: 100 }).trim(), '---', '\n# Notes\n'].join('\n');
 
+  const primaryEmail = (c.emails && c.emails[0]) ? c.emails[0] : '';
+  const primaryPhone = (c.mobile && c.mobile[0]) ? c.mobile[0] : ((c.office && c.office[0]) ? c.office[0] : '');
+
+  const baseFm: any = {
+    type: 'hub.people',
+    person_name: c.full_name || '',
+    zkid: '',
+    created: nowISO(),
+    updated: '',
+    tags: ['person'],
+    role: c.title || '',
+    orgs: c.company ? [`[[${c.company}]]`] : [],
+    email: primaryEmail || '',
+    phone: primaryPhone || '',
+    accounts: [],
+    oems: [],
+    contracts: [],
+    notes: ''
+  };
+
+  const peopleBodyTemplate = () => `
+# \`= default(this.person_name, this.file.name)\` (People)
+
+## Overview
+- Role: \`= default(this.role, "—")\`
+- Orgs: \`= default(join(this.orgs, ", "), "—")\`
+- Email: \`= default(this.email, "—")\`
+- Phone: \`= default(this.phone, "—")\`
+
+## Affiliations
+- Accounts: \`= default(join(this.accounts, ", "), "—")\`
+- OEMs: \`= default(join(this.oems, ", "), "—")\`
+- Contracts: \`= default(join(this.contracts, ", "), "—")\`
+
+## Notes
+- \`= default(this.notes, "—")\`
+
+## Related RFQs
+\`\`\`dataview
+TABLE rfq_id, radar_id, status, est_close, customer
+FROM "60 Sources"
+WHERE type = "rfq" AND contains(links, this.file.link)
+\`\`\`
+
+## Related Opportunities
+\`\`\`dataview
+TABLE file.link AS Opportunity, stage, radar_level, customer, contract_vehicle, est_close
+FROM "40 Projects"
+WHERE type = "opportunity" AND contains(links, this.file.link)
+SORT est_close ASC
+\`\`\`
+`.trim() + '\n';
+
+  // Create new file with template FM + body
   if (!E(p)) {
-    if (!dry) writeAtomic(p, body);
+    const fm = ['---', yamlStringify(baseFm, { lineWidth: 100 }).trim(), '---'].join('\n');
+    if (!dry) writeAtomic(p, fm + '\n\n' + peopleBodyTemplate());
     return { path: p, created: true };
-  } else {
-    // merge minimally: append any new emails/phones to frontmatter
-    const cur = R(p);
-    try {
-      const m = cur.match(/^---\n([\s\S]+?)\n---/);
-      if (m) {
-        const obj: any = yamlParse(m[1]) || {};
-        obj.emails = Array.from(new Set([...(obj.emails || []), ...(c.emails || [])]));
-        obj.mobile = Array.from(new Set([...(obj.mobile || []), ...(c.mobile || [])]));
-        obj.office = Array.from(new Set([...(obj.office || []), ...(c.office || [])]));
-        obj.title = c.title || obj.title || '';
-        obj.company = c.company || obj.company || '';
-        const rebuilt = ['---', yamlStringify(obj, { lineWidth: 100 }).trim(), '---', cur.slice(m[0].length)].join('\n');
-        if (!dry) writeAtomic(p, rebuilt);
-      }
-    } catch {
-      // ignore parse errors, do not corrupt existing file
-    }
-    return { path: p, created: false };
   }
+
+  // Update existing file: normalize to hub.people and merge fields
+  const cur = R(p);
+  try {
+    const m = cur.match(/^---\n([\s\S]+?)\n---/);
+    const afterFm = m ? cur.slice(m[0].length) : cur;
+    const obj: any = m ? (yamlParse(m[1]) || {}) : {};
+
+    // If legacy or missing, transform to new schema
+    const out: any = (obj && obj.type === 'hub.people') ? { ...obj } : { ...baseFm, created: obj.created || baseFm.created };
+
+    // Ensure required fields/sane defaults
+    out.type = 'hub.people';
+    out.tags = Array.isArray(out.tags) ? Array.from(new Set([...out.tags, 'person'])) : ['person'];
+
+    // Merge values from parsed contact
+    if (!out.person_name && c.full_name) out.person_name = c.full_name;
+    if (!out.role && c.title) out.role = c.title;
+
+    // Orgs as wiki links
+    const wikiCompany = c.company ? `[[${c.company}]]` : undefined;
+    out.orgs = Array.isArray(out.orgs) ? out.orgs : (out.orgs ? [out.orgs] : []);
+    if (wikiCompany && !out.orgs.includes(wikiCompany)) out.orgs.push(wikiCompany);
+
+    if ((!out.email || out.email === '') && primaryEmail) out.email = primaryEmail;
+    if ((!out.phone || out.phone === '') && primaryPhone) out.phone = primaryPhone;
+
+    // Preserve created if present; bump updated timestamp
+    out.created = out.created || baseFm.created;
+    out.updated = nowISO();
+
+    // Rebuild FM with explicit key order matching template
+    const fmNewObj: any = {
+      type: 'hub.people',
+      person_name: out.person_name || '',
+      zkid: out.zkid || '',
+      created: out.created || baseFm.created,
+      updated: out.updated || '',
+      tags: out.tags || ['person'],
+      role: out.role || '',
+      orgs: out.orgs || [],
+      email: out.email || '',
+      phone: out.phone || '',
+      accounts: out.accounts || [],
+      oems: out.oems || [],
+      contracts: out.contracts || [],
+      notes: out.notes || ''
+    };
+    const fmNew = ['---', yamlStringify(fmNewObj, { lineWidth: 100 }).trim(), '---'].join('\n');
+
+    // Always enforce People display template body
+    const bodyOut = '\n' + peopleBodyTemplate();
+
+    if (!dry) writeAtomic(p, fmNew + bodyOut);
+  } catch {
+    // If anything goes wrong, do not corrupt existing file
+  }
+  return { path: p, created: false };
 }
 
 // People index for attendee linking
@@ -587,5 +670,5 @@ export async function runFleetingProcessor(options: FleetingOptions): Promise<Fl
   appendAudit(REVIEW, range.label, summary, dry);
   saveState(STATE, state, dry);
 
-  return { scope: range.label, dryRun: dry, ...summary };
+  return { scope: range.label, dryRun: dry, state_path: STATE, ...summary };
 }
