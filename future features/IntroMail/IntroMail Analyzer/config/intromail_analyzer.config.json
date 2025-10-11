@@ -1,0 +1,57 @@
+{
+  "weights": {
+    "title_seniority": {
+      "CIO": 30,
+      "CTO": 28,
+      "Director": 24,
+      "Deputy Director": 22,
+      "VP": 26,
+      "Colonel": 24,
+      "Lt Colonel": 22,
+      "Major": 18,
+      "GS-15": 24,
+      "GS-14": 22,
+      "GS-13": 18
+    },
+    "org_keywords": {
+      "AFCENT": 15,
+      "AETC": 12,
+      "Space": 12,
+      "SSC": 12,
+      "AFOTEC": 10,
+      "AFMC": 10
+    },
+    "notes_keywords": {
+      "EBC": 14,
+      "briefing": 12,
+      "follow-up": 8,
+      "requested": 10,
+      "ZTA": 10,
+      "SD-WAN": 8,
+      "NetApp": 6,
+      "Cisco": 6,
+      "Nutanix": 6,
+      "vSAN": 5
+    },
+    "bonus_rules": {
+      "has_company": 3,
+      "has_title": 3,
+      "has_notes": 3
+    }
+  },
+  "priority_thresholds": {
+    "high": 60,
+    "medium": 35
+  },
+  "subject_templates": {
+    "high": "Intro \u2014 Red River + {{company}} (Priority: {{focus}})",
+    "medium": "Intro \u2014 Red River + {{company}} (Quick Connect)",
+    "low": "Intro \u2014 Red River + {{company}}"
+  },
+  "focus_map": {
+    "ZTA": "Zero Trust",
+    "SD-WAN": "SD\u2011WAN",
+    "EBC": "Cisco EBC",
+    "briefing": "Capabilities Brief"
+  }
+}
