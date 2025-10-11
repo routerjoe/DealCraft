@@ -32,6 +32,10 @@ export const fleetingTools: Tool[] = [
         target_dir: {
           type: 'string',
           description: 'Optional override for DAILY_NOTES_DIR'
+        },
+        state_path: {
+          type: 'string',
+          description: 'Optional absolute path for state file (.fleeting_state.json)'
         }
       },
       required: ['scope']
@@ -45,6 +49,10 @@ export async function handleFleetingTool(name: string, args: any) {
       const scope = String(args?.scope || '');
       if (!AllowedScopes.includes(scope as any)) {
         throw new Error(`Invalid scope: ${scope}`);
+      }
+      // Allow explicit state_path override for hosts with read-only cwd
+      if (args?.state_path) {
+        process.env.STATE_PATH = String(args.state_path);
       }
       const summary = await runFleetingProcessor({
         scope: scope as any,

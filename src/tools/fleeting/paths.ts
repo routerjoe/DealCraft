@@ -1,4 +1,5 @@
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { tmpdir } from 'os';
 import { getObsidianPath, getBaseDir } from '../../utils/env.js';
 
 export interface FleetingPaths {
@@ -42,9 +43,14 @@ export function getFleetingPaths(targetDir?: string): FleetingPaths {
     join(DAILY, 'To Do List.md');
 
   const defaultStateDir = targetDir || join(baseDir, 'data');
-  const STATE =
+  let STATE =
     process.env.STATE_PATH ||
     join(defaultStateDir, '.fleeting_state.json');
+
+  // Safety: never write to root like "/.fleeting_state.json"
+  if (dirname(STATE) === '/') {
+    STATE = join(tmpdir(), 'redriver', '.fleeting_state.json');
+  }
 
   const REVIEW =
     process.env.REVIEW_QUEUE_PATH ||
