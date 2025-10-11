@@ -1,5 +1,5 @@
 import { join } from 'path';
-import { getObsidianPath } from '../../utils/env.js';
+import { getObsidianPath, getBaseDir } from '../../utils/env.js';
 
 export interface FleetingPaths {
   DAILY: string;
@@ -18,6 +18,7 @@ export interface FleetingPaths {
  */
 export function getFleetingPaths(targetDir?: string): FleetingPaths {
   const vault = getObsidianPath();
+  const baseDir = getBaseDir();
 
   const DAILY =
     targetDir ||
@@ -40,9 +41,10 @@ export function getFleetingPaths(targetDir?: string): FleetingPaths {
     process.env.TODO_LIST_PATH ||
     join(DAILY, 'To Do List.md');
 
+  const defaultStateDir = targetDir || join(baseDir, 'data');
   const STATE =
     process.env.STATE_PATH ||
-    join(process.cwd(), '.fleeting_state.json');
+    join(defaultStateDir, '.fleeting_state.json');
 
   const REVIEW =
     process.env.REVIEW_QUEUE_PATH ||
