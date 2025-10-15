@@ -1,0 +1,48 @@
+═══════════════════════════════════════════════════════════════
+  RED RIVER SALES AUTOMATION - RFQ FILTERING CONFIGURATION
+═══════════════════════════════════════════════════════════════
+
+📦 PACKAGE CONTENTS (7 files)
+
+START HERE:
+  1. INSTALLATION_SUMMARY.md  - Read this first! Installation guide & overview
+  2. setup.sh                 - Run this to install (./setup.sh)
+
+CORE CONFIGURATION:
+  3. rfq_config.sql          - Database schema (apply to your database)
+  4. rfq_filtering_config.py - Python filtering logic (import in your MCP)
+
+DOCUMENTATION:
+  5. README.md               - Complete documentation (527 lines)
+  6. QUICK_REFERENCE.txt     - Printable reference card (keep handy!)
+
+TESTING:
+  7. test_config.py          - Verify configuration (./test_config.py)
+
+═══════════════════════════════════════════════════════════════
+QUICK START:
+
+1. Read:   INSTALLATION_SUMMARY.md
+2. Run:    ./setup.sh
+3. Test:   ./test_config.py
+4. Print:  QUICK_REFERENCE.txt
+
+═══════════════════════════════════════════════════════════════
+CONFIGURATION HIGHLIGHTS:
+
+✓ 15 Strategic Customers (AFCENT, USSOCOM, Space Force, etc.)
+✓ 4 Value Tiers ($20K, $200K, $1M+)
+✓ 9 Technology Verticals (Zero Trust, Data Center, etc.)
+✓ 5 OEM Tracking (Atlassian, Graylog, LogRhythm, Sparx, Quest/Toad)
+✓ 9 Automated Filtering Rules
+✓ 0-100 RFQ Scoring Algorithm
+✓ OEM Business Case Evaluator
+
+═══════════════════════════════════════════════════════════════
+SUPPORT:
+
+• Full documentation: README.md
+• Questions? See troubleshooting section in README.md
+• Version: 1.0 (October 13, 2025)
+
+═══════════════════════════════════════════════════════════════

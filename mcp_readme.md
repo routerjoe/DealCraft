@@ -409,3 +409,65 @@ Troubleshooting:
   - Invalid JSON (ensure the payload is valid)
   - Attachment paths do not exist (they are skipped; warnings logged)
 - Check server logs in ~/RedRiver/logs for details.
+
+## RFQ Rules Upgrade
+
+This release integrates a config-driven RFQ rules and scoring engine with safety defaults.
+
+New RFQ tools
+- rfq_set_attributes — Update RFQ metadata used by rules and scoring
+- rfq_calculate_score — Compute and persist 0-100 score and recommendation
+- rfq_apply_rules — Apply automated rules R001–R009 and record outcomes; respects RFQ_AUTO_DECLINE_ENABLED
+- rfq_track_oem_occurrence — Log OEM occurrences and update tracking counters
+
+New Analytics tool
+- analytics_oem_business_case_90d — View OEM rollups from the 90-day window using v_oem_business_case_90d
+
+Environment toggles
+- RFQ_AUTO_DECLINE_ENABLED=false by default. When set to true, matching auto-decline rules will mark NO-GO with reasons. Outlook emails are never deleted automatically.
+
+Examples
+```json
+{
+  "name": "rfq_set_attributes",
+  "arguments": {
+    "rfq_id": 123,
+    "estimated_value": 250000,
+    "competition_level": 15,
+    "tech_vertical": "Zero Trust",
+    "oem": "Cisco",
+    "has_previous_contract": true,
+    "deadline": "2025-10-20",
+    "customer": "Space Force"
+  }
+}
+```
+
+```json
+{ "name": "rfq_calculate_score", "arguments": { "rfq_id": 123 } }
+```
+
+```json
+{ "name": "rfq_apply_rules", "arguments": { "rfq_id": 123 } }
+```
+
+```json
+{
+  "name": "rfq_track_oem_occurrence",
+  "arguments": {
+    "rfq_id": 123,
+    "oem": "Atlassian",
+    "estimated_value": 15000,
+    "competition_level": 80,
+    "technology_vertical": "DevOps/Collaboration"
+  }
+}
+```
+
+```json
+{ "name": "analytics_oem_business_case_90d", "arguments": { "min_occurrences": 0, "min_total_value": 0 } }
+```
+
+Notes
+- Config is seeded automatically at server startup from future features/rfq update/rfq_config.sql.
+- All rules and scoring functions are implemented in TypeScript and read from the config tables with safe fallbacks.
