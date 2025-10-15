@@ -34,6 +34,7 @@ import { crmTools, handleCrmTool } from './tools/crm/index.js';
 import { analyticsTools, handleAnalyticsTool } from './tools/analytics/index.js';
 import { exportTools, handleExportTool } from './tools/export/index.js';
 import { fleetingTools, handleFleetingTool } from './tools/fleeting/index.js';
+import { intromailTools, handleIntromailTool } from './tools/intromail/index.js';
 
 class RedRiverMCPServer {
   private server: Server;
@@ -61,6 +62,7 @@ class RedRiverMCPServer {
       ...analyticsTools,
       ...exportTools,
       ...fleetingTools,
+      ...intromailTools,
     ];
 
     this.setupHandlers();
@@ -97,6 +99,8 @@ class RedRiverMCPServer {
           return await handleExportTool(name, args);
         } else if (name.startsWith('fleeting_')) {
           return await handleFleetingTool(name, args);
+        } else if (name.startsWith('intromail')) {
+          return await handleIntromailTool(name, args);
         }
 
         throw new Error(`Unknown tool: ${name}`);

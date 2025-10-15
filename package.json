@@ -14,7 +14,10 @@
     "test:rfq-email": "npm run build && node dist/dev/test_buildRfqEmail.js",
     "test:oem-email": "npm run build && node dist/dev/test_buildOemRegistrationEmail.js",
     "test:rfq-rules": "npm run build && node dist/dev/test_rfq_rules.js",
-    "test:rfq-e2e": "npm run build && node dist/dev/test_rfq_e2e.js"
+    "test:rfq-e2e": "npm run build && node dist/dev/test_rfq_e2e.js",
+    "test:intromail-analyzer": "npm run build && node dist/dev/test_intromail_analyzer.js",
+    "test:intromail-intros": "npm run build && node dist/dev/test_intromail_intros.js",
+    "watch:intromail-inbox": "npm run build && node dist/dev/watch_intromail_inbox.js"
   },
   "keywords": [
     "mcp",
