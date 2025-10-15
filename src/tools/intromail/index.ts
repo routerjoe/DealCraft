@@ -219,7 +219,7 @@ async function handleIntros(args: IntrosArgs) {
 
 export const intromailTools: Tool[] = [
   {
-    name: "intromail:analyzer",
+    name: "intromail_analyzer",
     description: "Analyze a campaign CSV and rank contacts (High/Medium/Low) with a 0–100 score; outputs *_analyzed.csv",
     inputSchema: {
       type: "object",
@@ -232,7 +232,7 @@ export const intromailTools: Tool[] = [
     }
   },
   {
-    name: "intromail:intros",
+    name: "intromail_intros",
     description: "Generate Outlook Draft intro emails from CSV (macOS). Drafts only; never auto-sends.",
     inputSchema: {
       type: "object",
@@ -250,8 +250,10 @@ export const intromailTools: Tool[] = [
 
 export async function handleIntromailTool(name: string, args: any) {
   switch (name) {
+    case "intromail_analyzer":
     case "intromail:analyzer":
       return await handleAnalyzer(args as AnalyzerArgs);
+    case "intromail_intros":
     case "intromail:intros":
       return await handleIntros(args as IntrosArgs);
     default:

@@ -155,8 +155,8 @@ Usage examples:
 
 ### IntroMail Tools (2 tools)
 
-- `intromail:analyzer` - Analyze campaign CSV and rank contacts; outputs analyzed CSV with columns: priority, score, recommended_subject; config at config/intromail_analyzer.config.json; override via INTROMAIL_ANALYZER_CONFIG; default output_dir at ~/RedRiver/campaigns/analyzer_results.
-- `intromail:intros` - Generate Outlook Drafts from CSV on macOS; uses recommended_subject per-row when present; otherwise falls back to INTROMAIL_SUBJECT_DEFAULT or "Intro — Red River + {{company}}"; requires Legacy Outlook Automation permissions; body template at templates/intro_email.txt and optional attachment via INTROMAIL_ATTACHMENT_DEFAULT.
+- `intromail_analyzer` - Analyze campaign CSV and rank contacts; outputs analyzed CSV with columns: priority, score, recommended_subject; config at config/intromail_analyzer.config.json; override via INTROMAIL_ANALYZER_CONFIG; default output_dir at ~/RedRiver/campaigns/analyzer_results.
+- `intromail_intros` - Generate Outlook Drafts from CSV on macOS; uses recommended_subject per-row when present; otherwise falls back to INTROMAIL_SUBJECT_DEFAULT or "Intro — Red River + {{company}}"; requires Legacy Outlook Automation permissions; body template at templates/intro_email.txt and optional attachment via INTROMAIL_ATTACHMENT_DEFAULT.
 
 ### Export Tools (3 tools)
 
@@ -290,7 +290,7 @@ npm run watch
 
 - Pre-req: set INTROMAIL_INBOX_DIR in [.env](.env.example) or it defaults to ~/RedRiver/campaigns/inbox
 - Run: npm run watch:intromail-inbox
-- Behavior: when a new CSV is saved into the inbox directory, intromail:analyzer runs automatically and writes the analyzed CSV to ~/RedRiver/campaigns/analyzer_results
+- Behavior: when a new CSV is saved into the inbox directory, intromail_analyzer runs automatically and writes the analyzed CSV to ~/RedRiver/campaigns/analyzer_results
 - Status: watcher is optional and runs locally from your terminal
 
 ### Testing

@@ -16,7 +16,7 @@ async function main() {
   }
 
   console.log('[test_intromail_intros] Dry-run generating Outlook drafts from', csvPath);
-  const result = await handleIntromailTool('intromail:intros', {
+  const result = await handleIntromailTool('intromail_intros', {
     csv_path: csvPath,
     subject_template: process.env.INTROMAIL_SUBJECT_DEFAULT || 'Intro — Red River + {{company}}',
     body_template_path: bodyTemplatePath,
