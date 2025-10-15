@@ -47,6 +47,20 @@ export async function initializeDatabase(): Promise<void> {
   // Create tables
   createTables();
 
+  // Ensure extended RFQ columns and indexes
+  try {
+    ensureRfqsExtendedColumns();
+  } catch (e) {
+    logger.warn('ensureRfqsExtendedColumns failed', { error: (e as any)?.message || String(e) });
+  }
+
+  // Seed RFQ configuration from SQL file (idempotent)
+  try {
+    await seedRfqConfigFromSqlFile();
+  } catch (e) {
+    logger.warn('seedRfqConfigFromSqlFile failed', { error: (e as any)?.message || String(e) });
+  }
+
   // Save database to disk
   saveDatabase();
 }
@@ -139,6 +153,55 @@ function createTables(): void {
   db.run(`CREATE INDEX IF NOT EXISTS idx_activity_log_created_at ON activity_log(created_at)`);
 
   logger.info('Database tables created successfully');
+}
+
+//
+// Extended RFQ schema safeguard and config seeding
+//
+function tableHasColumn(table: string, column: string): boolean {
+  if (!db) return false;
+  const res = db.exec(`PRAGMA table_info('${table}')`);
+  if (!res.length) return false;
+  const nameIdx = res[0].columns.indexOf('name');
+  return res[0].values.some((row: any[]) => row[nameIdx] === column);
+}
+
+function addColumnIfMissing(table: string, columnDef: string) {
+  if (!db) return;
+  const colName = columnDef.split(/\s+/)[0];
+  if (!tableHasColumn(table, colName)) {
+    db.run(`ALTER TABLE ${table} ADD COLUMN ${columnDef}`);
+  }
+}
+
+function ensureRfqsExtendedColumns() {
+  if (!db) return;
+  addColumnIfMissing('rfqs', 'competition_level INTEGER');
+  addColumnIfMissing('rfqs', 'tech_vertical TEXT');
+  addColumnIfMissing('rfqs', 'oem TEXT');
+  addColumnIfMissing('rfqs', 'has_previous_contract INTEGER DEFAULT 0');
+  addColumnIfMissing('rfqs', 'rfq_score INTEGER');
+  addColumnIfMissing('rfqs', 'rfq_recommendation TEXT');
+
+  db.run('CREATE INDEX IF NOT EXISTS idx_rfqs_competition ON rfqs(competition_level)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_rfqs_oem ON rfqs(oem)');
+  db.run('CREATE INDEX IF NOT EXISTS idx_rfqs_score ON rfqs(rfq_score)');
+}
+
+async function seedRfqConfigFromSqlFile(): Promise<void> {
+  if (!db) return;
+  try {
+    const candidate = join(process.cwd(), 'future features', 'rfq update', 'rfq_config.sql');
+    if (!existsSync(candidate)) {
+      logger.warn('RFQ config seed SQL not found, skipping', { path: candidate });
+      return;
+    }
+    const sql = readFileSync(candidate, 'utf-8');
+    db.run(sql);
+    logger.info('RFQ configuration seeded from SQL', { path: candidate });
+  } catch (e: any) {
+    logger.warn('Failed to seed RFQ configuration', { error: e?.message || String(e) });
+  }
 }
 
 export function saveDatabase(): void {

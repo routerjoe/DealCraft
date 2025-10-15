@@ -687,3 +687,203 @@ export async function runFleetingProcessor(options: FleetingOptions): Promise<Fl
 
   return { scope: range.label, dryRun: dry, state_path: STATE, ...summary };
 }
+
+/** =======================
+ *  Upgrade existing notes
+ *  ======================= */
+export interface UpgradeOptions {
+  upgradePeople?: boolean;
+  upgradeMeetings?: boolean;
+  targetDir?: string;   // not used for scanning (we scan PEOPLE_DIR/MEET), but kept for future
+  dryRun?: boolean;
+}
+
+function splitFrontmatter(txt: string): { fm: any | null; fmRaw: string; body: string } {
+  const m = txt.match(/^---\n([\s\S]*?)\n---\n?/);
+  if (!m) return { fm: null, fmRaw: '', body: txt };
+  let obj: any = null;
+  try { obj = yamlParse(m[1]) || {}; } catch { obj = {}; }
+  const body = txt.slice(m[0].length);
+  return { fm: obj, fmRaw: m[1], body };
+}
+
+function isWikiLink(s: string): boolean { return /^\s*\[\[.+\]\]\s*$/.test(s || ''); }
+function toWikiLink(s?: string): string {
+  if (!s) return '';
+  return isWikiLink(s) ? s : `[[${s}]]`;
+}
+
+function peopleBodyTemplateForUpgrade(): string {
+  return [
+    '# `= default(this.person_name, this.file.name)` (People)',
+    '',
+    '## Overview',
+    '- Role: `= default(this.role, "—")`',
+    '- Orgs: `= default(join(this.orgs, ", "), "—")`',
+    '- Email: `= default(this.email, "—")`',
+    '- Phone: `= default(this.phone, "—")`',
+    '',
+    '## Affiliations',
+    '- Accounts: `= default(join(this.accounts, ", "), "—")`',
+    '- OEMs: `= default(join(this.oems, ", "), "—")`',
+    '- Contracts: `= default(join(this.contracts, ", "), "—")`',
+    '',
+    '## Notes',
+    '- `= default(this.notes, "—")`',
+    '',
+    '## Related RFQs',
+    '```dataview',
+    'TABLE rfq_id, radar_id, status, est_close, customer',
+    'FROM "60 Sources"',
+    'WHERE type = "rfq" AND contains(links, this.file.link)',
+    '```',
+    '',
+    '## Related Opportunities',
+    '```dataview',
+    'TABLE file.link AS Opportunity, stage, radar_level, customer, contract_vehicle, est_close',
+    'FROM "40 Projects"',
+    'WHERE type = "opportunity" AND contains(links, this.file.link)',
+    'SORT est_close ASC',
+    '```',
+    ''
+  ].join('\n');
+}
+
+function walkDir(dir: string): string[] {
+  const acc: string[] = [];
+  if (!E(dir)) return acc;
+  const st = fs.statSync(dir);
+  if (st.isFile() && dir.toLowerCase().endsWith('.md')) return [dir];
+  function rec(d: string) {
+    for (const e of fs.readdirSync(d)) {
+      const p = path.join(d, e);
+      const st2 = fs.statSync(p);
+      if (st2.isDirectory()) rec(p);
+      else if (st2.isFile() && p.toLowerCase().endsWith('.md')) acc.push(p);
+    }
+  }
+  if (st.isDirectory()) rec(dir);
+  return acc;
+}
+
+function normalizePeopleFile(p: string, dry: boolean): boolean {
+  const txt = R(p);
+  const { fm, body } = splitFrontmatter(txt);
+
+  // Build new FM from existing data
+  const nameFromFile = path.basename(p, '.md').replace(/\(.+?\)$/, '').trim();
+  const primaryEmail = (fm?.email) || (Array.isArray(fm?.emails) ? (fm.emails[0] || '') : '');
+  const primaryPhone = fm?.phone || (Array.isArray(fm?.mobile) ? (fm.mobile[0] || '') : (Array.isArray(fm?.office) ? (fm.office[0] || '') : ''));
+
+  const orgsRaw = Array.isArray(fm?.orgs) ? fm.orgs : (fm?.company ? [fm.company] : []);
+  const orgs = orgsRaw.map((s: string) => toWikiLink(s)).filter(Boolean);
+
+  const out: any = {
+    type: 'hub.people',
+    person_name: fm?.person_name || fm?.name || nameFromFile,
+    zkid: fm?.zkid || '',
+    created: fm?.created || nowISO(),
+    updated: nowISO(),
+    tags: Array.isArray(fm?.tags) ? Array.from(new Set([...fm.tags, 'person'])) : ['person'],
+    role: fm?.role || fm?.title || '',
+    orgs,
+    email: primaryEmail || '',
+    phone: primaryPhone || '',
+    accounts: Array.isArray(fm?.accounts) ? fm.accounts : [],
+    oems: Array.isArray(fm?.oems) ? fm.oems : [],
+    contracts: Array.isArray(fm?.contracts) ? fm.contracts : [],
+    notes: fm?.notes || ''
+  };
+
+  const fmNew = ['---', yamlStringify(out, { lineWidth: 100 }).trim(), '---'].join('\n');
+  const hasPeopleHeader = /# `= default\(this\.person_name, this\.file\.name\)` \(People\)/.test(body);
+  const bodyOut = hasPeopleHeader ? body : ('\n' + peopleBodyTemplateForUpgrade());
+
+  const next = fmNew + bodyOut;
+  const changed = next !== txt;
+  if (changed && !dry) writeAtomic(p, next);
+  return changed;
+}
+
+function extractDiscussionFromBody(body: string): { discussion: string[]; tasks: string[] } {
+  const lines = body.split(/\r?\n/);
+  // Try to isolate "## Notes" (or "## Notes / Discussion") section, else use full body
+  let start = lines.findIndex(l => /^##\s*Notes(?:\s*\/\s*Discussion)?\s*$/i.test(l));
+  if (start === -1) start = 0;
+  let end = lines.length;
+  for (let i = start + 1; i < lines.length; i++) {
+    if (/^##\s+/.test(lines[i])) { end = i; break; }
+  }
+  const disc = lines.slice(start === 0 ? 0 : start + 1, end).map(l => l.trim());
+  const tasks = body.match(/^\s*-\s*\[\s\]\s+.*$/gmi)?.map(s => s.trim()) || [];
+  return { discussion: disc, tasks };
+}
+
+function normalizeMeetingFile(p: string, peopleIdx: Record<string, string>, dry: boolean): boolean {
+  const txt = R(p);
+  const { fm, body } = splitFrontmatter(txt);
+
+  // Build new FM per preferred schema
+  const attendeesRaw: string[] = Array.isArray(fm?.attendees) ? fm.attendees : [];
+  const attendees = linkifyAttendees(attendeesRaw, peopleIdx);
+
+  const out: any = {
+    type: 'meeting',
+    title: fm?.title || path.basename(p, '.md'),
+    date: fm?.date || deriveDate(p) || '',
+    time: (fm?.time || '').toString(),
+    attendees,
+    customer: fm?.customer || '',
+    opportunity: fm?.opportunity ?? null,
+    oems: Array.isArray(fm?.oems) ? fm.oems : [],
+    distributors: Array.isArray(fm?.distributors) ? fm.distributors : [null],
+    contract: fm?.contract ?? null,
+    contract_office: fm?.contract_office ?? null,
+    tags: Array.isArray(fm?.tags) ? Array.from(new Set([...fm.tags, 'meeting'])) : ['meeting'],
+    status: fm?.status || 'open'
+  };
+
+  const fmNew = ['---', yamlStringify(out, { lineWidth: 100 }).trim(), '---'].join('\n');
+
+  // Regenerate body from existing content
+  const { discussion, tasks } = extractDiscussionFromBody(body || '');
+  const newBody = '\n' + bodyMeeting(discussion, [], tasks);
+  const next = fmNew + newBody;
+
+  const changed = next !== txt;
+  if (changed && !dry) writeAtomic(p, next);
+  return changed;
+}
+
+export async function upgradeExisting(opts: UpgradeOptions): Promise<{
+  dryRun: boolean;
+  people_scanned: number;
+  people_upgraded: number;
+  meetings_scanned: number;
+  meetings_upgraded: number;
+}> {
+  const dry = opts.dryRun === true;
+  const paths = getFleetingPaths(opts.targetDir);
+  const { PEOPLE, MEET } = paths;
+
+  let people_scanned = 0, people_upgraded = 0;
+  if (opts.upgradePeople !== false) {
+    const peopleFiles = walkDir(PEOPLE);
+    for (const f of peopleFiles) {
+      people_scanned++;
+      try { if (normalizePeopleFile(f, dry)) people_upgraded++; } catch (e:any) { logger.error('upgrade people failed', { file: f, error: e?.message || String(e) }); }
+    }
+  }
+
+  let meetings_scanned = 0, meetings_upgraded = 0;
+  if (opts.upgradeMeetings !== false) {
+    const peopleIdx = buildPeopleIndex(PEOPLE);
+    const meetingFiles = walkDir(MEET);
+    for (const f of meetingFiles) {
+      meetings_scanned++;
+      try { if (normalizeMeetingFile(f, peopleIdx, dry)) meetings_upgraded++; } catch (e:any) { logger.error('upgrade meetings failed', { file: f, error: e?.message || String(e) }); }
+    }
+  }
+
+  return { dryRun: dry, people_scanned, people_upgraded, meetings_scanned, meetings_upgraded };
+}

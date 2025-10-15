@@ -12,7 +12,9 @@
     "start": "node dist/index.js",
     "test:rfq-drafts": "npm run build && node dist/dev/test_create_rfq_drafts.js",
     "test:rfq-email": "npm run build && node dist/dev/test_buildRfqEmail.js",
-    "test:oem-email": "npm run build && node dist/dev/test_buildOemRegistrationEmail.js"
+    "test:oem-email": "npm run build && node dist/dev/test_buildOemRegistrationEmail.js",
+    "test:rfq-rules": "npm run build && node dist/dev/test_rfq_rules.js",
+    "test:rfq-e2e": "npm run build && node dist/dev/test_rfq_e2e.js"
   },
   "keywords": [
     "mcp",

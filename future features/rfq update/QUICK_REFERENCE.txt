@@ -1,0 +1,126 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                 RED RIVER SALES AUTOMATION QUICK REFERENCE                 ║
+║                        RFQ Filtering & Decision Guide                      ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+┌─ AUTO-DECLINE (No Review Needed) ──────────────────────────────────────────┐
+│ ✗ Consolidated notices (eBuy admin, Govly saved searches)                 │
+│ ✗ 125+ bidders + <$15K + software renewal                                 │
+│ ✗ <$2K total value (unless strategic customer)                            │
+│ ✗ ≤2 days to respond with complex requirements                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ ALWAYS FLAG FOR IMMEDIATE REVIEW ─────────────────────────────────────────┐
+│ ✓ $1M+ value (Executive Notification)                                     │
+│ ✓ $200K-$1M value (Sales Team Alert)                                      │
+│ ✓ Strategic Customers (15 total - see list below)                         │
+│ ✓ <20 bidders + $20K+ value (Low competition opportunity)                 │
+│ ✓ Zero Trust / Data Center / Enterprise Networking (Any value)            │
+│ ✓ Existing customer renewals                                              │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ STRATEGIC CUSTOMERS (15) ─────────────────────────────────────────────────┐
+│ CRITICAL (7): AFCENT, ARCENT, US CYBERCOMMAND, AFSOC, USSOCOM,           │
+│               Space Force, DARPA                                           │
+│ HIGH (8):     AETC, Hill AFB, Eglin AFB, Tyndall AFB, Patrick AFB,       │
+│               Andrews AFB, Bolling AFB, AFOSI                              │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ VALUE TIERS ──────────────────────────────────────────────────────────────┐
+│ TIER 1: $1M+          → Immediate Executive Notification                  │
+│ TIER 2: $200K-$1M     → Sales Team Priority                               │
+│ TIER 3: $20K-$200K    → Standard Review Process                           │
+│ TIER 4: <$20K         → Consider Auto-Decline                             │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ TECHNOLOGY PRIORITIES ────────────────────────────────────────────────────┐
+│ HIGH:   ✓ Zero Trust  ✓ Data Center  ✓ Enterprise Networking             │
+│         ✓ Cybersecurity                                                    │
+│ MEDIUM: Cloud Migration, AI/ML, SIEM, SD-WAN, Hybrid Cloud               │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ OEM TRACKING (New Business) ──────────────────────────────────────────────┐
+│ Atlassian (5+)    → DevOps/Collaboration tools                            │
+│ Graylog (5+)      → SIEM / Security analytics                             │
+│ LogRhythm (5+)    → SIEM / Security analytics                             │
+│ Sparx (8+)        → Enterprise architecture (niche)                       │
+│ Quest/Toad (5+)   → Database tools                                        │
+│                                                                            │
+│ ACTION: Log every occurrence. When threshold reached, generate business   │
+│         case for partnership discussion.                                   │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ RFI/MRR RESPONSE STRATEGY ────────────────────────────────────────────────┐
+│ ALWAYS respond:    Strategic customers (CRITICAL/HIGH)                    │
+│ USUALLY respond:   $50K+ estimated future value                           │
+│ EVALUATE:          $25K-$50K opportunities (case-by-case)                 │
+│ USUALLY decline:   <$25K + non-strategic + high competition               │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ SCORING SYSTEM (0-100 points) ────────────────────────────────────────────┐
+│ • Value (0-40):      $1M+=40, $200K+=30, $20K+=20, <$20K=10              │
+│ • Customer (0-25):   CRITICAL=25, HIGH=15, Standard=0                     │
+│ • Competition (0-15): <20=15, <50=10, <100=5, 100+=0                     │
+│ • Technology (0-10):  HIGH priority=10, MEDIUM=5, Other=0                │
+│ • OEM (0-10):        Authorized=10, Not authorized=0                      │
+│ • Renewal (0-10):    Existing customer=10, New=0                          │
+│                                                                            │
+│ 75-100: GO - High Priority          45-59: REVIEW - Conditional GO        │
+│ 60-74:  GO - Consider Pursuit       30-44: REVIEW - Likely NO-GO          │
+│ 0-29:   NO-GO - Auto-Decline                                              │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ DECISION WORKFLOW ────────────────────────────────────────────────────────┐
+│                                                                            │
+│  New RFQ Email Received                                                   │
+│         ↓                                                                  │
+│  Check Auto-Decline Rules → YES → Auto-decline, log pattern               │
+│         ↓ NO                                                               │
+│  Check Strategic Flags    → YES → High priority review                    │
+│         ↓ NO                                                               │
+│  Calculate Score (0-100)                                                   │
+│         ↓                                                                  │
+│  75+:  GO - Immediate pursuit                                             │
+│  60+:  GO - Good opportunity                                              │
+│  45+:  REVIEW - Needs evaluation                                          │
+│  30+:  REVIEW - Weak case                                                 │
+│  <30:  NO-GO - Decline                                                    │
+│                                                                            │
+│  Log Decision + Track OEMs                                                │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ MAINTENANCE SCHEDULE ─────────────────────────────────────────────────────┐
+│ DAILY:     Review high-value alerts ($200K+)                              │
+│ WEEKLY:    Check OEM occurrence counts                                    │
+│ MONTHLY:   Generate business case reports, analyze patterns               │
+│ QUARTERLY: Evaluate partnerships, adjust thresholds, audit rules          │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ QUICK DECISION EXAMPLES ──────────────────────────────────────────────────┐
+│                                                                            │
+│ EXAMPLE 1: USSOCOM, $150K, Palo Alto, 13 bidders                         │
+│ → Score: 90/100 → GO - High Priority ✓                                   │
+│                                                                            │
+│ EXAMPLE 2: Unknown customer, $5K, software renewal, 127 bidders          │
+│ → Score: 10/100 → NO-GO - Auto-Decline ✗                                 │
+│                                                                            │
+│ EXAMPLE 3: Hill AFB, $75K, Zero Trust, Cisco, 40 bidders                 │
+│ → Score: 75/100 → GO - High Priority ✓                                   │
+│                                                                            │
+│ EXAMPLE 4: Standard base, $35K, misc hardware, 80 bidders                │
+│ → Score: 35/100 → REVIEW - Likely NO-GO ⚠                                │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+┌─ CONTACT & SUPPORT ────────────────────────────────────────────────────────┐
+│ For configuration questions: See README.md                                │
+│ Database location: Find with: find ~ -name "sales_automation.db"          │
+│ Test configuration: ./test_config.py                                      │
+│ Version: 1.0 | Updated: October 13, 2025                                  │
+└────────────────────────────────────────────────────────────────────────────┘
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║                           KEEP THIS CARD HANDY                             ║
+║                Print or save for quick reference during RFQ review         ║
+╚════════════════════════════════════════════════════════════════════════════╝

@@ -1,5 +1,5 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { runFleetingProcessor } from './processor.js';
+import { runFleetingProcessor, upgradeExisting } from './processor.js';
 
 const AllowedScopes = ['today','this-week','this-month','since-last-run','range'] as const;
 
@@ -40,6 +40,34 @@ export const fleetingTools: Tool[] = [
       },
       required: ['scope']
     }
+  },
+  {
+    name: 'fleeting_upgrade_notes',
+    description: 'Upgrade existing People and Meeting notes to the latest templates (hub.people and preferred meeting schema/body).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        upgrade_people: {
+          type: 'boolean',
+          default: true,
+          description: 'Upgrade People notes in PEOPLE_DIR'
+        },
+        upgrade_meetings: {
+          type: 'boolean',
+          default: true,
+          description: 'Upgrade Meeting notes in MEETING_NOTES_DIR'
+        },
+        dry_run: {
+          type: 'boolean',
+          default: false,
+          description: 'Preview upgrade without writing'
+        },
+        target_dir: {
+          type: 'string',
+          description: 'Optional override for DAILY_NOTES_DIR (not typically needed for upgrades)'
+        }
+      }
+    }
   }
 ];
 
@@ -66,6 +94,22 @@ export async function handleFleetingTool(name: string, args: any) {
           {
             type: 'text',
             text: JSON.stringify(summary, null, 2)
+          }
+        ]
+      };
+    }
+    case 'fleeting_upgrade_notes': {
+      const res = await upgradeExisting({
+        upgradePeople: args?.upgrade_people !== false,
+        upgradeMeetings: args?.upgrade_meetings !== false,
+        targetDir: args?.target_dir,
+        dryRun: args?.dry_run === true
+      });
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(res, null, 2)
           }
         ]
       };
