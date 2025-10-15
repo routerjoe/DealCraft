@@ -23,7 +23,7 @@ fs.watch(inbox, { persistent: true }, (eventType, filename) => {
     if (!fs.existsSync(full)) return;
     try {
       console.log('[IntroMail] Detected CSV:', full, '→ running analyzer...');
-      const res = await handleIntromailTool('intromail:analyzer', { csv_path: full });
+      const res = await handleIntromailTool('intromail_analyzer', { csv_path: full });
       const text = (res as any)?.content?.[0]?.text ?? JSON.stringify(res);
       console.log('[IntroMail] Analyzer result:', text);
     } catch (e: any) {

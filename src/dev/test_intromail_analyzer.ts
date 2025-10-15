@@ -10,7 +10,7 @@ async function main() {
   }
 
   console.log('[test_intromail_analyzer] Running analyzer on', csvPath);
-  const result = await handleIntromailTool('intromail:analyzer', {
+  const result = await handleIntromailTool('intromail_analyzer', {
     csv_path: csvPath
   });
 
