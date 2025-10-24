@@ -62,7 +62,9 @@ async function executeAppleScript(script: string, retries = MAX_RETRIES): Promis
 
 export async function getOutlookBidBoardEmails(
   limit: number = 50,
-  unreadOnly: boolean = false
+  unreadOnly: boolean = false,
+  scanWindow: number = 1000,
+  newestFirst: boolean = true
 ): Promise<OutlookEmail[]> {
   const script = `
     tell application "Microsoft Outlook"
@@ -104,10 +106,25 @@ export async function getOutlookBidBoardEmails(
       set counter to 0
       set maxCount to ${limit}
       set filterUnread to ${unreadOnly}
+      set scanWindow to ${scanWindow}
+      set newestFirst to ${newestFirst}
+      set totalCount to count of messageList
+      set scanned to 0
+
+      if newestFirst is true then
+        set startIndex to totalCount
+        set endIndex to 1
+        set stepVal to -1
+      else
+        set startIndex to 1
+        set endIndex to totalCount
+        set stepVal to 1
+      end if
       
-      repeat with i from 1 to count of messageList
+      repeat with i from startIndex to endIndex by stepVal
         try
           set theMessage to item i of messageList
+          set scanned to scanned + 1
           
           -- Check if we should process this message based on read status
           set shouldProcess to true
@@ -178,6 +195,8 @@ export async function getOutlookBidBoardEmails(
             end try
           end if
           
+          if scanned is greater than or equal to scanWindow then exit repeat
+          
         on error errMsg
           -- Log error but continue processing other emails
           set emailData to emailData & "---ERROR---" & return
@@ -192,7 +211,7 @@ export async function getOutlookBidBoardEmails(
       return emailData
     end tell
   `;
-
+  
   const output = await executeAppleScript(script);
   
   if (output.startsWith('ERROR:')) {

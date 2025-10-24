@@ -1,0 +1,16 @@
+{
+  "mcp": { "running": true, "uptime": "02:13:04", "queue": 0 },
+  "watchers": {
+    "outlook_rfq": { "state": "online" },
+    "fleeting_notes": { "state": "off" },
+    "radar": { "state": "warn" },
+    "govly_sync": { "state": "online" }
+  },
+  "providers": {
+    "claude": { "online": true, "p95_ms": 420 },
+    "gpt5": { "online": true, "p95_ms": 510 },
+    "gemini": { "online": false, "p95_ms": null }
+  },
+  "pipeline": { "emails": 12, "rfqs": 4, "go": 1, "pending": 2 },
+  "router": "SIMPLE Claude-only"
+}

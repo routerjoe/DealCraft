@@ -154,6 +154,23 @@ function isAuthorizedOem(oem?: string): boolean {
   return DEFAULT_AUTH_OEMS.map(lc).includes(lc(oem));
 }
 
+/** Check if a contract vehicle is in the supported list */
+function isSupportedContract(vehicle?: string): boolean {
+  if (!vehicle) return false;
+  try {
+    const db = getDb();
+    const res = db.exec(`SELECT supported FROM config_contract_vehicles WHERE LOWER(vehicle_name)=LOWER('${vehicle.replace(/'/g, "''")}') LIMIT 1`);
+    if (res.length && res[0].values.length) {
+      const idx = res[0].columns.indexOf('supported');
+      const val = res[0].values[0][idx];
+      return Number(val) === 1;
+    }
+  } catch {
+    // ignore
+  }
+  return false;
+}
+
 function getNewBusinessOemThreshold(oem?: string): number | null {
   if (!oem) return null;
   try {
@@ -215,6 +232,7 @@ export function calculateRfqScore(args: {
   tech_vertical?: string;
   oem?: string;
   has_previous_contract?: boolean;
+  contract_vehicle?: string;
 }): ScoreResult {
   const factors: string[] = [];
   let score = 0;
@@ -275,6 +293,15 @@ export function calculateRfqScore(args: {
     factors.push('OEM: Authorized Partner (+10)');
   } else {
     factors.push('OEM: Not authorized (+0)');
+  }
+
+  // Contract vehicle support
+  const vehicle = args.contract_vehicle || '';
+  if (vehicle && isSupportedContract(vehicle)) {
+    score += 5;
+    factors.push('Contract: Supported (+5)');
+  } else if (vehicle) {
+    factors.push('Contract: Not in supported list (+0)');
   }
 
   // Renewal

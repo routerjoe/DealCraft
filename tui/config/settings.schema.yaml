@@ -1,0 +1,20 @@
+# Reference schema for Settings panel validation (informal)
+providers:
+  claude:
+    enabled: bool
+    model: str
+  gpt5:
+    enabled: bool
+    model: str
+  gemini:
+    enabled: bool
+    model: str
+router:
+  order: [str]
+  sticky_provider: bool
+  max_retries: int
+ui:
+  theme: ["light","dark"]
+  refresh_sec: int
+  stats_refresh_sec: int
+  show_provider_p95: bool

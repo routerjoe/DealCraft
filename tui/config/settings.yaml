@@ -1,0 +1,28 @@
+providers:
+  claude:
+    enabled: true
+    model: claude-3-5-sonnet-latest
+    p95_warn_ms: 600
+    p95_error_ms: 1500
+  gpt5:
+    enabled: true
+    model: gpt-5-thinking
+    p95_warn_ms: 600
+    p95_error_ms: 1500
+  gemini:
+    enabled: true
+    model: gemini-1.5-pro-latest
+    p95_warn_ms: 600
+    p95_error_ms: 1500
+router:
+  order:
+  - claude
+  - gpt5
+  - gemini
+  sticky_provider: false
+  max_retries: 2
+ui:
+  theme: light
+  refresh_sec: 2
+  stats_refresh_sec: 10
+  show_provider_p95: true

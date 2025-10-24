@@ -38,3 +38,10 @@ exports/
 
 # MCP server config (may contain sensitive paths)
 claude_desktop_config.json
+
+# RR TUI additions
+.venv/
+__pycache__/
+*.pyc
+legacy_tui_*/
+rr_tui_clean/.venv/

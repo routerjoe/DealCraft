@@ -1,0 +1,27 @@
+# agent_routes.yaml — Starter routing config
+# Created: Friday, October 17 2025 EDT
+version: 1.0
+routes:
+  - name: lom_extraction
+    match:
+      type: ["lom_parse","pdf_table_extract"]
+      complexity: ["medium","high"]
+    action:
+      model: "gemini"
+      notes: "Gemini excels at multimodal table extraction."
+  - name: rfq_summarize
+    match:
+      type: ["rfq_summary","email_summary"]
+      complexity: ["low","medium"]
+    action:
+      model: "gpt-5"
+      notes: "GPT-5 for fast summaries."
+  - name: compliance_reasoning
+    match:
+      type: ["compliance","rules_eval","go_nogo"]
+      complexity: ["medium","high"]
+    action:
+      model: "claude"
+      notes: "Claude for conservative reasoning."
+defaults:
+  fallback_model: "claude"

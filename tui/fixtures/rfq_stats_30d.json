@@ -1,0 +1,20 @@
+{
+  "window": "30d",
+  "funnel": {
+    "received": 42,
+    "validated": 39,
+    "registered": 37,
+    "quoted": 34,
+    "submitted": 33,
+    "awarded": 31
+  },
+  "by_day": [
+    { "date": "2025-10-12", "received": 2, "awarded": 1 },
+    { "date": "2025-10-13", "received": 1, "awarded": 0 },
+    { "date": "2025-10-14", "received": 4, "awarded": 3 },
+    { "date": "2025-10-15", "received": 5, "awarded": 1 },
+    { "date": "2025-10-16", "received": 3, "awarded": 2 },
+    { "date": "2025-10-17", "received": 8, "awarded": 3 },
+    { "date": "2025-10-18", "received": 3, "awarded": 2 }
+  ]
+}

@@ -1,0 +1,10 @@
+
+Screen { layout: vertical; }
+#row { layout: horizontal; height: 11; }
+#system { width: 1fr; }
+#providers { width: 1fr; }
+.panel { border: round cyan; padding: 1; }
+#funnel { height: 12; }
+#pipeline { height: 5; }
+#rfq_table { height: 5; }
+#actions { height: 3; }

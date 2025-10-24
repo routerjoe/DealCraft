@@ -17,11 +17,19 @@ export const outlookTools: Tool[] = [
       properties: {
         limit: {
           type: 'number',
-          description: 'Maximum number of emails to retrieve (default: 50)',
+          description: 'Maximum number of emails to return (default: 50)',
         },
         unread_only: {
           type: 'boolean',
           description: 'Only retrieve unread emails (default: false)',
+        },
+        scan_window: {
+          type: 'number',
+          description: 'How many messages to scan before stopping (default: 500)',
+        },
+        newest_first: {
+          type: 'boolean',
+          description: 'Scan newest messages first (default: true)',
         },
       },
     },
@@ -79,7 +87,9 @@ export async function handleOutlookTool(name: string, args: any) {
     case 'outlook_get_bid_board_emails': {
       const emails = await getOutlookBidBoardEmails(
         args.limit || 50,
-        args.unread_only || false
+        args.unread_only || false,
+        typeof args.scan_window === 'number' ? args.scan_window : 1000,
+        args.newest_first !== false
       );
       return {
         content: [
