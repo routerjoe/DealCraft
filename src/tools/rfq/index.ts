@@ -11,6 +11,7 @@ import { promisify } from 'util';
 import { createRfqDrafts } from './drafts.js';
 import { sendRfqEmail } from '../../email/sendRfqEmail.js';
 import { calculateRfqScore, applyRulesFromInputs } from './rules.js';
+import { getHybridAnalysis, type AIProvider } from './ai-analyzer.js';
 
 const execAsync = promisify(exec);
 
@@ -42,21 +43,59 @@ export const rfqTools: Tool[] = [
         },
         unread_only: {
           type: 'boolean',
-          description: 'Only process unread emails',
-          default: true,
+          description: 'Only process unread emails (default: false = process all)',
+          default: false,
         },
+        subject_contains: {
+          type: 'string',
+          description: 'Filter: subject contains this substring (case-insensitive)'
+        },
+        from_contains: {
+          type: 'string',
+          description: 'Filter: sender name or email contains this substring (case-insensitive)'
+        },
+        min_attachments: {
+          type: 'number',
+          description: 'Filter: minimum number of attachments required',
+          default: 0
+        },
+        fallback_to_read_if_none: {
+          type: 'boolean',
+          description: 'If unread_only yields zero results, also try including read emails',
+          default: true
+        },
+        newest_first: {
+          type: 'boolean',
+          description: 'Scan newest messages first when fetching from Outlook',
+          default: true
+        },
+        scan_window: {
+          type: 'number',
+          description: 'How many messages to scan in Outlook before stopping (default: 1000)',
+          default: 1000
+        }
       },
     },
   },
   {
     name: 'rfq_analyze',
-    description: 'Analyze an RFQ for fit, value, and decision recommendation',
+    description: 'Analyze an RFQ for fit, value, and decision recommendation. Supports AI-powered analysis when enabled.',
     inputSchema: {
       type: 'object',
       properties: {
         rfq_id: {
           type: 'number',
           description: 'RFQ ID from database',
+        },
+        use_ai: {
+          type: 'boolean',
+          description: 'Use AI-powered analysis (requires RFQ_AI_ENABLED=true and API keys configured)',
+          default: false,
+        },
+        ai_provider: {
+          type: 'string',
+          enum: ['claude', 'openai', 'gemini'],
+          description: 'Preferred AI provider (optional, will auto-select based on agent_routes.yaml)',
         },
       },
       required: ['rfq_id'],
@@ -184,6 +223,7 @@ export const rfqTools: Tool[] = [
         competition_level: { type: 'number' },
         tech_vertical: { type: 'string' },
         oem: { type: 'string' },
+        contract_vehicle: { type: 'string' },
         has_previous_contract: { type: 'boolean' },
         deadline: { type: 'string' },
         customer: { type: 'string' }
@@ -229,6 +269,48 @@ export const rfqTools: Tool[] = [
       },
       required: ['rfq_id']
     }
+  },
+  {
+    name: 'rfq_config_list_oems',
+    description: 'List OEM config (authorization, thresholds, notes)',
+    inputSchema: {
+      type: 'object',
+      properties: {}
+    }
+  },
+  {
+    name: 'rfq_config_set_oem_authorized',
+    description: 'Set OEM authorization flag (and optional business case threshold)',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        oem_name: { type: 'string' },
+        authorized: { type: 'boolean' },
+        business_case_threshold: { type: 'number' }
+      },
+      required: ['oem_name','authorized']
+    }
+  },
+  {
+    name: 'rfq_config_list_contracts',
+    description: 'List supported contract vehicles',
+    inputSchema: {
+      type: 'object',
+      properties: {}
+    }
+  },
+  {
+    name: 'rfq_config_upsert_contract',
+    description: 'Insert or update a supported contract vehicle row',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        vehicle_name: { type: 'string' },
+        supported: { type: 'boolean' },
+        notes: { type: 'string' }
+      },
+      required: ['vehicle_name']
+    }
   }
 ];
 
@@ -238,9 +320,18 @@ export async function handleRfqTool(name: string, args: any) {
       return await processEmail(args.email_id);
     
     case 'rfq_batch_process':
-      return await batchProcess(args.limit || 10, args.unread_only !== false);
+      return await batchProcess({
+        limit: typeof args.limit === 'number' ? args.limit : 10,
+        unread_only: args.unread_only === true,
+        subject_contains: typeof args.subject_contains === 'string' ? args.subject_contains : undefined,
+        from_contains: typeof args.from_contains === 'string' ? args.from_contains : undefined,
+        min_attachments: typeof args.min_attachments === 'number' ? args.min_attachments : 0,
+        fallback_to_read_if_none: args.fallback_to_read_if_none !== false,
+        newest_first: args.newest_first !== false,
+        scan_window: typeof args.scan_window === 'number' ? args.scan_window : undefined,
+      });
     case 'rfq_analyze':
-      return await analyzeRfqEnhanced(args.rfq_id);
+      return await analyzeRfqEnhanced(args.rfq_id, args.use_ai === true, args.ai_provider as AIProvider | undefined);
       
     
     case 'rfq_update_decision':
@@ -285,6 +376,7 @@ export async function handleRfqTool(name: string, args: any) {
         competition_level: args.competition_level,
         tech_vertical: args.tech_vertical,
         oem: args.oem,
+        contract_vehicle: args.contract_vehicle,
         has_previous_contract: typeof args.has_previous_contract === 'boolean' ? (args.has_previous_contract ? 1 : 0) : undefined,
         deadline: args.deadline,
         customer: args.customer,
@@ -340,6 +432,7 @@ export async function handleRfqTool(name: string, args: any) {
         tech_vertical: rfq.tech_vertical || '',
         oem: rfq.oem || '',
         has_previous_contract: !!rfq.has_previous_contract,
+        contract_vehicle: (rfq as any).contract_vehicle || '',
       });
 
       db.run(
@@ -394,6 +487,7 @@ export async function handleRfqTool(name: string, args: any) {
         tech_vertical: inputs.tech_vertical,
         oem: inputs.oem,
         has_previous_contract: inputs.has_previous_contract,
+        contract_vehicle: (rfq as any).contract_vehicle || '',
       });
 
       db.run(
@@ -493,6 +587,197 @@ export async function handleRfqTool(name: string, args: any) {
 
       return {
         content: [{ type: 'text', text: JSON.stringify({ oem, tracking: row }, null, 2) }],
+      };
+    }
+    case 'rfq_config_list_oems': {
+      const db = getDb();
+      let items: any[] = [];
+      try {
+        const res = db.exec(
+          `SELECT oem_name, currently_authorized, business_case_threshold, notes
+           FROM config_oem_tracking
+           ORDER BY oem_name COLLATE NOCASE`
+        );
+        if (res.length && res[0].values.length) {
+          const cols = res[0].columns;
+          items = res[0].values.map((v) => {
+            const obj: any = {};
+            cols.forEach((c, i) => (obj[c] = v[i]));
+            return {
+              oem_name: obj.oem_name,
+              authorized: Number(obj.currently_authorized) === 1,
+              business_case_threshold: obj.business_case_threshold ?? null,
+              notes: obj.notes ?? null,
+            };
+          });
+        }
+      } catch (e: any) {
+        logger.warn('rfq_config_list_oems error', { error: e?.message || String(e) });
+      }
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ items }, null, 2),
+          },
+        ],
+      };
+    }
+    case 'rfq_config_set_oem_authorized': {
+      const db = getDb();
+      const nameRaw = String(args.oem_name || '');
+      const name = nameRaw.normalize('NFKC').trim();
+      if (!name) throw new Error('oem_name is required');
+      const authorized = args.authorized === true;
+      const threshold = typeof args.business_case_threshold === 'number' ? args.business_case_threshold : undefined;
+
+      // Ensure row exists (strict insert of normalized name)
+      db.run(
+        `INSERT OR IGNORE INTO config_oem_tracking (oem_name, currently_authorized, business_case_threshold, notes)
+         VALUES (?, 0, NULL, 'Added via UI')`,
+        [name]
+      );
+
+      // Update with robust case/whitespace-insensitive predicate
+      if (threshold !== undefined) {
+        db.run(
+          `UPDATE config_oem_tracking
+             SET currently_authorized = ?, business_case_threshold = ?, updated_at = CURRENT_TIMESTAMP
+           WHERE lower(trim(oem_name)) = lower(trim(?))`,
+          [authorized ? 1 : 0, threshold, name]
+        );
+      } else {
+        db.run(
+          `UPDATE config_oem_tracking
+             SET currently_authorized = ?, updated_at = CURRENT_TIMESTAMP
+           WHERE lower(trim(oem_name)) = lower(trim(?))`,
+          [authorized ? 1 : 0, name]
+        );
+      }
+
+      // If no rows changed (edge cases), attempt a secondary normalization update
+      try {
+        const ch1 = db.exec(`SELECT changes() AS changes`);
+        const changed = ch1?.length && ch1[0].values?.length ? Number(ch1[0].values[0][0] || 0) : 0;
+        if (changed === 0) {
+          if (threshold !== undefined) {
+            db.run(
+              `UPDATE config_oem_tracking
+                 SET currently_authorized = ?, business_case_threshold = ?, updated_at = CURRENT_TIMESTAMP
+               WHERE replace(lower(oem_name),' ','') = replace(lower(?),' ','')`,
+              [authorized ? 1 : 0, threshold, name]
+            );
+          } else {
+            db.run(
+              `UPDATE config_oem_tracking
+                 SET currently_authorized = ?, updated_at = CURRENT_TIMESTAMP
+               WHERE replace(lower(oem_name),' ','') = replace(lower(?),' ','')`,
+              [authorized ? 1 : 0, name]
+            );
+          }
+        }
+      } catch {
+        // best-effort
+      }
+
+      // Read back the updated row to return authoritative state
+      let updatedRow: any = null;
+      try {
+        const res2 = db.exec(
+          `SELECT oem_name, currently_authorized, business_case_threshold
+             FROM config_oem_tracking
+            WHERE lower(trim(oem_name)) = lower(trim('${name.replace(/'/g, "''")}'))
+            LIMIT 1`
+        );
+        if (res2.length && res2[0].values.length) {
+          const c = res2[0].columns;
+          const v = res2[0].values[0];
+          updatedRow = {};
+          c.forEach((col, i) => (updatedRow[col] = v[i]));
+        }
+      } catch {
+        // ignore read-back errors
+      }
+
+      saveDatabase();
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              {
+                updated: true,
+                oem_name: updatedRow?.oem_name || name,
+                authorized: updatedRow ? Number(updatedRow.currently_authorized) === 1 : authorized,
+                business_case_threshold: updatedRow?.business_case_threshold ?? (threshold ?? null),
+              },
+              null,
+              2
+            ),
+          },
+        ],
+      };
+    }
+    case 'rfq_config_list_contracts': {
+      const db = getDb();
+      let items: any[] = [];
+      try {
+        const res = db.exec(
+          `SELECT vehicle_name, supported, notes
+           FROM config_contract_vehicles
+           ORDER BY vehicle_name COLLATE NOCASE`
+        );
+        if (res.length && res[0].values.length) {
+          const cols = res[0].columns;
+          items = res[0].values.map((v) => {
+            const obj: any = {};
+            cols.forEach((c, i) => (obj[c] = v[i]));
+            return {
+              vehicle_name: obj.vehicle_name,
+              supported: Number(obj.supported) === 1,
+              notes: obj.notes ?? null,
+            };
+          });
+        }
+      } catch (e: any) {
+        logger.warn('rfq_config_list_contracts error', { error: e?.message || String(e) });
+      }
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ items }, null, 2),
+          },
+        ],
+      };
+    }
+    case 'rfq_config_upsert_contract': {
+      const db = getDb();
+      const vehicle_name = String(args.vehicle_name || '').trim();
+      if (!vehicle_name) throw new Error('vehicle_name is required');
+      const supported = args.supported !== false; // default true
+      const notes = typeof args.notes === 'string' ? args.notes : null;
+
+      db.run(
+        `INSERT INTO config_contract_vehicles (vehicle_name, supported, notes)
+         VALUES (?, ?, ?)
+         ON CONFLICT(vehicle_name) DO UPDATE SET
+           supported=excluded.supported,
+           notes=excluded.notes,
+           updated_at=CURRENT_TIMESTAMP`,
+        [vehicle_name, supported ? 1 : 0, notes]
+      );
+
+      saveDatabase();
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({ upserted: true, vehicle_name, supported, notes }, null, 2),
+          },
+        ],
       };
     }
     default:
@@ -613,41 +898,207 @@ async function processEmail(emailId: string) {
   };
 }
 
-async function batchProcess(limit: number, unreadOnly: boolean) {
-  logger.info('Starting batch process', { limit, unreadOnly });
-  
-  // Get emails from Outlook
-  const emailsResult = await handleOutlookTool('outlook_get_bid_board_emails', {
+type BatchOptions = {
+  limit: number;
+  unread_only: boolean;
+  subject_contains?: string;
+  from_contains?: string;
+  min_attachments?: number;
+  fallback_to_read_if_none?: boolean;
+  newest_first?: boolean;
+  scan_window?: number;
+};
+
+async function batchProcess(opts: BatchOptions) {
+  const {
     limit,
-    unread_only: unreadOnly,
+    unread_only,
+    subject_contains,
+    from_contains,
+    min_attachments,
+    fallback_to_read_if_none = true,
+    newest_first = true,
+    scan_window = 1000,
+  } = opts;
+
+  logger.info('Starting batch process', {
+    limit,
+    unread_only,
+    subject_contains,
+    from_contains,
+    min_attachments,
+    newest_first,
+    scan_window,
+  });
+
+  // Get emails from Outlook with robust error handling
+  let emailsData: any;
+  let fallbackUsed = false;
+  try {
+    const emailsResult = await handleOutlookTool('outlook_get_bid_board_emails', {
+      limit,
+      unread_only,
+      newest_first,
+      scan_window,
+    });
+
+    const text = emailsResult?.content?.[0]?.text;
+    if (!text) {
+      throw new Error('Empty response from outlook_get_bid_board_emails');
+    }
+
+    emailsData = JSON.parse(text);
+    if (!emailsData || !Array.isArray(emailsData.emails)) {
+      throw new Error('Malformed response from outlook_get_bid_board_emails');
+    }
+  } catch (error: any) {
+    logger.error('Failed to fetch bid board emails', {
+      error: error?.message || String(error),
+      limit,
+      unread_only,
+    });
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              error: 'rfq_batch_process_failed_to_fetch_emails',
+              message: error?.message || String(error),
+              hint:
+                'Ensure Microsoft Outlook (Legacy) is open and the "05 Internal (Red River Ops)/Bid Board" folder exists, then retry.',
+              limit,
+              unread_only,
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    };
+  }
+
+  // Fallback: if unread_only produced 0 results, try including read messages
+  if (
+    Array.isArray(emailsData.emails) &&
+    emailsData.emails.length === 0 &&
+    unread_only &&
+    fallback_to_read_if_none
+  ) {
+    try {
+      const emailsResult2 = await handleOutlookTool('outlook_get_bid_board_emails', {
+        limit,
+        unread_only: false,
+        newest_first,
+        scan_window,
+      });
+      const text2 = emailsResult2?.content?.[0]?.text;
+      if (text2) {
+        const parsed2 = JSON.parse(text2);
+        if (parsed2 && Array.isArray(parsed2.emails)) {
+          emailsData = parsed2;
+          fallbackUsed = true;
+        }
+      }
+    } catch {
+      // Ignore fallback errors; proceed with whatever we have
+    }
+  }
+
+  // Apply optional filters
+  const subjectNeedle = (subject_contains || '').toLowerCase();
+  const fromNeedle = (from_contains || '').toLowerCase();
+  const minAtt = typeof min_attachments === 'number' ? min_attachments : 0;
+
+  const filtered = (emailsData.emails || []).filter((e: any) => {
+    if (subjectNeedle && !String(e.subject || '').toLowerCase().includes(subjectNeedle)) return false;
+    const senderBlob = `${String(e.from || '')} ${String(e.email || '')}`.toLowerCase();
+    if (fromNeedle && !senderBlob.includes(fromNeedle)) return false;
+    if (minAtt > 0 && Number(e.attachments || 0) < minAtt) return false;
+    return true;
+  });
+
+  const cap = 50;
+  const toProcess = filtered.slice(0, cap);
+  const processed: any[] = [];
+  
+  logger.info('Processing emails...', {
+    scanned: (emailsData.emails || []).length,
+    matched: filtered.length,
+    to_process: toProcess.length,
+    processing_cap: cap,
   });
   
-  const emailsData = JSON.parse(emailsResult.content[0].text);
-  const processed = [];
-  
-  logger.info('Processing emails...', { count: emailsData.emails.length });
-  
-  for (const email of emailsData.emails) {
+  for (const email of toProcess) {
     try {
       const result = await processEmail(email.id);
       const data = JSON.parse(result.content[0].text);
       processed.push(data);
     } catch (error: any) {
-      logger.error('Failed to process email', { emailId: email.id, error: error.message });
+      logger.error('Failed to process email', {
+        emailId: email.id,
+        error: error?.message || String(error),
+      });
     }
   }
-  
-  logger.info('Batch process complete', { total: emailsData.emails.length, processed: processed.length });
-  
+
+  const failedCount = toProcess.length - processed.length;
+
+  logger.info('Batch process complete', {
+    scanned: (emailsData.emails || []).length,
+    matched: filtered.length,
+    to_process: toProcess.length,
+    processed: processed.length,
+    failed: failedCount,
+    fallbackUsed,
+    capped: filtered.length > cap,
+    processing_cap: cap,
+    criteria: {
+      unread_only,
+      subject_contains,
+      from_contains,
+      min_attachments: minAtt,
+      newest_first,
+      scan_window,
+    },
+  });
+
   return {
     content: [
       {
         type: 'text',
-        text: JSON.stringify({
-          total: emailsData.emails.length,
-          processed: processed.length,
-          rfqs: processed,
-        }, null, 2),
+        text: JSON.stringify(
+          {
+            scanned: (emailsData.emails || []).length,
+            matched: filtered.length,
+            to_process: toProcess.length,
+            processed: processed.length,
+            failed: failedCount,
+            fallback_used: fallbackUsed,
+            processing_cap: cap,
+            capped: filtered.length > cap,
+            criteria: {
+              unread_only,
+              subject_contains,
+              from_contains,
+              min_attachments: minAtt,
+              newest_first,
+              scan_window,
+            },
+            preview: filtered.slice(0, 10).map((e: any) => ({
+              id: e.id,
+              subject: e.subject,
+              from: e.from,
+              email: e.email,
+              attachments: e.attachments,
+              read: e.read,
+              date: e.date,
+            })),
+            rfqs: processed,
+          },
+          null,
+          2
+        ),
       },
     ],
   };
@@ -763,16 +1214,8 @@ async function cleanupDeclined(rfqIds: number[], deleteFromOutlook: boolean = fa
     const rfq: any = {};
     rfqColumns.forEach((col, i) => rfq[col] = rfqValues[i]);
     
-    // Delete attachment files
+    // Delete from Outlook if requested (perform first)
     const emailId = rfq.email_id;
-    const attachDir = join(getAttachmentsDir(), emailId);
-    
-    if (existsSync(attachDir)) {
-      rmSync(attachDir, { recursive: true, force: true });
-      logger.info('Deleted attachment directory', { rfqId, dir: attachDir });
-    }
-    
-    // Delete from Outlook if requested
     if (deleteFromOutlook) {
       try {
         const script = `
@@ -782,12 +1225,18 @@ async function cleanupDeclined(rfqIds: number[], deleteFromOutlook: boolean = fa
             return "deleted"
           end tell
         `;
-        
         await execAsync(`osascript -e '${script.replace(/'/g, "'\\''")}'`);
         logger.info('Deleted email from Outlook', { rfqId, emailId });
       } catch (error: any) {
         logger.error('Failed to delete from Outlook', { rfqId, emailId, error: error.message });
       }
+    }
+
+    // Delete attachment files (after Outlook deletion)
+    const attachDir = join(getAttachmentsDir(), emailId);
+    if (existsSync(attachDir)) {
+      rmSync(attachDir, { recursive: true, force: true });
+      logger.info('Deleted attachment directory', { rfqId, dir: attachDir });
     }
     
     // Delete from database
@@ -857,8 +1306,8 @@ async function listPending(status: string) {
 }
 
 
-// Enhanced analyzer that includes scoring, rule flags, and guidance
-async function analyzeRfqEnhanced(rfqId: number) {
+// Enhanced analyzer that includes scoring, rule flags, and optional AI analysis
+async function analyzeRfqEnhanced(rfqId: number, useAI: boolean = false, aiProvider?: AIProvider) {
   const db = getDb();
 
   // Get RFQ details
@@ -907,6 +1356,7 @@ async function analyzeRfqEnhanced(rfqId: number) {
     tech_vertical: rfq.tech_vertical || '',
     oem: rfq.oem || '',
     has_previous_contract: !!rfq.has_previous_contract,
+    contract_vehicle: rfq.contract_vehicle || '',
     quantity: 0,
     deadline: rfq.deadline || undefined,
     has_attachments: hasAttachments,
@@ -919,11 +1369,23 @@ async function analyzeRfqEnhanced(rfqId: number) {
     tech_vertical: inputs.tech_vertical,
     oem: inputs.oem,
     has_previous_contract: inputs.has_previous_contract,
+    contract_vehicle: inputs.contract_vehicle,
   });
 
   const rulesRes = applyRulesFromInputs(inputs);
 
-  // Identify missing fields to prompt population before finalizing
+  // Persist baseline rule-based score/recommendation so the TUI table can reflect values immediately
+  db.run(
+    `UPDATE rfqs SET rfq_score = ?, rfq_recommendation = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+    [scoreRes.score, scoreRes.recommendation, rfqId]
+  );
+  db.run(
+    `INSERT INTO activity_log (rfq_id, action, details) VALUES (?, ?, ?)`,
+    [rfqId, 'analysis_scored_baseline', JSON.stringify(scoreRes)]
+  );
+  saveDatabase();
+
+  // Identify missing fields
   const missing_fields: string[] = [];
   if (rfq.estimated_value == null) missing_fields.push('estimated_value');
   if (rfq.competition_level == null) missing_fields.push('competition_level');
@@ -933,26 +1395,104 @@ async function analyzeRfqEnhanced(rfqId: number) {
   if (!rfq.customer) missing_fields.push('customer');
   if (!rfq.deadline) missing_fields.push('deadline');
 
+  // Standard rule-based response
+  const baseResponse = {
+    rfq,
+    attachments,
+    csv_data: csvData,
+    score: scoreRes,
+    rule_outcomes: rulesRes.outcomes,
+    auto_decline_candidates: rulesRes.auto_decline_reasons,
+    missing_fields_checklist: missing_fields,
+    guidance: missing_fields.length
+      ? 'Use rfq_set_attributes to populate missing fields, then run rfq_apply_rules.'
+      : 'Run rfq_apply_rules to record outcomes and optionally auto-decline if enabled.',
+  };
+
+  // AI-enhanced analysis if requested
+  if (useAI) {
+    try {
+      const hybridAnalysis = await getHybridAnalysis(
+        {
+          rfq,
+          attachments,
+          csv_data: csvData,
+          rule_based_score: scoreRes,
+          rule_outcomes: rulesRes.outcomes,
+        },
+        aiProvider
+      );
+
+      // Log AI analysis to database
+      db.run(
+        `INSERT INTO activity_log (rfq_id, action, details) VALUES (?, ?, ?)`,
+        [rfqId, 'ai_analysis_completed', JSON.stringify({ provider: hybridAnalysis.ai_analysis.provider, recommendation: hybridAnalysis.ai_analysis.go_nogo_recommendation })]
+      );
+
+      // Persist combined score/recommendation (rule-based + AI strategic fit)
+      try {
+        const aiSF = Number(hybridAnalysis.ai_analysis.strategic_fit_score || 0);
+        const combinedScore = Math.round((Number(scoreRes.score || 0) + aiSF) / 2);
+        const finalRecoRaw = hybridAnalysis.final_recommendation || '';
+        const finalReco = String(finalRecoRaw).split(' ')[0]; // GO | NO-GO | REVIEW
+        db.run(
+          `UPDATE rfqs SET rfq_score = ?, rfq_recommendation = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+          [combinedScore, finalReco, rfqId]
+        );
+      } catch (e) {
+        logger.warn('Failed to persist combined AI score; falling back to baseline', { rfq_id: rfqId, error: (e as any)?.message });
+      }
+
+      saveDatabase();
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              {
+                ...baseResponse,
+                ai_analysis: {
+                  enabled: true,
+                  provider: hybridAnalysis.ai_analysis.provider,
+                  go_nogo_recommendation: hybridAnalysis.ai_analysis.go_nogo_recommendation,
+                  confidence_level: hybridAnalysis.ai_analysis.confidence_level,
+                  strategic_fit_score: hybridAnalysis.ai_analysis.strategic_fit_score,
+                  key_insights: hybridAnalysis.ai_analysis.key_insights,
+                  risk_factors: hybridAnalysis.ai_analysis.risk_factors,
+                  opportunities: hybridAnalysis.ai_analysis.opportunities,
+                  recommended_next_steps: hybridAnalysis.ai_analysis.recommended_next_steps,
+                  ai_reasoning: hybridAnalysis.ai_analysis.ai_reasoning,
+                  estimated_win_probability: hybridAnalysis.ai_analysis.estimated_win_probability,
+                },
+                hybrid_recommendation: {
+                  final_recommendation: hybridAnalysis.final_recommendation,
+                  confidence: hybridAnalysis.confidence,
+                  combined_insights: hybridAnalysis.combined_insights,
+                  rule_based_score: hybridAnalysis.rule_based.score,
+                  ai_strategic_fit: hybridAnalysis.ai_analysis.strategic_fit_score,
+                },
+              },
+              null,
+              2
+            ),
+          },
+        ],
+      };
+    } catch (error: any) {
+      logger.warn('AI analysis failed, falling back to rule-based only', {
+        rfq_id: rfqId,
+        error: error.message,
+      });
+      // Fall through to return baseResponse
+    }
+  }
+
   return {
     content: [
       {
         type: 'text',
-        text: JSON.stringify(
-          {
-            rfq,
-            attachments,
-            csv_data: csvData,
-            score: scoreRes,
-            rule_outcomes: rulesRes.outcomes,
-            auto_decline_candidates: rulesRes.auto_decline_reasons,
-            missing_fields_checklist: missing_fields,
-            guidance: missing_fields.length
-              ? 'Use rfq_set_attributes to populate missing fields, then run rfq_apply_rules.'
-              : 'Run rfq_apply_rules to record outcomes and optionally auto-decline if enabled.',
-          },
-          null,
-          2
-        ),
+        text: JSON.stringify(baseResponse, null, 2),
       },
     ],
   };

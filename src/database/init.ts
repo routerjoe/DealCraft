@@ -146,6 +146,19 @@ function createTables(): void {
     )
   `);
 
+  // New: Supported contract vehicles configuration
+  db.run(`
+    CREATE TABLE IF NOT EXISTS config_contract_vehicles (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      vehicle_name TEXT UNIQUE NOT NULL,
+      supported INTEGER DEFAULT 1,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_contracts_name ON config_contract_vehicles(vehicle_name)`);
+
   // Create indexes for performance
   db.run(`CREATE INDEX IF NOT EXISTS idx_rfqs_status ON rfqs(status)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_rfqs_decision ON rfqs(decision)`);
@@ -182,6 +195,7 @@ function ensureRfqsExtendedColumns() {
   addColumnIfMissing('rfqs', 'has_previous_contract INTEGER DEFAULT 0');
   addColumnIfMissing('rfqs', 'rfq_score INTEGER');
   addColumnIfMissing('rfqs', 'rfq_recommendation TEXT');
+  addColumnIfMissing('rfqs', 'contract_vehicle TEXT');
 
   db.run('CREATE INDEX IF NOT EXISTS idx_rfqs_competition ON rfqs(competition_level)');
   db.run('CREATE INDEX IF NOT EXISTS idx_rfqs_oem ON rfqs(oem)');

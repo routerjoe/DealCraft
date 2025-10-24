@@ -71,9 +71,18 @@ function toCSV(rows: string[][]): string {
 }
 
 function loadConfig(p?: string): Config {
-  const defaultPath = process.env.INTROMAIL_ANALYZER_CONFIG || join(process.cwd(), "config", "intromail_analyzer.config.json");
+  // Resolve config path relative to project root, not cwd
+  const projectRoot = process.cwd();
+  const defaultPath = process.env.INTROMAIL_ANALYZER_CONFIG || join(projectRoot, "config", "intromail_analyzer.config.json");
   const pathToUse = p || defaultPath;
-  const raw = readFileSync(pathToUse, "utf8");
+  
+  // If path doesn't exist, try resolving from project root
+  let finalPath = pathToUse;
+  if (!existsSync(finalPath) && !pathToUse.startsWith('/')) {
+    finalPath = join(projectRoot, pathToUse);
+  }
+  
+  const raw = readFileSync(finalPath, "utf8");
   return JSON.parse(raw);
 }
 
