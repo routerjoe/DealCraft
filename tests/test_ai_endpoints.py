@@ -13,10 +13,13 @@ def test_list_models():
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
-    assert len(data) == 3
+    assert len(data) == 6  # Updated to match expanded model list
     assert "gpt-5-thinking" in data
+    assert "gpt-4-turbo" in data
     assert "claude-3.5" in data
+    assert "claude-3-opus" in data
     assert "gemini-1.5-pro" in data
+    assert "gemini-1.5-flash" in data
 
 
 def test_guidance_minimal():
