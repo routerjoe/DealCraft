@@ -6,7 +6,7 @@ from typing import Dict
 
 from fastapi import FastAPI, Request
 
-from mcp.api.v1 import ai, contracts, oems
+from mcp.api.v1 import ai, contracts, obsidian, oems
 from mcp.core.config import config
 from mcp.core.logging import log_request
 
@@ -21,6 +21,7 @@ app = FastAPI(
 app.include_router(oems.router, prefix="/v1")
 app.include_router(contracts.router, prefix="/v1")
 app.include_router(ai.router, prefix="/v1")
+app.include_router(obsidian.router, prefix="/v1")
 
 
 @app.middleware("http")
