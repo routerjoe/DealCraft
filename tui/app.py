@@ -13,6 +13,10 @@ from tui.theme import RED_RIVER_LIGHT
 class RedRiverTUI(App):
     """Red River Sales MCP Terminal UI."""
 
+    # Shared state for request tracking
+    last_request_id: str = "N/A"
+    last_latency_ms: float = 0.0
+
     CSS = """
     Screen {
         background: $surface;
@@ -97,7 +101,14 @@ class RedRiverTUI(App):
             with Container(id="ai-panel"):
                 yield AIPanel(self.api_base)
 
-        yield Footer()
+        footer = Footer()
+        yield footer
+
+    def update_request_info(self, request_id: str, latency_ms: float) -> None:
+        """Update footer with request tracking info."""
+        self.last_request_id = request_id
+        self.last_latency_ms = latency_ms
+        self.sub_title = f"req_id: {request_id} | latency: {latency_ms:.2f}ms"
 
     def action_help(self) -> None:
         """Show help notification."""

@@ -1,5 +1,6 @@
 """Contract Vehicles panel for TUI."""
 
+import time
 from typing import Optional
 
 import httpx
@@ -105,9 +106,13 @@ class ContractsPanel(Static):
         table.clear()
 
         try:
+            start_time = time.time()
             async with httpx.AsyncClient() as client:
                 response = await client.get(f"{self.api_base}/v1/contracts")
                 response.raise_for_status()
+                latency_ms = (time.time() - start_time) * 1000
+                request_id = response.headers.get("X-Request-ID", "N/A")
+
                 contracts = response.json()
 
                 for contract in contracts:
@@ -115,6 +120,7 @@ class ContractsPanel(Static):
                     notes_preview = contract["notes"][:30] + "..." if len(contract["notes"]) > 30 else contract["notes"]
                     table.add_row(contract["name"], support_symbol, notes_preview)
 
+                self.app.update_request_info(request_id, latency_ms)
                 self.app.notify(f"Loaded {len(contracts)} contracts", severity="information")
         except Exception as e:
             self.app.notify(f"Failed to load contracts: {str(e)}", severity="error")
@@ -125,12 +131,16 @@ class ContractsPanel(Static):
 
         if result:
             try:
+                start_time = time.time()
                 async with httpx.AsyncClient() as client:
                     response = await client.post(
                         f"{self.api_base}/v1/contracts",
                         json={"name": result["name"], "supported": False, "notes": result["notes"]},
                     )
                     response.raise_for_status()
+                    latency_ms = (time.time() - start_time) * 1000
+                    request_id = response.headers.get("X-Request-ID", "N/A")
+                    self.app.update_request_info(request_id, latency_ms)
                     self.app.notify(f"Added contract: {result['name']}", severity="success")
                     await self.refresh_data()
             except httpx.HTTPStatusError as e:
@@ -151,12 +161,16 @@ class ContractsPanel(Static):
             current_support = row_key[1] == "✓"
 
             try:
+                start_time = time.time()
                 async with httpx.AsyncClient() as client:
                     response = await client.patch(
                         f"{self.api_base}/v1/contracts/{contract_name}",
                         json={"supported": not current_support},
                     )
                     response.raise_for_status()
+                    latency_ms = (time.time() - start_time) * 1000
+                    request_id = response.headers.get("X-Request-ID", "N/A")
+                    self.app.update_request_info(request_id, latency_ms)
                     self.app.notify(f"Toggled {contract_name}", severity="success")
                     await self.refresh_data()
             except Exception as e:
@@ -172,9 +186,14 @@ class ContractsPanel(Static):
 
             # Fetch current notes from API
             try:
+                start_time = time.time()
                 async with httpx.AsyncClient() as client:
                     response = await client.get(f"{self.api_base}/v1/contracts")
                     response.raise_for_status()
+                    latency_ms = (time.time() - start_time) * 1000
+                    request_id = response.headers.get("X-Request-ID", "N/A")
+                    self.app.update_request_info(request_id, latency_ms)
+
                     contracts = response.json()
 
                     current_notes = ""
@@ -188,11 +207,15 @@ class ContractsPanel(Static):
 
                     if new_notes is not None:
                         # Update notes
+                        start_time = time.time()
                         response = await client.patch(
                             f"{self.api_base}/v1/contracts/{contract_name}",
                             json={"notes": new_notes},
                         )
                         response.raise_for_status()
+                        latency_ms = (time.time() - start_time) * 1000
+                        request_id = response.headers.get("X-Request-ID", "N/A")
+                        self.app.update_request_info(request_id, latency_ms)
                         self.app.notify(f"Updated notes for {contract_name}", severity="success")
                         await self.refresh_data()
             except Exception as e:
@@ -207,9 +230,13 @@ class ContractsPanel(Static):
             contract_name = row_key[0]
 
             try:
+                start_time = time.time()
                 async with httpx.AsyncClient() as client:
                     response = await client.delete(f"{self.api_base}/v1/contracts/{contract_name}")
                     response.raise_for_status()
+                    latency_ms = (time.time() - start_time) * 1000
+                    request_id = response.headers.get("X-Request-ID", "N/A")
+                    self.app.update_request_info(request_id, latency_ms)
                     self.app.notify(f"Deleted contract: {contract_name}", severity="success")
                     await self.refresh_data()
             except Exception as e:
