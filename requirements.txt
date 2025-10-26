@@ -1,0 +1,22 @@
+# Red River Sales MCP API Requirements
+
+# Web Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic==2.5.3
+
+# Configuration
+python-dotenv==1.0.0
+
+# HTTP Client (for TUI)
+httpx==0.26.0
+
+# TUI Framework
+textual==0.48.2
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.23.3
+
+# Linting
+ruff==0.1.11

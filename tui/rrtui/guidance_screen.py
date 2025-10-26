@@ -1,9 +1,9 @@
-from textual.app import ComposeResult
-from textual.screen import Screen, ModalScreen
-from textual.widgets import Static, DataTable, Button, Input, Checkbox, Label
-from textual.containers import Container, Horizontal, Vertical
 from textual import events
+from textual.app import ComposeResult
 from textual.binding import Binding
+from textual.containers import Container, Horizontal, Vertical
+from textual.screen import ModalScreen, Screen
+from textual.widgets import Button, Checkbox, DataTable, Input, Label, Static
 
 from . import rfq_api
 
@@ -79,21 +79,25 @@ class GuidanceScreen(Screen):
                 "Press [b]t[/b] to toggle OEM authorization, [b]s[/b] to toggle contract support. "
                 "Press [b]a[/b] to add new OEM, [b]c[/b] to add contract. "
                 "Changes save automatically. Press [b]r[/b] to refresh, [b]Esc[/b] to exit.",
-                id="guide_instructions"
+                id="guide_instructions",
             )
             with Horizontal():
                 with Vertical(id="left"):
                     with Vertical(id="oem_card"):
                         yield Static("OEM AUTHORIZATIONS", classes="card_header")
                         with Vertical(classes="card_body"):
-                            self.oem_table = DataTable(id="oem_table", zebra_stripes=True, cursor_type="row")
+                            self.oem_table = DataTable(
+                                id="oem_table", zebra_stripes=True, cursor_type="row"
+                            )
                             self.oem_table.add_columns("OEM Name", "Authorized", "Threshold")
                             yield self.oem_table
                 with Vertical(id="right"):
                     with Vertical(id="contracts_card"):
                         yield Static("SUPPORTED CONTRACT VEHICLES", classes="card_header")
                         with Vertical(classes="card_body"):
-                            self.contract_table = DataTable(id="contract_table", zebra_stripes=True, cursor_type="row")
+                            self.contract_table = DataTable(
+                                id="contract_table", zebra_stripes=True, cursor_type="row"
+                            )
                             self.contract_table.add_columns("Vehicle Name", "Supported", "Notes")
                             yield self.contract_table
             yield Static("Ready", id="guide_footer")
@@ -146,6 +150,7 @@ class GuidanceScreen(Screen):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         bid = (event.button.id or "").strip()
         import asyncio
+
         if bid == "btn_close":
             self.app.pop_screen()
         elif bid == "btn_refresh":
@@ -165,6 +170,7 @@ class GuidanceScreen(Screen):
         except Exception:
             return
         import asyncio
+
         # Enter/Space toggle based on focus
         if key in ("enter", "space"):
             try:
@@ -224,34 +230,34 @@ class GuidanceScreen(Screen):
             except Exception:
                 self._toast("[yellow]⚠ No OEM row selected[/yellow]")
                 return
-            
+
             oem_name = str(row[0]).strip()
             if not oem_name:
                 self._toast("[yellow]⚠ Invalid OEM name[/yellow]")
                 return
-            
+
             # Extract current state from display text
             auth_text = str(row[1]).strip()
             current = "yes" in auth_text.lower()
             new_state = not current
-            
+
             # Call backend
             res = rfq_api.config_set_oem_authorized(oem_name, new_state)
-            
+
             # Check response
             if not res or not isinstance(res, dict):
                 self._toast("[red]✗ Update failed: no response[/red]")
                 return
-            
+
             # Check for error
             if res.get("success") is False or "error" in res:
                 err = res.get("error", "unknown error")
                 self._toast(f"[red]✗ Update failed: {err}[/red]")
                 return
-            
+
             # Reload tables
             self._load_oems()
-            
+
             # Restore selection to updated OEM
             try:
                 for idx in range(self.oem_table.row_count):
@@ -261,10 +267,10 @@ class GuidanceScreen(Screen):
                         break
             except Exception:
                 pass
-            
+
             state_text = "Authorized ✓" if new_state else "Not Authorized ✗"
             self._toast(f"[green]✓ {oem_name} → {state_text}[/green]")
-            
+
         except Exception as e:
             self._toast(f"[red]✗ Toggle error: {e}[/red]")
 
@@ -279,33 +285,33 @@ class GuidanceScreen(Screen):
             except Exception:
                 self._toast("[yellow]⚠ No Contract row selected[/yellow]")
                 return
-            
+
             name = str(row[0]).strip()
             if not name:
                 self._toast("[yellow]⚠ Invalid contract name[/yellow]")
                 return
-            
+
             # Extract current state from display text
             sup_text = str(row[1]).strip()
             current = "yes" in sup_text.lower()
             new_state = not current
-            
+
             # Call backend
             res = rfq_api.config_upsert_contract(name, new_state, None)
-            
+
             # Check response
             if not res or not isinstance(res, dict):
                 self._toast("[red]✗ Update failed: no response[/red]")
                 return
-            
+
             if res.get("success") is False or "error" in res:
                 err = res.get("error", "unknown error")
                 self._toast(f"[red]✗ Update failed: {err}[/red]")
                 return
-            
+
             # Reload tables
             self._load_contracts()
-            
+
             # Restore selection
             try:
                 for idx in range(self.contract_table.row_count):
@@ -315,17 +321,17 @@ class GuidanceScreen(Screen):
                         break
             except Exception:
                 pass
-            
+
             state_text = "Supported ✓" if new_state else "Not Supported ✗"
             self._toast(f"[green]✓ {name} → {state_text}[/green]")
-            
+
         except Exception as e:
             self._toast(f"[red]✗ Toggle error: {e}[/red]")
 
 
 class AddOemModal(ModalScreen):
     """Modal dialog to add a new OEM with authorization settings."""
-    
+
     CSS = """
     AddOemModal {
         align: center middle;
@@ -374,15 +380,15 @@ class AddOemModal(ModalScreen):
                 yield Label("OEM Name:")
                 self.in_name = Input(placeholder="Enter OEM name (e.g., LogRhythm)", id="ao_name")
                 yield self.in_name
-                
+
                 yield Label("Authorized for Red River?")
                 self.cb_auth = Checkbox("Yes, authorized", value=True, id="ao_auth")
                 yield self.cb_auth
-                
+
                 yield Label("Business Case Threshold (optional):")
                 self.in_thr = Input(placeholder="5", id="ao_thr")
                 yield self.in_thr
-                
+
             with Horizontal(id="ao_footer"):
                 yield Button("Cancel", id="ao_cancel", variant="error")
                 yield Button("Save OEM", id="ao_save", variant="success")
@@ -395,7 +401,7 @@ class AddOemModal(ModalScreen):
             pass
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        bid = (event.button.id or "")
+        bid = event.button.id or ""
         if bid == "ao_cancel":
             self.dismiss(False)
             return
@@ -404,24 +410,25 @@ class AddOemModal(ModalScreen):
             if not name:
                 self._parent._toast("[yellow]⚠ OEM name required[/yellow]")
                 return
-            
+
             thr_raw = (self.in_thr.value or "").strip().replace(",", "")
             try:
                 thr = int(thr_raw) if thr_raw else None
             except Exception:
                 thr = None
-            
+
             auth = bool(self.cb_auth.value)
-            
+
             try:
                 res = rfq_api.config_set_oem_authorized(name, auth, thr)
                 success = isinstance(res, dict) and res.get("success") is not False
             except Exception as e:
                 self._parent._toast(f"[red]✗ Save failed: {e}[/red]")
                 return
-            
+
             if success:
                 import asyncio
+
                 asyncio.create_task(self._parent.action_refresh())
                 state = "Authorized ✓" if auth else "Not Authorized ✗"
                 self._parent._toast(f"[green]✓ Added {name} ({state})[/green]")
@@ -433,7 +440,7 @@ class AddOemModal(ModalScreen):
 
 class AddContractModal(ModalScreen):
     """Modal dialog to add a new supported contract vehicle."""
-    
+
     CSS = """
     AddContractModal {
         align: center middle;
@@ -482,15 +489,15 @@ class AddContractModal(ModalScreen):
                 yield Label("Contract Vehicle Name:")
                 self.in_name = Input(placeholder="e.g., NASA SEWP V", id="ac_name")
                 yield self.in_name
-                
+
                 yield Label("Is this vehicle supported by Red River?")
                 self.cb_sup = Checkbox("Yes, supported", value=True, id="ac_sup")
                 yield self.cb_sup
-                
+
                 yield Label("Notes (optional):")
                 self.in_notes = Input(placeholder="e.g., Primary NASA GWAC", id="ac_notes")
                 yield self.in_notes
-                
+
             with Horizontal(id="ac_footer"):
                 yield Button("Cancel", id="ac_cancel", variant="error")
                 yield Button("Save Contract", id="ac_save", variant="success")
@@ -503,7 +510,7 @@ class AddContractModal(ModalScreen):
             pass
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        bid = (event.button.id or "")
+        bid = event.button.id or ""
         if bid == "ac_cancel":
             self.dismiss(False)
             return
@@ -512,19 +519,20 @@ class AddContractModal(ModalScreen):
             if not name:
                 self._parent._toast("[yellow]⚠ Contract name required[/yellow]")
                 return
-            
+
             sup = bool(self.cb_sup.value)
             notes = (self.in_notes.value or "").strip() or None
-            
+
             try:
                 res = rfq_api.config_upsert_contract(name, sup, notes)
                 success = isinstance(res, dict) and res.get("success") is not False
             except Exception as e:
                 self._parent._toast(f"[red]✗ Save failed: {e}[/red]")
                 return
-            
+
             if success:
                 import asyncio
+
                 asyncio.create_task(self._parent.action_refresh())
                 state = "Supported ✓" if sup else "Not Supported ✗"
                 self._parent._toast(f"[green]✓ Added {name} ({state})[/green]")

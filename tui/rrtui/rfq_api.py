@@ -1,8 +1,16 @@
-
-import os, subprocess, shutil, sys, json, sqlite3
+import json
+import os
+import shutil
+import sqlite3
+import subprocess
+import sys
 from pathlib import Path
 
-def _py(): return shutil.which("python3") or shutil.which("python") or sys.executable
+
+def _py():
+    return shutil.which("python3") or shutil.which("python") or sys.executable
+
+
 def _cli():
     env = os.environ.get("RR_MCP_CLI")
     if env:
@@ -18,11 +26,13 @@ def _cli():
     # Fallback: relative; may still resolve if CWD is repo root
     return "mcp/cli.py"
 
+
 def _run(args, timeout=60):
     cmd = [_py(), "-u", _cli()] + args
     env = os.environ.copy()
     env["PYTHONUNBUFFERED"] = "1"
     subprocess.check_call(cmd, timeout=timeout, env=env)
+
 
 def _run_with_output(args, timeout=60):
     """Run command and return Popen object for output streaming."""
@@ -30,29 +40,36 @@ def _run_with_output(args, timeout=60):
     env = os.environ.copy()
     env["PYTHONUNBUFFERED"] = "1"
     return subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        bufsize=1,
-        env=env
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1, env=env
     )
 
-def get_emails(): _run(["bidboard","get"], timeout=30)
-def process_rfqs(): _run(["rfq","process"], timeout=60)
-def analyze_rfqs(): _run(["rfq","analyze"], timeout=60)
+
+def get_emails():
+    _run(["bidboard", "get"], timeout=30)
+
+
+def process_rfqs():
+    _run(["rfq", "process"], timeout=60)
+
+
+def analyze_rfqs():
+    _run(["rfq", "analyze"], timeout=60)
+
 
 def get_emails_with_output():
     """Get emails with output streaming."""
-    return _run_with_output(["bidboard","get"], timeout=30)
+    return _run_with_output(["bidboard", "get"], timeout=30)
+
 
 def process_rfqs_with_output():
     """Process RFQs with output streaming."""
-    return _run_with_output(["rfq","process"], timeout=60)
+    return _run_with_output(["rfq", "process"], timeout=60)
+
 
 def analyze_rfqs_with_output():
     """Analyze RFQs with output streaming."""
-    return _run_with_output(["rfq","analyze"], timeout=60)
+    return _run_with_output(["rfq", "analyze"], timeout=60)
+
 
 def get_rfq_email_id(rfq_id: int) -> str | None:
     """Lookup the Outlook email_id for a given RFQ id directly from SQLite."""
@@ -65,30 +82,35 @@ def get_rfq_email_id(rfq_id: int) -> str | None:
     except Exception:
         return None
 
+
 def process_single_email(email_id: str):
     """Process a single Outlook email by id to download attachments and record them in DB."""
     return _call_tool_json("rfq_process_email", {"email_id": email_id}, timeout=300)
 
+
 def cleanup_rfq_with_output(rfq_id: int, delete_from_outlook: bool = False):
     """Cleanup a single RFQ by id (only allowed for NO-GO); streams CLI output."""
-    args = ["rfq","clean-declined","--ids", str(rfq_id)]
+    args = ["rfq", "clean-declined", "--ids", str(rfq_id)]
     if delete_from_outlook:
         args.append("--delete-from-outlook")
     return _run_with_output(args, timeout=60)
 
+
 # --- MCP bridge helpers for config editing ---
 def _call_tool_json(tool_name: str, tool_args: dict, timeout: int = 60):
     """Call an MCP tool directly via bridge and return parsed JSON."""
-    import subprocess, json
+    import json
+    import subprocess
     from pathlib import Path
+
     script_dir = Path(__file__).resolve().parent.parent.parent / "mcp"
     bridge = script_dir / "bridge.mjs"
     try:
         proc = subprocess.run(
-            ['npx', 'tsx', str(bridge), tool_name, json.dumps(tool_args)],
+            ["npx", "tsx", str(bridge), tool_name, json.dumps(tool_args)],
             capture_output=True,
             text=True,
-            timeout=timeout
+            timeout=timeout,
         )
     except Exception as e:
         return {"success": False, "error": f"bridge_exec_error: {e}"}
@@ -99,6 +121,7 @@ def _call_tool_json(tool_name: str, tool_args: dict, timeout: int = 60):
         return json.loads(out) if out else {"success": False, "error": "empty_output"}
     except Exception as e:
         return {"success": False, "error": f"json_parse_error: {e}", "raw": proc.stdout.strip()}
+
 
 def _db_path() -> str:
     """Resolve the sqlite file path used by the TS layer."""
@@ -112,10 +135,12 @@ def _db_path() -> str:
     home = os.path.expanduser("~")
     return f"{home}/RedRiver/data/rfq_tracking.db"
 
+
 def _ensure_config_tables(conn: sqlite3.Connection) -> None:
     cur = conn.cursor()
     # Minimal schemas to support guidance edits
-    cur.execute("""
+    cur.execute(
+        """
     CREATE TABLE IF NOT EXISTS config_oem_tracking (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       oem_name TEXT UNIQUE NOT NULL,
@@ -123,16 +148,20 @@ def _ensure_config_tables(conn: sqlite3.Connection) -> None:
       business_case_threshold INTEGER,
       notes TEXT,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-    )""")
-    cur.execute("""
+    )"""
+    )
+    cur.execute(
+        """
     CREATE TABLE IF NOT EXISTS config_contract_vehicles (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       vehicle_name TEXT UNIQUE NOT NULL,
       supported INTEGER DEFAULT 1,
       notes TEXT,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-    )""")
+    )"""
+    )
     conn.commit()
+
 
 def config_list_oems():
     """Return OEM config from DB (authorization, thresholds, notes). Falls back to direct sqlite if bridge fails."""
@@ -145,22 +174,38 @@ def config_list_oems():
         conn = sqlite3.connect(dbp)
         _ensure_config_tables(conn)
         cur = conn.cursor()
-        rows = cur.execute("SELECT oem_name, currently_authorized, COALESCE(business_case_threshold, NULL), COALESCE(notes, NULL) FROM config_oem_tracking ORDER BY lower(oem_name)").fetchall()
+        rows = cur.execute(
+            "SELECT oem_name, currently_authorized, COALESCE(business_case_threshold, NULL), COALESCE(notes, NULL) FROM config_oem_tracking ORDER BY lower(oem_name)"
+        ).fetchall()
         items = []
         for name, auth, thr, notes in rows:
-            items.append({"oem_name": name, "authorized": bool(int(auth or 0)), "business_case_threshold": thr, "notes": notes})
+            items.append(
+                {
+                    "oem_name": name,
+                    "authorized": bool(int(auth or 0)),
+                    "business_case_threshold": thr,
+                    "notes": notes,
+                }
+            )
         return {"items": items}
     except Exception:
         return {"items": []}
 
-def config_set_oem_authorized(oem_name: str, authorized: bool, business_case_threshold: int | None = None):
+
+def config_set_oem_authorized(
+    oem_name: str, authorized: bool, business_case_threshold: int | None = None
+):
     """Update OEM authorization flag (and optional threshold). Uses Node bridge, falls back to sqlite on failure."""
     args = {"oem_name": oem_name, "authorized": bool(authorized)}
     if business_case_threshold is not None:
         args["business_case_threshold"] = int(business_case_threshold)
     res = _call_tool_json("rfq_config_set_oem_authorized", args)
     # If bridge succeeded, it returns a dict (possibly nested 'content'); also respect an explicit success:false
-    if isinstance(res, dict) and (res.get("success", True) is not False) and (("updated" in res) or ("content" in res) or ("oem_name" in res)):
+    if (
+        isinstance(res, dict)
+        and (res.get("success", True) is not False)
+        and (("updated" in res) or ("content" in res) or ("oem_name" in res))
+    ):
         return res
     # Fallback: direct sqlite update
     try:
@@ -171,29 +216,41 @@ def config_set_oem_authorized(oem_name: str, authorized: bool, business_case_thr
         conn = sqlite3.connect(dbp)
         _ensure_config_tables(conn)
         cur = conn.cursor()
-        cur.execute("INSERT OR IGNORE INTO config_oem_tracking (oem_name, currently_authorized) VALUES (?, 0)", (name,))
+        cur.execute(
+            "INSERT OR IGNORE INTO config_oem_tracking (oem_name, currently_authorized) VALUES (?, 0)",
+            (name,),
+        )
         if business_case_threshold is not None:
             cur.execute(
                 "UPDATE config_oem_tracking SET currently_authorized=?, business_case_threshold=?, updated_at=CURRENT_TIMESTAMP WHERE lower(trim(oem_name))=lower(trim(?))",
-                (1 if authorized else 0, int(business_case_threshold), name)
+                (1 if authorized else 0, int(business_case_threshold), name),
             )
         else:
             cur.execute(
                 "UPDATE config_oem_tracking SET currently_authorized=?, updated_at=CURRENT_TIMESTAMP WHERE lower(trim(oem_name))=lower(trim(?))",
-                (1 if authorized else 0, name)
+                (1 if authorized else 0, name),
             )
         conn.commit()
-        row = cur.execute("SELECT oem_name, currently_authorized, business_case_threshold FROM config_oem_tracking WHERE lower(trim(oem_name))=lower(trim(?)) LIMIT 1", (name,)).fetchone()
+        row = cur.execute(
+            "SELECT oem_name, currently_authorized, business_case_threshold FROM config_oem_tracking WHERE lower(trim(oem_name))=lower(trim(?)) LIMIT 1",
+            (name,),
+        ).fetchone()
         if row:
             return {
                 "updated": True,
                 "oem_name": row[0],
                 "authorized": bool(int(row[1] or 0)),
-                "business_case_threshold": row[2]
+                "business_case_threshold": row[2],
             }
-        return {"updated": True, "oem_name": name, "authorized": bool(authorized), "business_case_threshold": business_case_threshold}
+        return {
+            "updated": True,
+            "oem_name": name,
+            "authorized": bool(authorized),
+            "business_case_threshold": business_case_threshold,
+        }
     except Exception as e:
         return {"success": False, "error": f"sqlite_update_error: {e}"}
+
 
 def config_list_contracts():
     """Return supported contract vehicles. Falls back to sqlite when Node bridge fails."""
@@ -205,11 +262,17 @@ def config_list_contracts():
         conn = sqlite3.connect(dbp)
         _ensure_config_tables(conn)
         cur = conn.cursor()
-        rows = cur.execute("SELECT vehicle_name, supported, COALESCE(notes, NULL) FROM config_contract_vehicles ORDER BY lower(vehicle_name)").fetchall()
-        items = [{"vehicle_name": n, "supported": bool(int(s or 0)), "notes": notes} for (n, s, notes) in rows]
+        rows = cur.execute(
+            "SELECT vehicle_name, supported, COALESCE(notes, NULL) FROM config_contract_vehicles ORDER BY lower(vehicle_name)"
+        ).fetchall()
+        items = [
+            {"vehicle_name": n, "supported": bool(int(s or 0)), "notes": notes}
+            for (n, s, notes) in rows
+        ]
         return {"items": items}
     except Exception as e:
         return {"success": False, "error": f"sqlite_read_error: {e}", "items": []}
+
 
 def config_upsert_contract(vehicle_name: str, supported: bool = True, notes: str | None = None):
     """Insert or update a supported contract vehicle row."""
@@ -218,11 +281,13 @@ def config_upsert_contract(vehicle_name: str, supported: bool = True, notes: str
         args["notes"] = notes
     return _call_tool_json("rfq_config_upsert_contract", args)
 
+
 def _out(args, timeout=60):
     cmd = [_py(), "-u", _cli()] + args
     env = os.environ.copy()
     env["PYTHONUNBUFFERED"] = "1"
     return subprocess.check_output(cmd, timeout=timeout, env=env)
+
 
 def _run_json(args, timeout=60):
     raw = _out(args, timeout)
@@ -232,8 +297,10 @@ def _run_json(args, timeout=60):
     except Exception:
         return {}
 
+
 def _fixtures_dir() -> Path:
     return Path(__file__).resolve().parent.parent / "fixtures"
+
 
 def _load_fixture(name: str):
     p = _fixtures_dir() / name
@@ -244,6 +311,7 @@ def _load_fixture(name: str):
         except Exception:
             return {"items": []}
     return {"items": []}
+
 
 def list_rfqs(status: str = "all"):
     """
@@ -269,13 +337,15 @@ def list_rfqs(status: str = "all"):
     for r in items:
         if not isinstance(r, dict):
             continue
-        out.append({
-            "id": r.get("id", ""),
-            "subject": r.get("subject", ""),
-            "rfq_type": r.get("rfq_type", ""),
-            "rfq_score": r.get("rfq_score", ""),
-            "rfq_recommendation": r.get("rfq_recommendation", "")
-        })
+        out.append(
+            {
+                "id": r.get("id", ""),
+                "subject": r.get("subject", ""),
+                "rfq_type": r.get("rfq_type", ""),
+                "rfq_score": r.get("rfq_score", ""),
+                "rfq_recommendation": r.get("rfq_recommendation", ""),
+            }
+        )
     return out
 
 
@@ -283,18 +353,55 @@ def list_rfqs(status: str = "all"):
 def lom_open(rfq_id: str):
     """Return list of LOM line dicts. Replace with CLI call when available."""
     return [
-        {"line": 1, "part": "C9300-48T-A", "desc": "Cisco Catalyst 9300 48-port", "qty": 4, "unit": "$5,200", "ext": "$20,800", "oem": "Cisco", "contract": "SEWP", "taa": "Y", "epeat": "Gold"},
-        {"line": 2, "part": "SVC-C9300", "desc": "SmartNet 8x5xNBD", "qty": 4, "unit": "$600", "ext": "$2,400", "oem": "Cisco", "contract": "SEWP", "taa": "Y", "epeat": "-"}
+        {
+            "line": 1,
+            "part": "C9300-48T-A",
+            "desc": "Cisco Catalyst 9300 48-port",
+            "qty": 4,
+            "unit": "$5,200",
+            "ext": "$20,800",
+            "oem": "Cisco",
+            "contract": "SEWP",
+            "taa": "Y",
+            "epeat": "Gold",
+        },
+        {
+            "line": 2,
+            "part": "SVC-C9300",
+            "desc": "SmartNet 8x5xNBD",
+            "qty": 4,
+            "unit": "$600",
+            "ext": "$2,400",
+            "oem": "Cisco",
+            "contract": "SEWP",
+            "taa": "Y",
+            "epeat": "-",
+        },
     ]
+
 
 def artifacts_list(rfq_id: str):
     return [
-        {"name": f"RFQ_{rfq_id}.pdf", "type": "pdf", "size": 128_000, "path": f"./artifacts/RFQ_{rfq_id}.pdf"},
-        {"name": f"SOW_{rfq_id}.docx", "type": "docx", "size": 256_000, "path": f"./artifacts/SOW_{rfq_id}.docx"},
+        {
+            "name": f"RFQ_{rfq_id}.pdf",
+            "type": "pdf",
+            "size": 128_000,
+            "path": f"./artifacts/RFQ_{rfq_id}.pdf",
+        },
+        {
+            "name": f"SOW_{rfq_id}.docx",
+            "type": "docx",
+            "size": 256_000,
+            "path": f"./artifacts/SOW_{rfq_id}.docx",
+        },
     ]
 
+
 def artifact_open(path: str):
-    import subprocess, platform, os
+    import os
+    import platform
+    import subprocess
+
     sysname = platform.system()
     if sysname == "Darwin":
         subprocess.Popen(["open", path])
@@ -302,6 +409,7 @@ def artifact_open(path: str):
         os.startfile(path)  # type: ignore
     else:
         subprocess.Popen(["xdg-open", path])
+
 
 def analytics_oem(window: str):
     """
@@ -346,14 +454,16 @@ def analytics_oem(window: str):
             avg_comp = float(avg_comp)
         except Exception:
             avg_comp = 0.0
-        norm.append({
-            "oem": r.get("oem",""),
-            "occurrences": int(r.get("occurrences",0) or 0),
-            "total": f"${total_num:,.0f}",
-            "avg_competition": f"{round(avg_comp * 100):d}%",
-            "status": r.get("status",""),
-            "_total_num": total_num
-        })
+        norm.append(
+            {
+                "oem": r.get("oem", ""),
+                "occurrences": int(r.get("occurrences", 0) or 0),
+                "total": f"${total_num:,.0f}",
+                "avg_competition": f"{round(avg_comp * 100):d}%",
+                "status": r.get("status", ""),
+                "_total_num": total_num,
+            }
+        )
 
     # Sort by numeric total desc and limit Top 10
     norm.sort(key=lambda x: x.get("_total_num", 0.0), reverse=True)
@@ -361,6 +471,7 @@ def analytics_oem(window: str):
     for r in top:
         r.pop("_total_num", None)
     return top
+
 
 def rfq_stats(window: str = "30d"):
     """

@@ -2,8 +2,13 @@
 # mcp/cli.py — Extended CLI for Red River MCP
 # Adds subcommands used by the TUI: bidboard get, rfq process, rfq analyze, rfq clean-declined, status --json
 
-import argparse, json, sys, time, subprocess, os
+import argparse
+import json
+import os
+import subprocess
+import sys
 from pathlib import Path
+
 
 # --- Helpers: progress bar, percent, subject clip for TUI-friendly logs ---
 def _progress_bar(i: int, n: int, width: int = 24) -> str:
@@ -16,11 +21,13 @@ def _progress_bar(i: int, n: int, width: int = 24) -> str:
     except Exception:
         return "[" + ("-" * width) + "]"
 
+
 def _percent(i: int, n: int) -> int:
     try:
         return 0 if n <= 0 else int((i / n) * 100)
     except Exception:
         return 0
+
 
 def _clip_subject(s: str, max_len: int = 50) -> str:
     try:
@@ -28,6 +35,7 @@ def _clip_subject(s: str, max_len: int = 50) -> str:
     except Exception:
         s = ""
     return s if len(s) <= max_len else (s[: max_len - 1] + "…")
+
 
 def _normalize_reco(s: str) -> str:
     """Normalize recommendation strings like 'NO-GO - Auto-Decline' to GO | NO-GO | REVIEW | PENDING."""
@@ -49,24 +57,26 @@ def _normalize_reco(s: str) -> str:
         return "GO"
     return "PENDING"
 
+
 def current_status() -> dict:
     # Replace these mocks with live signals from your MCP runtime
     return {
         "mcp": {"running": True, "queue": 0, "uptime": "00:42:03"},
         "watchers": {
-            "outlook_rfq":   {"state": "online", "last_run": "2025-10-17T12:58:03Z"},
-            "fleeting_notes":{"state": "warn",   "last_run": "2025-10-17T12:56:00Z"},
-            "radar":         {"state": "online", "last_run": "2025-10-17T12:50:40Z"},
-            "govly_sync":    {"state": "off"}
+            "outlook_rfq": {"state": "online", "last_run": "2025-10-17T12:58:03Z"},
+            "fleeting_notes": {"state": "warn", "last_run": "2025-10-17T12:56:00Z"},
+            "radar": {"state": "online", "last_run": "2025-10-17T12:50:40Z"},
+            "govly_sync": {"state": "off"},
         },
         "providers": {
             "claude": {"online": True, "p95_ms": 390},
-            "gpt5":   {"online": True, "p95_ms": 320},
-            "gemini": {"online": True, "p95_ms": 340}
+            "gpt5": {"online": True, "p95_ms": 320},
+            "gemini": {"online": True, "p95_ms": 340},
         },
         "pipeline": {"emails": 18, "rfqs": 11, "go": 3, "pending": 2},
-        "router": "SIMPLE (Claude-only)"
+        "router": "SIMPLE (Claude-only)",
     }
+
 
 def cmd_status(args):
     data = current_status()
@@ -78,6 +88,7 @@ def cmd_status(args):
         print("Providers: Claude, GPT-5, Gemini")
     return 0
 
+
 def cmd_bidboard_get(args):
     """
     Get bid board emails from Outlook using the real TypeScript implementation.
@@ -85,12 +96,10 @@ def cmd_bidboard_get(args):
     print(f"Retrieving emails from Outlook folder: '{args.folder}'...")
 
     # Call the real Outlook tool
-    result = _call_mcp_tool("outlook_get_bid_board_emails", {
-        "limit": 50,
-        "unread_only": False,
-        "scan_window": 500,
-        "newest_first": True
-    })
+    result = _call_mcp_tool(
+        "outlook_get_bid_board_emails",
+        {"limit": 50, "unread_only": False, "scan_window": 500, "newest_first": True},
+    )
 
     if not result:
         print("Failed to retrieve emails.")
@@ -111,6 +120,7 @@ def cmd_bidboard_get(args):
 
     return 0
 
+
 def cmd_rfq_process(args):
     """
     Process RFQ emails with streaming progress for the TUI.
@@ -125,12 +135,16 @@ def cmd_rfq_process(args):
         limit = 50
 
     print("Fetching bid board emails...")
-    emails_res = _call_mcp_tool("outlook_get_bid_board_emails", {
-        "limit": limit,
-        "unread_only": False,
-        "scan_window": max(limit * 4, 500),
-        "newest_first": True
-    }, timeout=300)
+    emails_res = _call_mcp_tool(
+        "outlook_get_bid_board_emails",
+        {
+            "limit": limit,
+            "unread_only": False,
+            "scan_window": max(limit * 4, 500),
+            "newest_first": True,
+        },
+        timeout=300,
+    )
 
     if not emails_res:
         print("Failed to fetch emails from Outlook.")
@@ -177,6 +191,7 @@ def cmd_rfq_process(args):
     print(f"  • Failed: {failed_cnt}")
 
     return 0
+
 
 def cmd_rfq_analyze(args):
     """
@@ -230,11 +245,10 @@ def cmd_rfq_analyze(args):
         print(f"Analyzing {idx} of {total} — RFQ #{rfq_id}: {subject}", flush=True)
 
         # Call rfq_analyze with AI parameters
-        analysis = _call_mcp_tool("rfq_analyze", {
-            "rfq_id": rfq_id,
-            "use_ai": use_ai,
-            "ai_provider": ai_provider if use_ai else None
-        })
+        analysis = _call_mcp_tool(
+            "rfq_analyze",
+            {"rfq_id": rfq_id, "use_ai": use_ai, "ai_provider": ai_provider if use_ai else None},
+        )
 
         if analysis:
             analyzed_count += 1
@@ -250,7 +264,7 @@ def cmd_rfq_analyze(args):
                     score_obj["score"] = analysis.get("rule_based_score")
             score_val = score_obj.get("score", 0)
             reco = score_obj.get("recommendation", "PENDING")
-            
+
             # Tally recommendation: prefer AI recommendation when enabled/available
             raw_reco = None
             if use_ai and "ai_analysis" in analysis:
@@ -270,7 +284,7 @@ def cmd_rfq_analyze(args):
                 review_count += 1
             else:
                 pending_count += 1
-            
+
             # Per-item completion line with progress bar
             bar_done = _progress_bar(idx, total)
             pct_done = _percent(idx, total)
@@ -293,14 +307,14 @@ def cmd_rfq_analyze(args):
                 if avg_val is not None:
                     summary_line += f" | AVG: {avg_val}/100"
             print(summary_line, flush=True)
-            
+
             # Show AI analysis if available
             if use_ai and "ai_analysis" in analysis:
                 ai = analysis["ai_analysis"]
-                rec = ai.get('go_nogo_recommendation')
-                conf = ai.get('confidence_level')
-                sf_raw = ai.get('strategic_fit_score')
-                wp_raw = ai.get('estimated_win_probability')
+                rec = ai.get("go_nogo_recommendation")
+                conf = ai.get("confidence_level")
+                sf_raw = ai.get("strategic_fit_score")
+                wp_raw = ai.get("estimated_win_probability")
 
                 # Safe display formatting (avoid "None%" etc.)
                 try:
@@ -317,9 +331,9 @@ def cmd_rfq_analyze(args):
                 print(f"    Strategic Fit: {sf_disp}", flush=True)
                 print(f"    Win Probability: {wp_disp}", flush=True)
 
-                insights = ai.get('key_insights', [])
+                insights = ai.get("key_insights", [])
                 if insights:
-                    print(f"    Key Insights:", flush=True)
+                    print("    Key Insights:", flush=True)
                     for insight in insights[:2]:  # Show first 2
                         print(f"      • {insight}", flush=True)
         else:
@@ -329,17 +343,26 @@ def cmd_rfq_analyze(args):
             print(f"{bar_done} {idx}/{total} {pct_done}% ✗ Analysis failed or no result", flush=True)
 
     print(f"\n{'='*60}", flush=True)
-    print(f"RFQ Analysis Summary", flush=True)
+    print("RFQ Analysis Summary", flush=True)
     print(f"Total analyzed: {analyzed_count}", flush=True)
     # Compute pending fallback if none was tallied explicitly
     if pending_count == 0:
         pending_count = max(0, analyzed_count - go_count - nogo_count - review_count)
-    print(f"Recommendations: [green]{go_count} GO[/green] | [red]{nogo_count} NO-GO[/red] | [yellow]{review_count} REVIEW[/yellow] | [dim]{pending_count} Pending[/dim]", flush=True)
+
+    rec_summary = (
+        f"Recommendations: [green]{go_count} GO[/green] | "
+        f"[red]{nogo_count} NO-GO[/red] | "
+        f"[yellow]{review_count} REVIEW[/yellow] | "
+        f"[dim]{pending_count} Pending[/dim]"
+    )
+    print(rec_summary, flush=True)
+
     if use_ai:
         print(f"AI Provider: {ai_provider}", flush=True)
     print(f"{'='*60}", flush=True)
 
     return 0
+
 
 def _call_mcp_tool(tool_name: str, tool_args: dict, timeout: int = 120):
     """
@@ -351,24 +374,24 @@ def _call_mcp_tool(tool_name: str, tool_args: dict, timeout: int = 120):
         script_dir = Path(__file__).resolve().parent
         project_root = script_dir.parent
         bridge_script = script_dir / "bridge.mjs"
-        
+
         if not bridge_script.exists():
             print(f"Bridge script not found: {bridge_script}", file=sys.stderr)
             return None
-        
+
         # Call the bridge script using npx tsx
         result = subprocess.run(
-            ['npx', 'tsx', str(bridge_script), tool_name, json.dumps(tool_args)],
+            ["npx", "tsx", str(bridge_script), tool_name, json.dumps(tool_args)],
             capture_output=True,
             text=True,
             cwd=str(project_root),
-            timeout=timeout
+            timeout=timeout,
         )
-        
+
         if result.returncode != 0:
             print(f"Tool execution failed: {result.stderr}", file=sys.stderr)
             return None
-        
+
         # Parse JSON output
         output = result.stdout.strip()
         if output:
@@ -377,15 +400,16 @@ def _call_mcp_tool(tool_name: str, tool_args: dict, timeout: int = 120):
             except json.JSONDecodeError:
                 # Not JSON - might be formatted text output
                 return {"output": output}
-        
+
         return None
-            
+
     except subprocess.TimeoutExpired:
         print(f"Tool {tool_name} timed out", file=sys.stderr)
         return None
     except Exception as e:
         print(f"Error calling MCP tool {tool_name}: {e}", file=sys.stderr)
         return None
+
 
 def cmd_rfq_list(args):
     """
@@ -404,17 +428,19 @@ def cmd_rfq_list(args):
     items = []
     for r in rfqs:
         try:
-            items.append({
-                "id": r.get("id"),
-                "subject": r.get("subject") or "",
-                "customer": r.get("customer") or "",
-                "oem": r.get("oem") or "",
-                "rfq_type": r.get("rfq_type") or "",
-                "rfq_score": r.get("rfq_score") if r.get("rfq_score") is not None else "",
-                "rfq_recommendation": r.get("rfq_recommendation") or "",
-                "attachments_count": r.get("attachments_count") if r.get("attachments_count") is not None else None,
-                "received_date": r.get("received_date") or r.get("processed_date") or r.get("created_at") or "",
-            })
+            items.append(
+                {
+                    "id": r.get("id"),
+                    "subject": r.get("subject") or "",
+                    "customer": r.get("customer") or "",
+                    "oem": r.get("oem") or "",
+                    "rfq_type": r.get("rfq_type") or "",
+                    "rfq_score": r.get("rfq_score") if r.get("rfq_score") is not None else "",
+                    "rfq_recommendation": r.get("rfq_recommendation") or "",
+                    "attachments_count": r.get("attachments_count") if r.get("attachments_count") is not None else None,
+                    "received_date": r.get("received_date") or r.get("processed_date") or r.get("created_at") or "",
+                }
+            )
         except Exception:
             # Skip malformed rows defensively
             pass
@@ -425,6 +451,7 @@ def cmd_rfq_list(args):
     else:
         print(f"RFQs: {len(items)}")
     return 0
+
 
 def cmd_rfq_clean_declined(args):
     """Cleanup NO-GO RFQs by ID; optionally delete Outlook emails first."""
@@ -441,25 +468,39 @@ def cmd_rfq_clean_declined(args):
         print("No valid RFQ IDs provided (use --ids '1,2,3').", flush=True)
         return 1
 
-    res = _call_mcp_tool("rfq_cleanup_declined", {
-        "rfq_ids": rfq_ids,
-        "delete_from_outlook": bool(getattr(args, "delete_from_outlook", False))
-    })
+    res = _call_mcp_tool(
+        "rfq_cleanup_declined",
+        {
+            "rfq_ids": rfq_ids,
+            "delete_from_outlook": bool(getattr(args, "delete_from_outlook", False)),
+        },
+    )
     if not res:
         print("Cleanup failed (no response).", flush=True)
         return 1
 
-    cleaned_count = res.get("cleaned_count", 0)
+    _ = res.get("cleaned_count", 0)
     print("Cleaned NO-GO RFQs from system.", flush=True)
-    print(f"deleted_from_outlook: {'true' if getattr(args, 'delete_from_outlook', False) else 'false'}", flush=True)
+    print(
+        f"deleted_from_outlook: {'true' if getattr(args, 'delete_from_outlook', False) else 'false'}",
+        flush=True,
+    )
     print(f"IDs: {', '.join(map(str, rfq_ids))}", flush=True)
     print(json.dumps(res, indent=2), flush=True)
     return 0
 
+
 def cmd_rfq_stats(args):
     window = getattr(args, "window", "30d")
     if window == "7d":
-        funnel = {"received": 12, "validated": 11, "registered": 10, "quoted": 9, "submitted": 8, "awarded": 6}
+        funnel = {
+            "received": 12,
+            "validated": 11,
+            "registered": 10,
+            "quoted": 9,
+            "submitted": 8,
+            "awarded": 6,
+        }
         by_day = [
             {"date": "2025-10-12", "received": 2, "awarded": 1},
             {"date": "2025-10-13", "received": 1, "awarded": 0},
@@ -470,10 +511,24 @@ def cmd_rfq_stats(args):
             {"date": "2025-10-18", "received": 1, "awarded": 1},
         ]
     elif window == "90d":
-        funnel = {"received": 120, "validated": 112, "registered": 107, "quoted": 101, "submitted": 98, "awarded": 90}
+        funnel = {
+            "received": 120,
+            "validated": 112,
+            "registered": 107,
+            "quoted": 101,
+            "submitted": 98,
+            "awarded": 90,
+        }
         by_day = []
     else:
-        funnel = {"received": 42, "validated": 39, "registered": 37, "quoted": 34, "submitted": 33, "awarded": 31}
+        funnel = {
+            "received": 42,
+            "validated": 39,
+            "registered": 37,
+            "quoted": 34,
+            "submitted": 33,
+            "awarded": 31,
+        }
         by_day = [
             {"date": "2025-10-12", "received": 2, "awarded": 1},
             {"date": "2025-10-13", "received": 1, "awarded": 0},
@@ -493,31 +548,65 @@ def cmd_rfq_stats(args):
         print("Funnel:", ", ".join([f"{k}={v}" for k, v in funnel.items()]))
     return 0
 
+
 def cmd_analytics_oem(args):
     window = getattr(args, "window", "30d")
     scale = 1.0 if window == "30d" else 0.25 if window == "7d" else 3.0
     base = [
-        {"oem": "Cisco", "occurrences": 12, "total": 250000, "avg_competition": 0.42, "status": "High-value mix"},
-        {"oem": "Dell", "occurrences": 9, "total": 180000, "avg_competition": 0.38, "status": "Steady"},
-        {"oem": "HPE", "occurrences": 7, "total": 140000, "avg_competition": 0.45, "status": "Competitive"},
-        {"oem": "Nutanix", "occurrences": 5, "total": 120000, "avg_competition": 0.35, "status": "Growing"},
-        {"oem": "Palo Alto", "occurrences": 4, "total": 90000, "avg_competition": 0.30, "status": "Security push"},
+        {
+            "oem": "Cisco",
+            "occurrences": 12,
+            "total": 250000,
+            "avg_competition": 0.42,
+            "status": "High-value mix",
+        },
+        {
+            "oem": "Dell",
+            "occurrences": 9,
+            "total": 180000,
+            "avg_competition": 0.38,
+            "status": "Steady",
+        },
+        {
+            "oem": "HPE",
+            "occurrences": 7,
+            "total": 140000,
+            "avg_competition": 0.45,
+            "status": "Competitive",
+        },
+        {
+            "oem": "Nutanix",
+            "occurrences": 5,
+            "total": 120000,
+            "avg_competition": 0.35,
+            "status": "Growing",
+        },
+        {
+            "oem": "Palo Alto",
+            "occurrences": 4,
+            "total": 90000,
+            "avg_competition": 0.30,
+            "status": "Security push",
+        },
     ]
     items = []
     for r in base:
-        items.append({
-            "oem": r["oem"],
-            "occurrences": max(1, int(r["occurrences"] * scale)),
-            "total": int(r["total"] * scale),
-            "avg_competition": float(r["avg_competition"]),
-            "status": r["status"],
-        })
+        items.append(
+            {
+                "oem": r["oem"],
+                "occurrences": max(1, int(r["occurrences"] * scale)),
+                "total": int(r["total"] * scale),
+                "avg_competition": float(r["avg_competition"]),
+                "status": r["status"],
+            }
+        )
     data = {"window": window, "currency": "USD", "items": items}
     if getattr(args, "json", False):
         print(json.dumps(data, indent=2))
     else:
         print(f"OEM analytics {window}: {len(items)} items")
     return 0
+
 
 def main():
     parser = argparse.ArgumentParser(prog="mcp")
@@ -542,8 +631,17 @@ def main():
     p_rfq_proc.set_defaults(func=cmd_rfq_process)
 
     p_rfq_an = rfq_sub.add_parser("analyze", help="Analyze RFQs with AI")
-    p_rfq_an.add_argument("--use-ai", action="store_true", default=None, help="Enable AI analysis (default: from .env)")
-    p_rfq_an.add_argument("--ai-provider", choices=["claude", "openai", "gemini"], help="AI provider (default: from .env)")
+    p_rfq_an.add_argument(
+        "--use-ai",
+        action="store_true",
+        default=None,
+        help="Enable AI analysis (default: from .env)",
+    )
+    p_rfq_an.add_argument(
+        "--ai-provider",
+        choices=["claude", "openai", "gemini"],
+        help="AI provider (default: from .env)",
+    )
     p_rfq_an.set_defaults(func=cmd_rfq_analyze)
 
     p_rfq_list = rfq_sub.add_parser("list", help="List RFQs for TUI")
@@ -553,12 +651,16 @@ def main():
 
     p_rfq_clean = rfq_sub.add_parser("clean-declined", help="Cleanup declined RFQs")
     p_rfq_clean.add_argument("--ids", required=True, help="Comma-separated RFQ IDs to clean (must be NO-GO)")
-    p_rfq_clean.add_argument("--delete-from-outlook", action="store_true", help="Also delete Outlook emails (performed first)")
+    p_rfq_clean.add_argument(
+        "--delete-from-outlook",
+        action="store_true",
+        help="Also delete Outlook emails (performed first)",
+    )
     p_rfq_clean.set_defaults(func=cmd_rfq_clean_declined)
 
     # New: rfq stats (funnel)
     p_rfq_stats = rfq_sub.add_parser("stats", help="Aggregate RFQ stats (funnel)")
-    p_rfq_stats.add_argument("--window", choices=["7d","30d","90d"], default="30d", help="Time window")
+    p_rfq_stats.add_argument("--window", choices=["7d", "30d", "90d"], default="30d", help="Time window")
     p_rfq_stats.add_argument("--json", action="store_true", help="Emit JSON")
     p_rfq_stats.set_defaults(func=cmd_rfq_stats)
 
@@ -566,7 +668,7 @@ def main():
     p_analytics = sub.add_parser("analytics", help="Analytics endpoints")
     analytics_sub = p_analytics.add_subparsers(dest="analytics_cmd")
     p_analytics_oem = analytics_sub.add_parser("oem", help="OEM analytics")
-    p_analytics_oem.add_argument("--window", choices=["7d","30d","90d"], default="30d", help="Time window")
+    p_analytics_oem.add_argument("--window", choices=["7d", "30d", "90d"], default="30d", help="Time window")
     p_analytics_oem.add_argument("--json", action="store_true", help="Emit JSON")
     p_analytics_oem.set_defaults(func=cmd_analytics_oem)
 
@@ -575,6 +677,7 @@ def main():
         parser.print_help()
         return 1
     return args.func(args)
+
 
 if __name__ == "__main__":
     sys.exit(main())

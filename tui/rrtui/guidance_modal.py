@@ -1,9 +1,9 @@
-from textual.app import ComposeResult
-from textual.screen import ModalScreen
-from textual.widgets import Static, DataTable, Button, Checkbox
-from textual.containers import Container, Horizontal, Vertical
 from textual import events
+from textual.app import ComposeResult
 from textual.binding import Binding
+from textual.containers import Container, Horizontal, Vertical
+from textual.screen import ModalScreen
+from textual.widgets import Button, Checkbox, DataTable, Static
 
 from . import rfq_api
 from .operation_modal import OperationModal
@@ -71,7 +71,10 @@ class GuidanceModal(ModalScreen):
 
     def compose(self) -> ComposeResult:
         with Container():
-            yield Static("[b][cyan]Edit Analysis Guidance[/cyan] — OEM Authorization & Supported Contracts[/b]", id="guide_header")
+            yield Static(
+                "[b][cyan]Edit Analysis Guidance[/cyan] — OEM Authorization & Supported Contracts[/b]",
+                id="guide_header",
+            )
             with Horizontal():
                 with Vertical(id="left"):
                     with Vertical(id="oem_card"):
@@ -87,7 +90,7 @@ class GuidanceModal(ModalScreen):
                         yield self.contract_table
             yield Static(
                 "[dim]Keys:[/dim] r=Refresh  t=Toggle OEM Authorized  s=Toggle Contract Supported   Esc=Close",
-                id="guide_footer"
+                id="guide_footer",
             )
 
     async def on_mount(self) -> None:
@@ -168,6 +171,7 @@ class GuidanceModal(ModalScreen):
         except Exception:
             key = ""
         import asyncio
+
         if key == "t":
             asyncio.create_task(self.action_toggle_oem())
             try:
@@ -202,7 +206,9 @@ class GuidanceModal(ModalScreen):
             try:
                 row = self.oem_table.get_row(row_key)
             except Exception:
-                self._toast("[yellow]Select a data row in OEM table (use ↑/↓), then press 't'[/yellow]")
+                self._toast(
+                    "[yellow]Select a data row in OEM table (use ↑/↓), then press 't'[/yellow]"
+                )
                 return
             oem_name = str(row[0]).strip()
             if not oem_name:
@@ -214,7 +220,9 @@ class GuidanceModal(ModalScreen):
                 self._toast("[red]Failed to update OEM authorization[/red]")
                 return
             self._load_oems()
-            self._toast(f"[green]Updated OEM: {oem_name} → {'Authorized' if not current else 'Not Authorized'}[/green]")
+            self._toast(
+                f"[green]Updated OEM: {oem_name} → {'Authorized' if not current else 'Not Authorized'}[/green]"
+            )
         except Exception as e:
             self._toast(f"[red]Toggle failed: {e}[/red]")
 
@@ -227,7 +235,9 @@ class GuidanceModal(ModalScreen):
             try:
                 row = self.contract_table.get_row(row_key)
             except Exception:
-                self._toast("[yellow]Select a data row in Contracts table (use ↑/↓), then press 's'[/yellow]")
+                self._toast(
+                    "[yellow]Select a data row in Contracts table (use ↑/↓), then press 's'[/yellow]"
+                )
                 return
             name = str(row[0]).strip()
             if not name:
@@ -239,7 +249,9 @@ class GuidanceModal(ModalScreen):
                 self._toast("[red]Failed to update contract[/red]")
                 return
             self._load_contracts()
-            self._toast(f"[green]Updated Contract: {name} → {'Supported' if not current else 'Not Supported'}[/green]")
+            self._toast(
+                f"[green]Updated Contract: {name} → {'Supported' if not current else 'Not Supported'}[/green]"
+            )
         except Exception as e:
             self._toast(f"[red]Toggle failed: {e}[/red]")
 
@@ -285,10 +297,15 @@ class CleanupModal(ModalScreen):
         with Container():
             yield Static(f"[b][cyan]Cleanup RFQ #{self.rfq_id}[/cyan][/b]", id="cl_header")
             with Vertical(id="cl_body"):
-                yield Static("This will remove the RFQ record and local artifacts.\n"
-                             "[yellow]Only NO-GO RFQs will be cleaned (enforced by backend).[/yellow]\n\n"
-                             "Optional: Also delete the Outlook email first.", id="cl_msg")
-                self.cb_delete = Checkbox("Also delete Outlook email (performed first)", value=False, id="cl_cb")
+                yield Static(
+                    "This will remove the RFQ record and local artifacts.\n"
+                    "[yellow]Only NO-GO RFQs will be cleaned (enforced by backend).[/yellow]\n\n"
+                    "Optional: Also delete the Outlook email first.",
+                    id="cl_msg",
+                )
+                self.cb_delete = Checkbox(
+                    "Also delete Outlook email (performed first)", value=False, id="cl_cb"
+                )
             with Horizontal(id="cl_footer"):
                 yield Button("Cancel", id="cancel_btn")
                 yield Button("Proceed", id="proceed_btn", variant="error")
@@ -302,7 +319,7 @@ class CleanupModal(ModalScreen):
             # Chain to OperationModal which streams the CLI
             op = OperationModal(
                 f"Cleanup RFQ #{self.rfq_id}",
-                lambda: rfq_api.cleanup_rfq_with_output(self.rfq_id, delete_outlook)
+                lambda: rfq_api.cleanup_rfq_with_output(self.rfq_id, delete_outlook),
             )
             self.app.push_screen(op)
             self.dismiss(True)

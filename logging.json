@@ -1,0 +1,16 @@
+{
+  "level": "INFO",
+  "format": "json",
+  "handlers": {
+    "console": {
+      "class": "logging.StreamHandler",
+      "formatter": "json",
+      "stream": "ext://sys.stdout"
+    }
+  },
+  "formatters": {
+    "json": {
+      "class": "mcp.core.logging.JSONFormatter"
+    }
+  }
+}

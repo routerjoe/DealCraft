@@ -1,0 +1,8 @@
+# Ignore existing code outside the new sprint implementation
+future features/
+red-river-rfq-email-drafts/
+src/
+tui/rrtui/
+tui/config/
+mcp/cli.py
+mcp/bridge.mjs

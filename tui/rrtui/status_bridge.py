@@ -1,8 +1,14 @@
-
-import os, json, subprocess, shutil, sys
+import json
+import os
+import shutil
+import subprocess
+import sys
 from pathlib import Path
 
-def _py(): return shutil.which("python3") or shutil.which("python") or sys.executable
+
+def _py():
+    return shutil.which("python3") or shutil.which("python") or sys.executable
+
 
 def _cli():
     env = os.environ.get("RR_MCP_CLI")
@@ -19,8 +25,10 @@ def _cli():
     # Fallback: relative; may still resolve if CWD is repo root
     return "mcp/cli.py"
 
+
 def _fixtures_dir() -> Path:
     return Path(__file__).resolve().parent.parent / "fixtures"
+
 
 def _load_fixture(name: str) -> dict:
     p = _fixtures_dir() / name
@@ -32,6 +40,7 @@ def _load_fixture(name: str) -> dict:
             return {}
     return {}
 
+
 def _normalize_status(d: dict) -> dict:
     d = d or {}
     mcp = d.get("mcp", {}) or {}
@@ -39,17 +48,20 @@ def _normalize_status(d: dict) -> dict:
     providers = d.get("providers", {}) or {}
     pipeline = d.get("pipeline", {}) or {}
     router = d.get("router", "SIMPLE Claude-only")
+
     # watchers
     def _st(name: str):
         v = watchers.get(name, {}) or {}
         s = v.get("state") or "off"
         return {"state": s}
+
     watchers_n = {
         "outlook_rfq": _st("outlook_rfq"),
         "fleeting_notes": _st("fleeting_notes"),
         "radar": _st("radar"),
         "govly_sync": _st("govly_sync"),
     }
+
     # providers
     def _prov(name: str):
         v = providers.get(name, {}) or {}
@@ -57,6 +69,7 @@ def _normalize_status(d: dict) -> dict:
             "online": bool(v.get("online", False)),
             "p95_ms": v.get("p95_ms", None),
         }
+
     providers_n = {
         "claude": _prov("claude"),
         "gpt5": _prov("gpt5"),
@@ -78,6 +91,7 @@ def _normalize_status(d: dict) -> dict:
         },
         "router": str(router),
     }
+
 
 def get_status() -> dict:
     try:
