@@ -1,0 +1,53 @@
+---
+tags:
+{%- for tag in tags %}
+  - {{ tag }}
+{%- endfor %}
+type: opportunity
+id: {{ id }}
+customer: {{ customer }}
+oem: {{ oem }}
+amount: {{ amount }}
+stage: {{ stage }}
+close_date: {{ close_date }}
+source: {{ source }}
+created: {{ created }}
+---
+
+# {{ title }}
+
+## Summary
+
+**Customer:** {{ customer }}  
+**OEM:** {{ oem }}  
+**Amount:** ${{ amount }}  
+**Stage:** {{ stage }}  
+**Expected Close:** {{ close_date }}  
+**Source:** {{ source }}
+
+## Scope
+
+> Brief description of the opportunity scope and requirements
+
+## OEM Details
+
+**Primary OEM:** {{ oem }}
+
+### Requirements
+- [ ] OEM authorization verified
+- [ ] Pricing obtained
+- [ ] Technical specifications reviewed
+
+## Next Actions
+
+- [ ] Initial customer contact
+- [ ] Requirements gathering
+- [ ] Proposal development
+- [ ] Quote submission
+
+## Notes
+
+_Add notes and updates here_
+
+---
+*Created: {{ created }}*
