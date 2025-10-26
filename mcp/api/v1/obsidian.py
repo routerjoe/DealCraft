@@ -11,6 +11,37 @@ router = APIRouter(prefix="/v1", tags=["obsidian"])
 
 
 # ---------------------------
+# Federal FY Helper
+# ---------------------------
+def get_federal_fy(close_date_str: str) -> str:
+    """
+    Determine Federal Fiscal Year from close_date.
+
+    Federal FY runs from Oct 1 (N-1) to Sep 30 (N).
+    For example:
+    - 2024-10-01 to 2025-09-30 is FY25
+    - 2025-10-01 to 2026-09-30 is FY26
+
+    Args:
+        close_date_str: Date string in YYYY-MM-DD format
+
+    Returns:
+        FY folder name (e.g., "FY25") or "Triage" if date is invalid
+    """
+    try:
+        date_obj = datetime.strptime(close_date_str, "%Y-%m-%d")
+        # If month is Oct-Dec, FY is next calendar year
+        # If month is Jan-Sep, FY is current calendar year
+        if date_obj.month >= 10:
+            fy_year = date_obj.year + 1
+        else:
+            fy_year = date_obj.year
+        return f"FY{fy_year % 100:02d}"  # Last 2 digits (e.g., 2025 → 25)
+    except (ValueError, AttributeError):
+        return "Triage"
+
+
+# ---------------------------
 # Input Model + Validation
 # ---------------------------
 class OpportunityIn(BaseModel):
@@ -64,6 +95,7 @@ def render_markdown(data: OpportunityIn) -> str:
       - Unquoted scalars for: id, customer, oem, amount, stage, close_date, source
       - Block list for tags: `tags:\n- tag1\n- tag2`
       - Include `type: opportunity`
+      - Add dashboard-friendly aliases: est_amount, est_close, oems, partners, contract_vehicle
     Markdown body requires: '**Amount:** $<number>.1f' (no commas).
     """
     # Default tags if none provided
@@ -86,6 +118,13 @@ def render_markdown(data: OpportunityIn) -> str:
         f"close_date: {data.close_date}",
         f"source: {data.source}",
         "type: opportunity",
+        # Dashboard-friendly aliases (non-breaking additions)
+        f"est_amount: {amount_yaml}",
+        f"est_close: {data.close_date}",
+        "oems:",
+        f"  - {data.oem}",
+        "partners: []",
+        'contract_vehicle: ""',
         "tags:",
         *[f"- {t}" for t in tags],
         "---",
@@ -116,8 +155,11 @@ def render_markdown(data: OpportunityIn) -> str:
 # ---------------------------
 @router.post("/obsidian/opportunity", status_code=status.HTTP_201_CREATED)
 def create_opportunity_note(payload: OpportunityIn):
-    # Base dir for tests / local usage
-    base_dir = Path("obsidian/30 Hub/Opportunities")
+    # Determine FY folder or Triage
+    fy_folder = get_federal_fy(payload.close_date)
+
+    # Base dir: obsidian/40 Projects/Opportunities/<FYxx|Triage>
+    base_dir = Path("obsidian/40 Projects/Opportunities") / fy_folder
     base_dir.mkdir(parents=True, exist_ok=True)
 
     filename = f"{payload.id} - {_sanitize_title_for_filename(payload.title)}.md"
