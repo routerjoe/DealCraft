@@ -61,9 +61,9 @@ def render_markdown(data: OpportunityIn) -> str:
             f"customer: {data.customer}",
             f"oem: {data.oem}",
             f"amount: {data.amount:.2f}",
-            f'stage: "{data.stage}"',
-            f'close_date: "{data.close_date}"',
-            f'source: "{data.source}"',
+            f"stage: {data.stage}",
+            f"close_date: {data.close_date}",
+            f"source: {data.source}",
             "type: opportunity",
             "tags:",
         ]
