@@ -59,7 +59,7 @@ def render_markdown(data: OpportunityIn) -> str:
             f"id: {data.id}",  # unquoted to satisfy test expectation
             f'title: "{data.title}"',
             f"customer: {data.customer}",
-            f'oem: "{data.oem}"',
+            f"oem: {data.oem}",
             f"amount: {data.amount:.2f}",
             f'stage: "{data.stage}"',
             f'close_date: "{data.close_date}"',
