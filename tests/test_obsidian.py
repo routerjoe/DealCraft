@@ -106,7 +106,7 @@ def test_opportunity_note_content():
 
 
 def test_opportunity_note_file_path():
-    """Test that opportunity note is created at correct path."""
+    """Test that opportunity note is created at correct path with FY routing."""
     response = client.post(
         "/v1/obsidian/opportunity",
         json={
@@ -116,7 +116,7 @@ def test_opportunity_note_file_path():
             "oem": "Cisco",
             "amount": 150000.00,
             "stage": "Discovery",
-            "close_date": "2025-04-15",
+            "close_date": "2025-04-15",  # Should route to FY25
             "source": "Partner Referral",
         },
     )
@@ -124,10 +124,11 @@ def test_opportunity_note_file_path():
     assert response.status_code == 201
     file_path = Path(response.json()["path"])
 
-    # Verify path structure
-    assert file_path.parent.name == "Opportunities"
-    assert file_path.parent.parent.name == "30 Hub"
-    assert file_path.parent.parent.parent.name == "obsidian"
+    # Verify path structure: obsidian/40 Projects/Opportunities/FY25/...
+    assert file_path.parent.name == "FY25"
+    assert file_path.parent.parent.name == "Opportunities"
+    assert file_path.parent.parent.parent.name == "40 Projects"
+    assert file_path.parent.parent.parent.parent.name == "obsidian"
     assert file_path.name == "OPP-003 - Security Upgrade.md"
 
 
@@ -279,3 +280,113 @@ def test_multiple_opportunities():
     assert path1.exists()
     assert path2.exists()
     assert path1 != path2
+
+
+def test_fy_routing_fy25():
+    """Test that opportunities route to correct FY folder - FY25."""
+    # Close date in FY25 (Oct 2024 - Sep 2025)
+    response = client.post(
+        "/v1/obsidian/opportunity",
+        json={
+            "id": "OPP-FY25",
+            "title": "FY25 Opportunity",
+            "customer": "Test Customer",
+            "oem": "Test OEM",
+            "amount": 100000.00,
+            "stage": "Qualification",
+            "close_date": "2025-06-30",  # June 2025 → FY25
+            "source": "Test",
+        },
+    )
+
+    assert response.status_code == 201
+    file_path = Path(response.json()["path"])
+    assert file_path.parent.name == "FY25"
+    assert file_path.exists()
+
+
+def test_fy_routing_fy26():
+    """Test that opportunities route to correct FY folder - FY26."""
+    # Close date in FY26 (Oct 2025 - Sep 2026)
+    response = client.post(
+        "/v1/obsidian/opportunity",
+        json={
+            "id": "OPP-FY26",
+            "title": "FY26 Opportunity",
+            "customer": "Test Customer",
+            "oem": "Test OEM",
+            "amount": 100000.00,
+            "stage": "Qualification",
+            "close_date": "2025-11-15",  # November 2025 → FY26
+            "source": "Test",
+        },
+    )
+
+    assert response.status_code == 201
+    file_path = Path(response.json()["path"])
+    assert file_path.parent.name == "FY26"
+    assert file_path.exists()
+
+
+def test_yaml_aliases_present():
+    """Test that YAML aliases are present in generated notes."""
+    response = client.post(
+        "/v1/obsidian/opportunity",
+        json={
+            "id": "OPP-ALIAS",
+            "title": "Alias Test",
+            "customer": "Test Customer",
+            "oem": "Dell",
+            "amount": 250000.00,
+            "stage": "Proposal",
+            "close_date": "2025-08-15",
+            "source": "RFQ",
+        },
+    )
+
+    assert response.status_code == 201
+    file_path = Path(response.json()["path"])
+    content = file_path.read_text(encoding="utf-8")
+
+    # Verify original fields still present
+    assert "amount: 250000.0" in content
+    assert "close_date: 2025-08-15" in content
+    assert "oem: Dell" in content
+
+    # Verify new aliases are present
+    assert "est_amount: 250000.0" in content
+    assert "est_close: 2025-08-15" in content
+    assert "oems:" in content
+    assert "  - Dell" in content
+    assert "partners: []" in content
+    assert 'contract_vehicle: ""' in content
+
+
+def test_yaml_aliases_oems_list():
+    """Test that oems alias is a proper list format."""
+    response = client.post(
+        "/v1/obsidian/opportunity",
+        json={
+            "id": "OPP-LIST",
+            "title": "List Test",
+            "customer": "Test Customer",
+            "oem": "Cisco",
+            "amount": 100000.00,
+            "stage": "Discovery",
+            "close_date": "2025-05-30",
+            "source": "Partner",
+        },
+    )
+
+    assert response.status_code == 201
+    file_path = Path(response.json()["path"])
+    content = file_path.read_text(encoding="utf-8")
+
+    # Verify oems is a list containing the OEM
+    assert "oems:" in content
+    assert "  - Cisco" in content
+
+    # Verify it appears before tags section
+    oems_pos = content.find("oems:")
+    tags_pos = content.find("tags:")
+    assert oems_pos < tags_pos
