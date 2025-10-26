@@ -1,5 +1,7 @@
 """AI Guidance panel for TUI."""
 
+import time
+
 import httpx
 from textual.app import ComposeResult
 from textual.widgets import Label, Static, TextArea
@@ -32,9 +34,14 @@ class AIPanel(Static):
     async def load_models(self) -> None:
         """Load available AI models from API."""
         try:
+            start_time = time.time()
             async with httpx.AsyncClient() as client:
                 response = await client.get(f"{self.api_base}/v1/ai/models")
                 response.raise_for_status()
+                latency_ms = (time.time() - start_time) * 1000
+                request_id = response.headers.get("X-Request-ID", "N/A")
+                self.app.update_request_info(request_id, latency_ms)
+
                 self.available_models = response.json()
 
                 # Set current model to first one if not set
@@ -68,8 +75,12 @@ class AIPanel(Static):
                     "model": self.current_model,
                 }
 
+                start_time = time.time()
                 response = await client.post(f"{self.api_base}/v1/ai/guidance", json=payload)
                 response.raise_for_status()
+                latency_ms = (time.time() - start_time) * 1000
+                request_id = response.headers.get("X-Request-ID", "N/A")
+
                 result = response.json()
 
                 # Format guidance output
@@ -84,9 +95,8 @@ class AIPanel(Static):
 
                 guidance_area.text = output
 
-                # Store request_id if available
-                request_id = response.headers.get("X-Request-ID", "N/A")
-                self.app.sub_title = f"Last Request: {request_id}"
+                # Update request tracking in footer
+                self.app.update_request_info(request_id, latency_ms)
 
                 self.app.notify("Guidance generated successfully", severity="success")
         except Exception as e:
