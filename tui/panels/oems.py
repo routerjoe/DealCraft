@@ -1,5 +1,6 @@
 """OEM Authorization panel for TUI."""
 
+import time
 from typing import Optional
 
 import httpx
@@ -79,15 +80,20 @@ class OEMPanel(Static):
         table.clear()
 
         try:
+            start_time = time.time()
             async with httpx.AsyncClient() as client:
                 response = await client.get(f"{self.api_base}/v1/oems")
                 response.raise_for_status()
+                latency_ms = (time.time() - start_time) * 1000
+                request_id = response.headers.get("X-Request-ID", "N/A")
+
                 oems = response.json()
 
                 for oem in oems:
                     auth_symbol = "✓" if oem["authorized"] else "✗"
                     table.add_row(oem["name"], auth_symbol, str(oem["threshold"]))
 
+                self.app.update_request_info(request_id, latency_ms)
                 self.app.notify(f"Loaded {len(oems)} OEMs", severity="information")
         except Exception as e:
             self.app.notify(f"Failed to load OEMs: {str(e)}", severity="error")
@@ -98,6 +104,7 @@ class OEMPanel(Static):
 
         if result:
             try:
+                start_time = time.time()
                 async with httpx.AsyncClient() as client:
                     response = await client.post(
                         f"{self.api_base}/v1/oems",
@@ -108,6 +115,9 @@ class OEMPanel(Static):
                         },
                     )
                     response.raise_for_status()
+                    latency_ms = (time.time() - start_time) * 1000
+                    request_id = response.headers.get("X-Request-ID", "N/A")
+                    self.app.update_request_info(request_id, latency_ms)
                     self.app.notify(f"Added OEM: {result['name']}", severity="success")
                     await self.refresh_data()
             except httpx.HTTPStatusError as e:
@@ -128,9 +138,13 @@ class OEMPanel(Static):
             current_auth = row_key[1] == "✓"
 
             try:
+                start_time = time.time()
                 async with httpx.AsyncClient() as client:
                     response = await client.patch(f"{self.api_base}/v1/oems/{oem_name}", json={"authorized": not current_auth})
                     response.raise_for_status()
+                    latency_ms = (time.time() - start_time) * 1000
+                    request_id = response.headers.get("X-Request-ID", "N/A")
+                    self.app.update_request_info(request_id, latency_ms)
                     self.app.notify(f"Toggled {oem_name}", severity="success")
                     await self.refresh_data()
             except Exception as e:
@@ -147,9 +161,13 @@ class OEMPanel(Static):
             new_threshold = max(0, current_threshold + delta)
 
             try:
+                start_time = time.time()
                 async with httpx.AsyncClient() as client:
                     response = await client.patch(f"{self.api_base}/v1/oems/{oem_name}", json={"threshold": new_threshold})
                     response.raise_for_status()
+                    latency_ms = (time.time() - start_time) * 1000
+                    request_id = response.headers.get("X-Request-ID", "N/A")
+                    self.app.update_request_info(request_id, latency_ms)
                     self.app.notify(f"Updated threshold for {oem_name}", severity="success")
                     await self.refresh_data()
             except Exception as e:
@@ -164,9 +182,13 @@ class OEMPanel(Static):
             oem_name = row_key[0]
 
             try:
+                start_time = time.time()
                 async with httpx.AsyncClient() as client:
                     response = await client.delete(f"{self.api_base}/v1/oems/{oem_name}")
                     response.raise_for_status()
+                    latency_ms = (time.time() - start_time) * 1000
+                    request_id = response.headers.get("X-Request-ID", "N/A")
+                    self.app.update_request_info(request_id, latency_ms)
                     self.app.notify(f"Deleted OEM: {oem_name}", severity="success")
                     await self.refresh_data()
             except Exception as e:
