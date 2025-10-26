@@ -1,4 +1,3 @@
-# mcp/api/main.py
 import os
 import time
 import uuid
@@ -96,6 +95,6 @@ if ai_router is not None:
 if email_router is not None:
     app.include_router(email_router, prefix="/v1", tags=["email"])
 if obsidian_router is not None:
-    app.include_router(obsidian_router, prefix="/v1", tags=["obsidian"])
+    app.include_router(obsidian_router)  # already includes prefix="/v1" internally
 if contacts_router is not None:
     app.include_router(contacts_router, prefix="/v1", tags=["contacts"])

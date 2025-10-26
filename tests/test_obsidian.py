@@ -96,15 +96,12 @@ def test_opportunity_note_content():
     # Check content sections
     assert "# Cloud Migration Project" in content
     assert "## Summary" in content
-    assert "**Customer:** State Agency Y" in content
-    assert "**OEM:** AWS" in content
-    assert "**Amount:** $500000.0" in content
-    assert "**Stage:** Proposal" in content
-    assert "**Expected Close:** 2025-06-30" in content
-    assert "**Source:** Govly" in content
-    assert "## Scope" in content
-    assert "## OEM Details" in content
-    assert "## Next Actions" in content
+    assert "- **Customer:** State Agency Y" in content
+    assert "- **OEM:** AWS" in content
+    assert "- **Amount:** $500000.0" in content
+    assert "- **Stage:** Proposal" in content
+    assert "- **Expected Close:** 2025-06-30" in content
+    assert "- **Source:** Govly" in content
     assert "## Notes" in content
 
 

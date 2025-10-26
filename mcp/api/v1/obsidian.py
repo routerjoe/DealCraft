@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from fastapi import APIRouter, status
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 router = APIRouter(prefix="/v1", tags=["obsidian"])
 
@@ -24,7 +24,8 @@ class OpportunityIn(BaseModel):
     source: str = Field(..., min_length=1)
     tags: Optional[List[str]] = None
 
-    @validator("close_date")
+    @field_validator("close_date")
+    @classmethod
     def valid_date(cls, v: str) -> str:
         # Expect strict YYYY-MM-DD (no quotes in output)
         try:
@@ -33,13 +34,15 @@ class OpportunityIn(BaseModel):
             raise ValueError("close_date must be YYYY-MM-DD")
         return v
 
-    @validator("id", "title", "customer", "oem", "stage", "source")
+    @field_validator("id", "title", "customer", "oem", "stage", "source")
+    @classmethod
     def non_empty(cls, v: str) -> str:
         if not isinstance(v, str) or not v.strip():
             raise ValueError("must be a non-empty string")
         return v
 
-    @validator("amount")
+    @field_validator("amount")
+    @classmethod
     def positive_amount(cls, v: float) -> float:
         if v is None or float(v) <= 0:
             raise ValueError("amount must be positive")
@@ -50,8 +53,8 @@ class OpportunityIn(BaseModel):
 # Rendering helpers
 # ---------------------------
 def _sanitize_title_for_filename(title: str) -> str:
-    # Replace path separators and tidy spaces
-    safe = title.replace("/", " ").replace("\\", " ").strip()
+    # Replace path separators with dashes and tidy spaces
+    safe = title.replace("/", "-").replace("\\", "-").strip()
     return " ".join(safe.split())
 
 
@@ -97,7 +100,7 @@ def render_markdown(data: OpportunityIn) -> str:
         f"- **OEM:** {data.oem}",
         f"- **Amount:** ${amount_md}",
         f"- **Stage:** {data.stage}",
-        f"- **Close Date:** {data.close_date}",
+        f"- **Expected Close:** {data.close_date}",
         f"- **Source:** {data.source}",
         "",
         "## Notes",
@@ -123,4 +126,4 @@ def create_opportunity_note(payload: OpportunityIn):
     content = render_markdown(payload)
     path.write_text(content, encoding="utf-8")
 
-    return {"path": str(path)}
+    return {"path": str(path), "created": True}
