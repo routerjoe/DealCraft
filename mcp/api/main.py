@@ -38,7 +38,7 @@ except Exception:
     contacts_router = None
 
 
-app = FastAPI(title="Red River Sales MCP API", version="2.0.0")
+app = FastAPI(title="Red River Sales MCP API", version="1.0.0")
 
 
 # Middleware: add request_id + latency_ms to every response
@@ -67,7 +67,7 @@ async def api_info(request: Request):
     return JSONResponse(
         content={
             "name": "Red River Sales MCP API",
-            "version": "2.0.0",
+            "version": "1.0.0",
             "environment": environment,
             "endpoints": [
                 "/v1/oems",
