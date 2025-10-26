@@ -1,9 +1,18 @@
+import logging
 import os
 import time
 import uuid
+from datetime import datetime, timezone
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+
+from mcp.core.store import read_json, write_json
+
+logger = logging.getLogger(__name__)
+
+# File path for state storage
+STATE_FILE = "data/state.json"
 
 # Routers
 try:
@@ -36,19 +45,98 @@ try:
 except Exception:
     contacts_router = None
 
+try:
+    from mcp.api.v1.system import router as system_router
+except Exception:
+    system_router = None
+
 
 app = FastAPI(title="Red River Sales MCP API", version="1.0.0")
 
 
-# Middleware: add request_id + latency_ms to every response
+def log_action_to_state(
+    request_id: str,
+    method: str,
+    path: str,
+    latency_ms: int,
+    status_code: int,
+    context: dict = None,
+):
+    """
+    Log an action to state.json with automatic rotation (max 10 entries).
+
+    Args:
+        request_id: Unique request identifier
+        method: HTTP method
+        path: Request path
+        latency_ms: Request latency in milliseconds
+        status_code: HTTP status code
+        context: Additional context (optional)
+    """
+    try:
+        # Read current state
+        try:
+            state = read_json(STATE_FILE)
+        except FileNotFoundError:
+            state = {}
+
+        # Get existing actions or initialize
+        recent_actions = state.get("recent_actions", [])
+
+        # Create new action entry
+        action = {
+            "request_id": request_id,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "method": method,
+            "path": path,
+            "latency_ms": latency_ms,
+            "status_code": status_code,
+            "context": context or {},
+        }
+
+        # Add to beginning of list
+        recent_actions.insert(0, action)
+
+        # Keep only last 10 entries (rotation)
+        recent_actions = recent_actions[:10]
+
+        # Update state
+        state["recent_actions"] = recent_actions
+
+        # Write back to storage
+        write_json(STATE_FILE, state)
+
+    except Exception as e:
+        logger.error(f"Failed to log action to state: {str(e)}")
+
+
+# Middleware: add request_id + latency_ms to every response and log actions
 @app.middleware("http")
 async def add_request_id_and_latency(request: Request, call_next):
     request_id = str(uuid.uuid4())
     start = time.perf_counter()
+
+    # Process request
     response = await call_next(request)
+
+    # Calculate latency
     latency_ms = int((time.perf_counter() - start) * 1000)
+
+    # Add headers
     response.headers["x-request-id"] = request_id
     response.headers["x-latency-ms"] = str(latency_ms)
+
+    # Log action (skip health checks and static routes)
+    if not request.url.path.startswith("/healthz"):
+        log_action_to_state(
+            request_id=request_id,
+            method=request.method,
+            path=request.url.path,
+            latency_ms=latency_ms,
+            status_code=response.status_code,
+            context={"query": str(request.url.query)} if request.url.query else {},
+        )
+
     return response
 
 
@@ -73,12 +161,14 @@ async def api_info(request: Request):
                 "/v1/contracts",
                 "/v1/ai/models",
                 "/v1/ai/guidance",
+                "/v1/ai/ask",
                 "/v1/email/rfq/ingest",
                 "/v1/email/govly/ingest",
                 "/v1/email/intromail/ingest",
                 "/v1/obsidian/opportunity",
                 "/v1/contacts/export.csv",
                 "/v1/contacts/export.vcf",
+                "/v1/system/recent-actions",
             ],
         },
         headers={"x-request-id": request.headers.get("x-request-id", "")},
@@ -98,3 +188,5 @@ if obsidian_router is not None:
     app.include_router(obsidian_router)  # already includes prefix="/v1" internally
 if contacts_router is not None:
     app.include_router(contacts_router, prefix="/v1", tags=["contacts"])
+if system_router is not None:
+    app.include_router(system_router, prefix="/v1", tags=["system"])
