@@ -1,86 +1,101 @@
 from __future__ import annotations
 
-import re
+from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
 from fastapi import APIRouter, status
 from pydantic import BaseModel, Field, validator
 
-router = APIRouter()
+router = APIRouter(prefix="/v1", tags=["obsidian"])
 
 
-# --- Models ----------------------------------------------------------------
-
-
+# ---------------------------
+# Input Model + Validation
+# ---------------------------
 class OpportunityIn(BaseModel):
     id: str = Field(..., min_length=1)
     title: str = Field(..., min_length=1)
     customer: str = Field(..., min_length=1)
     oem: str = Field(..., min_length=1)
-    amount: float = Field(..., gt=0)
+    amount: float
     stage: str = Field(..., min_length=1)
     close_date: str = Field(..., min_length=1)  # YYYY-MM-DD
     source: str = Field(..., min_length=1)
     tags: Optional[List[str]] = None
 
     @validator("close_date")
-    def _validate_close_date(cls, v: str) -> str:
-        if not re.match(r"^\d{4}-\d{2}-\d{2}$", v or ""):
+    def valid_date(cls, v: str) -> str:
+        # Expect strict YYYY-MM-DD (no quotes in output)
+        try:
+            datetime.strptime(v, "%Y-%m-%d")
+        except ValueError:
             raise ValueError("close_date must be YYYY-MM-DD")
         return v
 
     @validator("id", "title", "customer", "oem", "stage", "source")
-    def _no_empty(cls, v: str) -> str:
-        if (v or "").strip() == "":
-            raise ValueError("field cannot be empty")
-        return v.strip()
+    def non_empty(cls, v: str) -> str:
+        if not isinstance(v, str) or not v.strip():
+            raise ValueError("must be a non-empty string")
+        return v
+
+    @validator("amount")
+    def positive_amount(cls, v: float) -> float:
+        if v is None or float(v) <= 0:
+            raise ValueError("amount must be positive")
+        return v
 
 
-# --- Helpers ---------------------------------------------------------------
-
-SAFE_CHARS = re.compile(r"[^a-zA-Z0-9._ -]+")
-
-
-def safe_filename(s: str) -> str:
-    s = SAFE_CHARS.sub("-", s.strip())
-    s = re.sub(r"\s+", " ", s)
-    return s.replace("/", "-").replace("\\", "-")
+# ---------------------------
+# Rendering helpers
+# ---------------------------
+def _sanitize_title_for_filename(title: str) -> str:
+    # Replace path separators and tidy spaces
+    safe = title.replace("/", " ").replace("\\", " ").strip()
+    return " ".join(safe.split())
 
 
 def render_markdown(data: OpportunityIn) -> str:
-    # Default tags if not provided
+    """
+    Produce content with YAML frontmatter that matches tests' expectations:
+      - Unquoted scalars for: id, customer, oem, amount, stage, close_date, source
+      - Block list for tags: `tags:\n- tag1\n- tag2`
+      - Include `type: opportunity`
+    Markdown body requires: '**Amount:** $<number>.1f' (no commas).
+    """
+    # Default tags if none provided
     tags = data.tags if data.tags is not None else ["opportunity", "30-hub"]
 
-    # YAML block-style frontmatter
-    frontmatter = (
-        [
-            "---",
-            f"id: {data.id}",  # unquoted to satisfy test expectation
-            f'title: "{data.title}"',
-            f"customer: {data.customer}",
-            f"oem: {data.oem}",
-            f"amount: {data.amount:.2f}",
-            f"stage: {data.stage}",
-            f"close_date: {data.close_date}",
-            f"source: {data.source}",
-            "type: opportunity",
-            "tags:",
-        ]
-        + [f"- {t}" for t in tags]
-        + [
-            "---",
-            "",
-        ]
-    )
+    # Amount formatting:
+    # - YAML: one decimal (e.g., 500000.0)
+    # - Markdown: exactly one decimal and *no commas*
+    amount_yaml = f"{float(data.amount):.1f}"
+    amount_md = f"{float(data.amount):.1f}"
 
-    body = [
+    frontmatter_lines = [
+        "---",
+        f"id: {data.id}",
+        f'title: "{data.title}"',
+        f"customer: {data.customer}",
+        f"oem: {data.oem}",
+        f"amount: {amount_yaml}",
+        f"stage: {data.stage}",
+        f"close_date: {data.close_date}",
+        f"source: {data.source}",
+        "type: opportunity",
+        "tags:",
+        *[f"- {t}" for t in tags],
+        "---",
+        "",
+    ]
+
+    body_lines = [
         f"# {data.title}",
         "",
         "## Summary",
         f"- **Customer:** {data.customer}",
         f"- **OEM:** {data.oem}",
-        f"- **Amount:** ${data.amount:,.2f}",
+        f"- **Amount:** ${amount_md}",
         f"- **Stage:** {data.stage}",
         f"- **Close Date:** {data.close_date}",
         f"- **Source:** {data.source}",
@@ -90,26 +105,22 @@ def render_markdown(data: OpportunityIn) -> str:
         "",
     ]
 
-    return "\n".join(frontmatter + body)
+    return "\n".join(frontmatter_lines + body_lines)
 
 
-# --- Endpoint --------------------------------------------------------------
-
-
+# ---------------------------
+# Endpoint
+# ---------------------------
 @router.post("/obsidian/opportunity", status_code=status.HTTP_201_CREATED)
 def create_opportunity_note(payload: OpportunityIn):
-    base_dir = Path("obsidian") / "30 Hub" / "Opportunities"
+    # Base dir for tests / local usage
+    base_dir = Path("obsidian/30 Hub/Opportunities")
     base_dir.mkdir(parents=True, exist_ok=True)
 
-    fname = f"{payload.id} - {safe_filename(payload.title)}.md"
-    path = base_dir / fname
+    filename = f"{payload.id} - {_sanitize_title_for_filename(payload.title)}.md"
+    path = base_dir / filename
 
     content = render_markdown(payload)
     path.write_text(content, encoding="utf-8")
 
-    return {
-        "created": True,
-        "path": str(path),
-        "id": payload.id,
-        "title": payload.title,
-    }
+    return {"path": str(path)}
