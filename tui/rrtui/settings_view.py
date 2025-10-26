@@ -1,11 +1,13 @@
 from __future__ import annotations
-from textual.screen import Screen
-from textual.app import ComposeResult
-from textual.containers import Vertical, Horizontal
-from textual.widgets import Static, Input, Checkbox, Button, Select
-from pathlib import Path
-from typing import Dict, Any, List
+
 import os
+from pathlib import Path
+from typing import Any, Dict, List
+
+from textual.app import ComposeResult
+from textual.containers import Horizontal
+from textual.screen import Screen
+from textual.widgets import Button, Checkbox, Input, Select, Static
 
 try:
     import yaml  # type: ignore
@@ -13,6 +15,7 @@ except Exception:
     yaml = None
 
 from config.config_loader import load_settings
+
 
 class SettingsView(Screen):
     TITLE = "Settings"
@@ -27,13 +30,27 @@ class SettingsView(Screen):
 
         # Providers section
         yield Static("Providers", id="providers_title")
-        for name, label in [("claude","Claude"),("gpt5","ChatGPT-5"),("gemini","Gemini")]:
+        for name, label in [("claude", "Claude"), ("gpt5", "ChatGPT-5"), ("gemini", "Gemini")]:
             prov = cfg.get("providers", {}).get(name, {}) or {}
             row = Horizontal(
-                Checkbox(f"{label} enabled", value=bool(prov.get("enabled", True)), id=f"prov-{name}-enabled"),
-                Input(value=str(prov.get("model","")), placeholder="model", id=f"prov-{name}-model"),
-                Input(value=str(prov.get("p95_warn_ms", 600)), placeholder="p95 warn ms", id=f"prov-{name}-warn"),
-                Input(value=str(prov.get("p95_error_ms", 1500)), placeholder="p95 error ms", id=f"prov-{name}-err"),
+                Checkbox(
+                    f"{label} enabled",
+                    value=bool(prov.get("enabled", True)),
+                    id=f"prov-{name}-enabled",
+                ),
+                Input(
+                    value=str(prov.get("model", "")), placeholder="model", id=f"prov-{name}-model"
+                ),
+                Input(
+                    value=str(prov.get("p95_warn_ms", 600)),
+                    placeholder="p95 warn ms",
+                    id=f"prov-{name}-warn",
+                ),
+                Input(
+                    value=str(prov.get("p95_error_ms", 1500)),
+                    placeholder="p95 error ms",
+                    id=f"prov-{name}-err",
+                ),
                 Button(f"Test {label}", id=f"test-{name}"),
                 Static("", id=f"test-{name}-result"),
             )
@@ -41,20 +58,38 @@ class SettingsView(Screen):
 
         # Router section
         yield Static("Router", id="router_title")
-        order_list = cfg.get("router", {}).get("order", ["claude","gpt5","gemini"])
+        order_list = cfg.get("router", {}).get("order", ["claude", "gpt5", "gemini"])
         yield Horizontal(
-            Input(value=",".join(order_list), placeholder="order (comma-separated)", id="router-order"),
-            Checkbox("Sticky provider", value=bool(cfg.get("router", {}).get("sticky_provider", False)), id="router-sticky"),
-            Input(value=str(cfg.get("router", {}).get("max_retries", 2)), placeholder="max retries", id="router-retries"),
+            Input(
+                value=",".join(order_list), placeholder="order (comma-separated)", id="router-order"
+            ),
+            Checkbox(
+                "Sticky provider",
+                value=bool(cfg.get("router", {}).get("sticky_provider", False)),
+                id="router-sticky",
+            ),
+            Input(
+                value=str(cfg.get("router", {}).get("max_retries", 2)),
+                placeholder="max retries",
+                id="router-retries",
+            ),
         )
 
         # UI section
         yield Static("UI", id="ui_title")
         theme = cfg.get("ui", {}).get("theme", "light")
         yield Horizontal(
-            Select(options=[("Light","light"),("Dark","dark")], value=theme, id="ui-theme"),
-            Input(value=str(cfg.get("ui", {}).get("refresh_sec", 2)), placeholder="refresh sec", id="ui-refresh"),
-            Input(value=str(cfg.get("ui", {}).get("stats_refresh_sec", 10)), placeholder="stats refresh sec", id="ui-stats-refresh"),
+            Select(options=[("Light", "light"), ("Dark", "dark")], value=theme, id="ui-theme"),
+            Input(
+                value=str(cfg.get("ui", {}).get("refresh_sec", 2)),
+                placeholder="refresh sec",
+                id="ui-refresh",
+            ),
+            Input(
+                value=str(cfg.get("ui", {}).get("stats_refresh_sec", 10)),
+                placeholder="stats refresh sec",
+                id="ui-stats-refresh",
+            ),
         )
 
         # Actions
@@ -75,7 +110,11 @@ class SettingsView(Screen):
         return [x for x in raw if x]
 
     def _test_connection(self, prov: str) -> str:
-        env_map = {"claude": "ANTHROPIC_API_KEY", "gpt5": "OPENAI_API_KEY", "gemini": "GOOGLE_API_KEY"}
+        env_map = {
+            "claude": "ANTHROPIC_API_KEY",
+            "gpt5": "OPENAI_API_KEY",
+            "gemini": "GOOGLE_API_KEY",
+        }
         env = env_map.get(prov, "")
         if env and os.getenv(env):
             return "OK (key set)"
@@ -84,7 +123,7 @@ class SettingsView(Screen):
     def _collect(self) -> Dict[str, Any]:
         # Providers
         providers: Dict[str, Any] = {}
-        for name in ("claude","gpt5","gemini"):
+        for name in ("claude", "gpt5", "gemini"):
             enabled = self.query_one(f"#prov-{name}-enabled", Checkbox).value
             model = self.query_one(f"#prov-{name}-model", Input).value
             warn = self._int(self.query_one(f"#prov-{name}-warn", Input).value, 600)
@@ -112,7 +151,7 @@ class SettingsView(Screen):
         return {
             "providers": providers,
             "router": {
-                "order": order or ["claude","gpt5","gemini"],
+                "order": order or ["claude", "gpt5", "gemini"],
                 "sticky_provider": bool(sticky),
                 "max_retries": int(retries),
             },
@@ -121,11 +160,12 @@ class SettingsView(Screen):
                 "refresh_sec": int(refresh),
                 "stats_refresh_sec": int(stats_refresh),
                 "show_provider_p95": show_p95,
-            }
+            },
         }
 
     def _save_yaml(self, cfg: Dict[str, Any]) -> None:
         from config.config_loader import save_settings
+
         base_dir = Path(__file__).resolve().parent.parent
         p = base_dir / "config" / "settings.yaml"
         save_settings(cfg, p)

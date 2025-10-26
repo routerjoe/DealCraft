@@ -1,0 +1,16 @@
+# Ruff configuration for Phase 1 verification
+target-version = "py311"
+line-length = 140   # temporarily relax to quiet E501 during Phase 1
+
+# Exclude legacy/experimental paths until cleanup sprint
+extend-exclude = [
+  "future features/**",
+  "red-river-rfq-email-drafts/**",
+  "tui/rrtui/**",
+]
+
+[lint]
+select = ["E","F","W","I"]
+
+[format]
+line-ending = "lf"

@@ -1,11 +1,13 @@
+import re
 
+from textual import events
 from textual.app import ComposeResult
-from textual.widgets import Static, DataTable, Tabs
 from textual.containers import Container
 from textual.screen import ModalScreen
-from textual import events
-import re
+from textual.widgets import DataTable, Static, Tabs
+
 from . import rfq_api as rfq_api
+
 
 class AnalyticsModal(ModalScreen):
     """OEM analytics with 7/30/90 day windows (rfq_api.analytics_oem)."""
@@ -17,7 +19,12 @@ class AnalyticsModal(ModalScreen):
 
     def compose(self) -> ComposeResult:
         # Header with rich markup like other stages
-        yield Container(Static("[b][cyan]OEM Analytics[/cyan][/b]  [dim](Esc to close)[/dim]", id="analytics_header"))
+        yield Container(
+            Static(
+                "[b][cyan]OEM Analytics[/cyan][/b]  [dim](Esc to close)[/dim]",
+                id="analytics_header",
+            )
+        )
         yield Tabs("7d", "30d", "90d", id="tabs")
         # Table
         self.table.add_columns("OEM", "Occurrences", "Total $", "Avg Competition %", "Status")
@@ -40,11 +47,11 @@ class AnalyticsModal(ModalScreen):
             self.table.clear()
             for r in rows:
                 self.table.add_row(
-                    r.get("oem",""),
-                    str(r.get("occurrences",0)),
-                    str(r.get("total","$0")),
-                    str(r.get("avg_competition","—")),
-                    r.get("status","")
+                    r.get("oem", ""),
+                    str(r.get("occurrences", 0)),
+                    str(r.get("total", "$0")),
+                    str(r.get("avg_competition", "—")),
+                    r.get("status", ""),
                 )
 
             # Header with window and count (rich markup)
@@ -104,12 +111,15 @@ class AnalyticsModal(ModalScreen):
         if event.key == "escape":
             self.app.pop_screen()
 
+
 class MessageModal(ModalScreen):
     def __init__(self, message: str):
         super().__init__()
         self.message = message
+
     def compose(self) -> ComposeResult:
         yield Static(self.message + "\n\n(Esc to close)")
+
     def on_key(self, event: events.Key) -> None:
         if event.key == "escape":
             self.app.pop_screen()

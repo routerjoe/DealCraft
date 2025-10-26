@@ -1,9 +1,10 @@
-from textual.app import ComposeResult
-from textual.screen import ModalScreen
-from textual.widgets import Static, Input, Button, Checkbox
-from textual.containers import Container, Horizontal, Vertical, Grid
-from textual import events
 import json
+
+from textual.app import ComposeResult
+from textual.containers import Container, Grid, Horizontal, Vertical
+from textual.screen import ModalScreen
+from textual.widgets import Button, Checkbox, Input, Static
+
 from .guidance_screen import GuidanceScreen
 
 
@@ -80,21 +81,31 @@ class RFQDetailsModal(ModalScreen):
                     yield Static("Competition Level (#bidders):", classes="lbl")
                     self.in_comp = Input(placeholder="e.g., 15", classes="val", id="in_comp")
                     yield Static("Technology Vertical:", classes="lbl")
-                    self.in_tech = Input(placeholder="e.g., Enterprise Networking", classes="val", id="in_tech")
+                    self.in_tech = Input(
+                        placeholder="e.g., Enterprise Networking", classes="val", id="in_tech"
+                    )
                     yield Static("OEM:", classes="lbl")
                     self.in_oem = Input(placeholder="e.g., Cisco", classes="val", id="in_oem")
                     yield Static("Contract Vehicle:", classes="lbl")
-                    self.in_contract = Input(placeholder="e.g., SEWP, NASA SEWP V", classes="val", id="in_contract")
+                    self.in_contract = Input(
+                        placeholder="e.g., SEWP, NASA SEWP V", classes="val", id="in_contract"
+                    )
 
                     # Right column
                     yield Static("Customer:", classes="lbl")
-                    self.in_customer = Input(placeholder="e.g., AFCENT", classes="val", id="in_customer")
+                    self.in_customer = Input(
+                        placeholder="e.g., AFCENT", classes="val", id="in_customer"
+                    )
                     yield Static("Deadline (ISO):", classes="lbl")
-                    self.in_deadline = Input(placeholder="YYYY-MM-DD or full ISO", classes="val", id="in_deadline")
+                    self.in_deadline = Input(
+                        placeholder="YYYY-MM-DD or full ISO", classes="val", id="in_deadline"
+                    )
                     yield Static("Has Previous Contract:", classes="lbl")
                     self.cb_prev = Checkbox(value=False, classes="val", id="cb_prev")
                     yield Static("RFQ Type (optional):", classes="lbl")
-                    self.in_type = Input(placeholder="e.g., RFI, MRR, renewal", classes="val", id="in_type")
+                    self.in_type = Input(
+                        placeholder="e.g., RFI, MRR, renewal", classes="val", id="in_type"
+                    )
                     yield Static("Subject (read-only):", classes="lbl")
                     self.in_subject = Input(placeholder="", classes="val", id="in_subject")
 
@@ -108,7 +119,10 @@ class RFQDetailsModal(ModalScreen):
                 self.log = Static("", id="rd_log")
                 yield self.log
 
-            yield Static("[dim]Tip: Update fields then Save, or re-run Rules/Analyze to refresh scoring and guidance.[/dim]", id="rd_footer")
+            yield Static(
+                "[dim]Tip: Update fields then Save, or re-run Rules/Analyze to refresh scoring and guidance.[/dim]",
+                id="rd_footer",
+            )
 
     async def on_mount(self) -> None:
         await self._load_rfq()
@@ -144,7 +158,9 @@ class RFQDetailsModal(ModalScreen):
 
         score = found.get("rfq_score", None)
         reco = found.get("rfq_recommendation", "")
-        self._write_log(f"[cyan]Loaded.[/cyan] Score: [b]{score if score is not None else '—'}[/b]  Reco: [b]{reco or '—'}[/b]")
+        self._write_log(
+            f"[cyan]Loaded.[/cyan] Score: [b]{score if score is not None else '—'}[/b]  Reco: [b]{reco or '—'}[/b]"
+        )
 
     def _num_to_str(self, v) -> str:
         try:
@@ -191,6 +207,7 @@ class RFQDetailsModal(ModalScreen):
         """Call MCP bridge and parse JSON."""
         import subprocess
         from pathlib import Path
+
         try:
             script_dir = Path(__file__).resolve().parent.parent.parent / "mcp"
             bridge = script_dir / "bridge.mjs"
@@ -198,7 +215,7 @@ class RFQDetailsModal(ModalScreen):
                 ["npx", "tsx", str(bridge), tool_name, json.dumps(tool_args)],
                 capture_output=True,
                 text=True,
-                timeout=timeout
+                timeout=timeout,
             )
             if proc.returncode != 0:
                 self._write_log(f"[red]Tool error:[/red] {proc.stderr.strip()}")
@@ -258,6 +275,7 @@ class RFQDetailsModal(ModalScreen):
         try:
             # fire and forget
             import asyncio
+
             asyncio.create_task(self._load_rfq())
         except Exception:
             pass

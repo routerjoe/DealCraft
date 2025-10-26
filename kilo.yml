@@ -1,0 +1,6 @@
+tasks:
+  run:dev: bash scripts/dev.sh
+  run:test: bash scripts/test.sh
+  run:lint: bash scripts/lint.sh
+  run:build: bash scripts/build.sh
+  run:tui: python -m tui.app
