@@ -1,4 +1,3 @@
-# mcp/api/v1/obsidian.py
 from __future__ import annotations
 
 import re
@@ -21,13 +20,12 @@ class OpportunityIn(BaseModel):
     oem: str = Field(..., min_length=1)
     amount: float = Field(..., gt=0)
     stage: str = Field(..., min_length=1)
-    close_date: str = Field(..., min_length=1)  # keep as str; tests send "YYYY-MM-DD"
+    close_date: str = Field(..., min_length=1)  # YYYY-MM-DD
     source: str = Field(..., min_length=1)
     tags: Optional[List[str]] = None
 
     @validator("close_date")
     def _validate_close_date(cls, v: str) -> str:
-        # accept YYYY-MM-DD
         if not re.match(r"^\d{4}-\d{2}-\d{2}$", v or ""):
             raise ValueError("close_date must be YYYY-MM-DD")
         return v
@@ -51,21 +49,31 @@ def safe_filename(s: str) -> str:
 
 
 def render_markdown(data: OpportunityIn) -> str:
+    # Default tags if not provided
     tags = data.tags if data.tags is not None else ["opportunity", "30-hub"]
-    # YAML frontmatter
-    frontmatter = [
-        "---",
-        f'id: "{data.id}"',
-        f'title: "{data.title}"',
-        f'customer: "{data.customer}"',
-        f'oem: "{data.oem}"',
-        f"amount: {data.amount:.2f}",
-        f'stage: "{data.stage}"',
-        f'close_date: "{data.close_date}"',
-        f'source: "{data.source}"',
-        f"tags: [{', '.join(tags)}]",
-        "---",
-    ]
+
+    # YAML block-style frontmatter
+    frontmatter = (
+        [
+            "---",
+            f"id: {data.id}",  # unquoted to satisfy test expectation
+            f'title: "{data.title}"',
+            f"customer: {data.customer}",
+            f'oem: "{data.oem}"',
+            f"amount: {data.amount:.2f}",
+            f'stage: "{data.stage}"',
+            f'close_date: "{data.close_date}"',
+            f'source: "{data.source}"',
+            "type: opportunity",
+            "tags:",
+        ]
+        + [f"- {t}" for t in tags]
+        + [
+            "---",
+            "",
+        ]
+    )
+
     body = [
         f"# {data.title}",
         "",
@@ -79,8 +87,10 @@ def render_markdown(data: OpportunityIn) -> str:
         "",
         "## Notes",
         "- ",
+        "",
     ]
-    return "\n".join(frontmatter + [""] + body) + "\n"
+
+    return "\n".join(frontmatter + body)
 
 
 # --- Endpoint --------------------------------------------------------------
@@ -88,7 +98,6 @@ def render_markdown(data: OpportunityIn) -> str:
 
 @router.post("/obsidian/opportunity", status_code=status.HTTP_201_CREATED)
 def create_opportunity_note(payload: OpportunityIn):
-    # Base dir for tests / local usage
     base_dir = Path("obsidian") / "30 Hub" / "Opportunities"
     base_dir.mkdir(parents=True, exist_ok=True)
 
