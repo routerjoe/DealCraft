@@ -12,18 +12,42 @@ stage: {{ stage }}
 close_date: {{ close_date }}
 source: {{ source }}
 created: {{ created }}
+triage: {{ triage | default(false) }}
+{%- if forecast %}
+forecast:
+  projected_amount_FY25: {{ forecast.projected_amount_FY25 }}
+  projected_amount_FY26: {{ forecast.projected_amount_FY26 }}
+  projected_amount_FY27: {{ forecast.projected_amount_FY27 }}
+  confidence_score: {{ forecast.confidence_score }}
+  generated_at: {{ forecast.generated_at }}
+{%- endif %}
 ---
 
 # {{ title }}
 
+{%- if triage %}
+> **⚠️ TRIAGE REQUIRED** - This opportunity needs manual review and enrichment
+{%- endif %}
+
 ## Summary
 
-**Customer:** {{ customer }}  
-**OEM:** {{ oem }}  
-**Amount:** ${{ amount }}  
-**Stage:** {{ stage }}  
-**Expected Close:** {{ close_date }}  
+**Customer:** {{ customer }}
+**OEM:** {{ oem }}
+**Amount:** ${{ amount }}
+**Stage:** {{ stage }}
+**Expected Close:** {{ close_date }}
 **Source:** {{ source }}
+
+{%- if forecast %}
+
+### Forecast
+
+**FY25 Projected:** ${{ "%.2f" | format(forecast.projected_amount_FY25) }}
+**FY26 Projected:** ${{ "%.2f" | format(forecast.projected_amount_FY26) }}
+**FY27 Projected:** ${{ "%.2f" | format(forecast.projected_amount_FY27) }}
+**Confidence:** {{ forecast.confidence_score }}%
+**Last Updated:** {{ forecast.generated_at }}
+{%- endif %}
 
 ## Scope
 

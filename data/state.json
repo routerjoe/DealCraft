@@ -1,65 +1,70 @@
 {
-  "oems": [],
-  "contracts": [],
-  "selected_ai": "gpt-5-thinking",
+  "opportunities": [
+    {
+      "id": "test_opp_1",
+      "name": "Test Opportunity 1",
+      "amount": 100000,
+      "close_date": "2025-03-15T00:00:00Z"
+    }
+  ],
   "recent_actions": [
     {
-      "request_id": "42425e05-5b5b-44a4-9c9f-bff6ed879e22",
-      "timestamp": "2025-10-28T16:23:27.536932+00:00",
+      "request_id": "8ba4fdd8-30e8-45d8-9ad8-68911c23f10e",
+      "timestamp": "2025-10-28T17:40:05.463661+00:00",
       "method": "GET",
       "path": "/v1/oems",
-      "latency_ms": 6,
+      "latency_ms": 0,
       "status_code": 200,
       "context": {}
     },
     {
-      "request_id": "124fa5da-e1c4-46c7-84cd-d270abebfb36",
-      "timestamp": "2025-10-28T16:23:27.448520+00:00",
+      "request_id": "f1d662aa-5611-4297-a4d6-af5d1d253343",
+      "timestamp": "2025-10-28T17:40:05.457546+00:00",
       "method": "DELETE",
       "path": "/v1/oems/Microsoft",
-      "latency_ms": 6,
+      "latency_ms": 2,
       "status_code": 204,
       "context": {}
     },
     {
-      "request_id": "03efec00-b0fe-4768-b0de-e3863b1e5073",
-      "timestamp": "2025-10-28T16:23:27.432366+00:00",
+      "request_id": "1f8f978f-f3a8-4262-bb54-6e31f81a6416",
+      "timestamp": "2025-10-28T17:40:05.449846+00:00",
       "method": "PATCH",
       "path": "/v1/oems/Microsoft",
-      "latency_ms": 9,
+      "latency_ms": 4,
       "status_code": 200,
       "context": {}
     },
     {
-      "request_id": "76ea4459-a48b-4860-b77b-613155ab3ff9",
-      "timestamp": "2025-10-28T16:23:27.414231+00:00",
+      "request_id": "dceee40a-c25c-4bec-920a-66e1c05709e0",
+      "timestamp": "2025-10-28T17:40:05.439588+00:00",
       "method": "GET",
       "path": "/v1/oems",
-      "latency_ms": 2,
+      "latency_ms": 0,
       "status_code": 200,
       "context": {}
     },
     {
-      "request_id": "0d922fc8-5e76-4bb6-ae8d-7fd6853a1871",
-      "timestamp": "2025-10-28T16:23:27.400859+00:00",
+      "request_id": "d4162b15-eac1-406d-9ecd-7850892c5b3a",
+      "timestamp": "2025-10-28T17:40:05.431717+00:00",
       "method": "POST",
       "path": "/v1/oems",
-      "latency_ms": 9,
+      "latency_ms": 2,
       "status_code": 201,
       "context": {}
     },
     {
-      "request_id": "a8e437ac-ec9a-4157-98d4-d519a8530bb7",
-      "timestamp": "2025-10-28T16:23:27.359994+00:00",
+      "request_id": "502b569b-e14c-4ef3-97a9-c26d4d1eaeea",
+      "timestamp": "2025-10-28T17:40:05.420410+00:00",
       "method": "DELETE",
       "path": "/v1/oems/NonExistent",
-      "latency_ms": 1,
+      "latency_ms": 0,
       "status_code": 404,
       "context": {}
     },
     {
-      "request_id": "c73051d1-95ea-4203-856c-0347c1a9a7df",
-      "timestamp": "2025-10-28T16:23:27.336795+00:00",
+      "request_id": "5089357e-757b-45a2-9656-2280c32228d9",
+      "timestamp": "2025-10-28T17:40:05.412080+00:00",
       "method": "GET",
       "path": "/v1/oems",
       "latency_ms": 1,
@@ -67,29 +72,29 @@
       "context": {}
     },
     {
-      "request_id": "ded434f7-9844-4b84-9061-9effb56c2064",
-      "timestamp": "2025-10-28T16:23:27.328043+00:00",
+      "request_id": "fb307230-658e-4088-8c66-a99a2930d6f2",
+      "timestamp": "2025-10-28T17:40:05.405707+00:00",
       "method": "DELETE",
       "path": "/v1/oems/Oracle",
-      "latency_ms": 4,
+      "latency_ms": 1,
       "status_code": 204,
       "context": {}
     },
     {
-      "request_id": "4387850f-d3e6-4d97-864a-d7b6aa1ca709",
-      "timestamp": "2025-10-28T16:23:27.317761+00:00",
+      "request_id": "4d9aef5b-ac7e-411a-9bfb-92486a82c482",
+      "timestamp": "2025-10-28T17:40:05.399825+00:00",
       "method": "POST",
       "path": "/v1/oems",
-      "latency_ms": 3,
+      "latency_ms": 2,
       "status_code": 201,
       "context": {}
     },
     {
-      "request_id": "931d0f60-62ab-4b63-b5c8-ddc394629788",
-      "timestamp": "2025-10-28T16:23:27.303169+00:00",
+      "request_id": "3fa51526-50df-4e37-aa38-a47d596083d5",
+      "timestamp": "2025-10-28T17:40:05.384419+00:00",
       "method": "PATCH",
       "path": "/v1/oems/NonExistent",
-      "latency_ms": 2,
+      "latency_ms": 0,
       "status_code": 404,
       "context": {}
     }

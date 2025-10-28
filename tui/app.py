@@ -6,6 +6,7 @@ from textual.widgets import Footer, Header
 
 from tui.panels.ai import AIPanel
 from tui.panels.contracts import ContractsPanel
+from tui.panels.metrics import MetricsPanel
 from tui.panels.oems import OEMPanel
 from tui.theme import RED_RIVER_LIGHT
 
@@ -50,6 +51,12 @@ class RedRiverTUI(App):
         border: solid $accent;
         height: 1fr;
         min-width: 40;
+    }
+
+    #metrics-panel {
+        border: solid $warning;
+        height: 1fr;
+        min-width: 35;
     }
 
     DataTable {
@@ -101,6 +108,9 @@ class RedRiverTUI(App):
             with Container(id="ai-panel"):
                 yield AIPanel(self.api_base)
 
+            with Container(id="metrics-panel"):
+                yield MetricsPanel(self.api_base)
+
         footer = Footer()
         yield footer
 
@@ -116,6 +126,7 @@ class RedRiverTUI(App):
         OEM Panel: A=Add, T=Toggle, ↑↓=Threshold, D=Delete, R=Refresh
         Contract Panel: C=Add, S=Toggle, E=Edit, X=Delete, R=Refresh
         AI Panel: G=Generate, I=Switch Model
+        Metrics Panel: M=Refresh, P=Toggle Auto-refresh
         Global: Q=Quit, ?=Help
         """
         self.notify(help_text, title="Keyboard Shortcuts", severity="information")
