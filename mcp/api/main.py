@@ -50,6 +50,21 @@ try:
 except Exception:
     system_router = None
 
+try:
+    from mcp.api.v1.forecast import router as forecast_router
+except Exception:
+    forecast_router = None
+
+try:
+    from mcp.api.v1.webhooks import router as webhooks_router
+except Exception:
+    webhooks_router = None
+
+try:
+    from mcp.api.v1.metrics import router as metrics_router
+except Exception:
+    metrics_router = None
+
 
 app = FastAPI(title="Red River Sales MCP API", version="1.0.0")
 
@@ -169,6 +184,11 @@ async def api_info(request: Request):
                 "/v1/contacts/export.csv",
                 "/v1/contacts/export.vcf",
                 "/v1/system/recent-actions",
+                "/v1/forecast/run",
+                "/v1/forecast/summary",
+                "/v1/govly/webhook",
+                "/v1/radar/webhook",
+                "/v1/metrics",
             ],
         },
         headers={"x-request-id": request.headers.get("x-request-id", "")},
@@ -190,3 +210,9 @@ if contacts_router is not None:
     app.include_router(contacts_router, prefix="/v1", tags=["contacts"])
 if system_router is not None:
     app.include_router(system_router, prefix="/v1", tags=["system"])
+if forecast_router is not None:
+    app.include_router(forecast_router, tags=["forecast"])
+if webhooks_router is not None:
+    app.include_router(webhooks_router, tags=["webhooks"])
+if metrics_router is not None:
+    app.include_router(metrics_router, tags=["metrics"])

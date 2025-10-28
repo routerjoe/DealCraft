@@ -70,86 +70,19 @@ bash scripts/test.sh
 
 ## API Endpoints
 
-### Core Endpoints
+The API provides 30+ endpoints across multiple categories:
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/healthz` | Health check endpoint |
-| `GET` | `/v1/info` | API information and available endpoints |
+- **Core:** Health checks, API info
+- **AI & Intelligence:** Multi-model AI routing (6 models), RFQ guidance
+- **System:** Monitoring, recent actions, metrics (v1.4.0+)
+- **Obsidian:** Opportunity creation with FY routing
+- **Contacts:** CSV/vCard export
+- **Email:** RFQ/Govly/IntroMail ingestion
+- **OEM & Contracts:** CRUD operations
+- **Forecast:** Multi-year projections (v1.4.0+)
+- **Webhooks:** Govly/Radar ingestion (v1.4.0+)
 
-### AI & Intelligence
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/v1/ai/ask` | Unified AI query interface (multi-model) |
-| `GET` | `/v1/ai/models` | List available AI models (6 models) |
-| `GET` | `/v1/ai/models/detailed` | Detailed model info with providers |
-| `POST` | `/v1/ai/guidance` | Generate RFQ guidance with AI analysis |
-
-### System Monitoring
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/v1/system/recent-actions` | Last 10 API requests with metadata |
-
-### Obsidian Integration
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/v1/obsidian/opportunity` | Create opportunity note with FY routing |
-
-### Contacts Export
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/v1/contacts/export.csv` | Export contacts as CSV (RFC 4180) |
-| `GET` | `/v1/contacts/export.vcf` | Export contacts as vCard 3.0 |
-
-### Email Ingestion
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/v1/email/rfq/ingest` | Ingest RFQ email for processing |
-| `POST` | `/v1/email/govly/ingest` | Ingest Govly event notification |
-| `POST` | `/v1/email/intromail/ingest` | Ingest IntroMail for analysis |
-
-### OEM Management
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/v1/oems` | List all OEMs |
-| `POST` | `/v1/oems` | Create new OEM |
-| `PATCH` | `/v1/oems/{name}` | Update OEM (partial) |
-| `DELETE` | `/v1/oems/{name}` | Delete OEM |
-
-**OEM Body Schema:**
-```json
-{
-  "name": "string",
-  "authorized": boolean,
-  "threshold": integer
-}
-```
-
-### Contract Vehicles
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/v1/contracts` | List all contract vehicles |
-| `POST` | `/v1/contracts` | Create new contract vehicle |
-| `PATCH` | `/v1/contracts/{name}` | Update contract (partial) |
-| `DELETE` | `/v1/contracts/{name}` | Delete contract |
-
-**Contract Body Schema:**
-```json
-{
-  "name": "string",
-  "supported": boolean,
-  "notes": "string"
-}
-```
-
-**Note:** All create endpoints return `409 Conflict` if a resource with the same name already exists. All update/delete endpoints return `404 Not Found` if the resource doesn't exist.
+**📖 [Complete API Reference →](docs/api/endpoints.md)**
 
 ## TUI Interface
 
@@ -330,9 +263,18 @@ mypy mcp/
 
 See [docs/architecture_phase3.md](docs/architecture_phase3.md) for detailed architecture diagrams and component descriptions.
 
+## Releases
+
+Release notes are maintained in [`docs/releases/`](docs/releases/) with full changelogs, upgrade notes, and smoke tests.
+
+- **Latest:** [v1.4.0](docs/releases/v1.4.0.md) - Phase 4: Forecast & Govly Automation Batch (October 28, 2025)
+- **All Releases:** [Release Notes Index](docs/releases/README.md)
+- **GitHub Releases:** [Tags & Downloads](https://github.com/routerjoe/red-river-sales-automation/releases)
+
 ## Documentation
 
 - [CHANGELOG.md](CHANGELOG.md) - Version history and release notes
+- [docs/releases/](docs/releases/) - Detailed release notes by version
 - [docs/PHASE3_OVERVIEW.md](docs/PHASE3_OVERVIEW.md) - Phase 3 feature overview
 - [docs/architecture_phase3.md](docs/architecture_phase3.md) - Architecture diagrams
 - [RUNBOOK.md](RUNBOOK.md) - Operational procedures
@@ -340,14 +282,20 @@ See [docs/architecture_phase3.md](docs/architecture_phase3.md) for detailed arch
 
 ## Release History
 
+- **v1.4.0** (2025-10-28) - Phase 4: Forecast & Govly Automation Batch
+  - Forecast Hub Engine with multi-year projections
+  - Govly/Radar webhook ingestion
+  - Metrics & latency monitoring
+  - 101 tests passing
+  - [Full Release Notes →](docs/releases/v1.4.0.md)
+
 - **v1.3.0** (2025-10-26) - Phase 3: Integrations & Dashboard Enhancements
   - AI Router with 6 models
   - System monitoring & logging
   - Federal FY routing
-  - Obsidian Dataview dashboard
-  - 71 tests passing
+  - [Overview →](docs/guides/phase3_overview.md)
 
-See [CHANGELOG.md](CHANGELOG.md) for complete history.
+**📋 [All Releases →](docs/releases/)** | **📝 [CHANGELOG →](CHANGELOG.md)**
 
 ## Contributing
 

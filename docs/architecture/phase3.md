@@ -703,7 +703,7 @@ red-river-sales-automation/
 
 ## Change Log Integration
 
-See [CHANGELOG.md](../CHANGELOG.md) for version history and [docs/PHASE3_OVERVIEW.md](PHASE3_OVERVIEW.md) for detailed feature descriptions.
+See [CHANGELOG.md](../../CHANGELOG.md) for version history and [Phase 3 Overview](../guides/phase3_overview.md) for detailed feature descriptions.
 
 ---
 
