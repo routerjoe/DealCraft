@@ -1,15 +1,25 @@
 # Red River Sales MCP API
 
-FastAPI-based Model Context Protocol API for Red River Sales Automation.
+[![Build Status](https://img.shields.io/github/actions/workflow/status/routerjoe/red-river-sales-automation/ci.yml?branch=main)](https://github.com/routerjoe/red-river-sales-automation/actions)
+[![Tests](https://img.shields.io/badge/tests-71%20passing-success)](https://github.com/routerjoe/red-river-sales-automation/actions)
+[![Latest Release](https://img.shields.io/github/v/release/routerjoe/red-river-sales-automation)](https://github.com/routerjoe/red-river-sales-automation/releases/tag/v1.3.0)
+[![Python](https://img.shields.io/badge/python-3.11+-blue)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
+
+FastAPI-based Model Context Protocol API for Red River Sales Automation with integrated TUI management interface and Obsidian dashboard generation.
 
 ## Features
 
-- 🚀 FastAPI web framework with async support
-- 📝 Structured JSON logging with request tracking
-- 🔍 Request ID tracking and latency measurement
-- 🏥 Health check and API info endpoints
-- 🧪 Comprehensive test coverage
-- 🎨 Textual TUI for interactive management
+- 🚀 **FastAPI** web framework with async support
+- 🤖 **AI Router** with multi-model selection (OpenAI, Anthropic, Gemini)
+- 📊 **System Monitoring** with last-10-actions logging
+- 📝 **Structured JSON logging** with request tracking
+- 🔍 **Request ID tracking** and latency measurement (<3ms avg)
+- 📁 **Federal FY Routing** for opportunity management
+- 📈 **Obsidian Dataview Dashboard** with 10+ query views
+- 🏥 **Health check** and API info endpoints
+- 🧪 **Comprehensive test coverage** (71 tests passing)
+- 🎨 **Textual TUI** for interactive management
 
 ## Quick Start
 
@@ -38,7 +48,17 @@ bash scripts/dev.sh
 
 The API will be available at http://localhost:8000
 
-### 4. Run Tests
+### 4. Run TUI Interface
+
+```bash
+# Using Kilo Code
+kc run:tui
+
+# Or directly
+python -m tui.app
+```
+
+### 5. Run Tests
 
 ```bash
 # Using Kilo Code
@@ -48,39 +68,152 @@ kc run:test
 bash scripts/test.sh
 ```
 
-### 5. Run Linter
-
-```bash
-# Using Kilo Code
-kc run:lint
-
-# Or directly
-bash scripts/lint.sh
-```
-
 ## API Endpoints
 
-### Health & Info
-- `GET /healthz` - Health check endpoint
-- `GET /v1/info` - API information
+### Core Endpoints
 
-### OEMs
-- `GET /v1/oems` - List all OEMs
-- `POST /v1/oems` - Create a new OEM
-  - Body: `{"name": "string", "authorized": boolean, "threshold": integer}`
-- `PATCH /v1/oems/{name}` - Update an OEM (partial updates)
-  - Body: `{"authorized": boolean, "threshold": integer}` (all fields optional)
-- `DELETE /v1/oems/{name}` - Delete an OEM
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/healthz` | Health check endpoint |
+| `GET` | `/v1/info` | API information and available endpoints |
+
+### AI & Intelligence
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/v1/ai/ask` | Unified AI query interface (multi-model) |
+| `GET` | `/v1/ai/models` | List available AI models (6 models) |
+| `GET` | `/v1/ai/models/detailed` | Detailed model info with providers |
+| `POST` | `/v1/ai/guidance` | Generate RFQ guidance with AI analysis |
+
+### System Monitoring
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/v1/system/recent-actions` | Last 10 API requests with metadata |
+
+### Obsidian Integration
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/v1/obsidian/opportunity` | Create opportunity note with FY routing |
+
+### Contacts Export
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/v1/contacts/export.csv` | Export contacts as CSV (RFC 4180) |
+| `GET` | `/v1/contacts/export.vcf` | Export contacts as vCard 3.0 |
+
+### Email Ingestion
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/v1/email/rfq/ingest` | Ingest RFQ email for processing |
+| `POST` | `/v1/email/govly/ingest` | Ingest Govly event notification |
+| `POST` | `/v1/email/intromail/ingest` | Ingest IntroMail for analysis |
+
+### OEM Management
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/v1/oems` | List all OEMs |
+| `POST` | `/v1/oems` | Create new OEM |
+| `PATCH` | `/v1/oems/{name}` | Update OEM (partial) |
+| `DELETE` | `/v1/oems/{name}` | Delete OEM |
+
+**OEM Body Schema:**
+```json
+{
+  "name": "string",
+  "authorized": boolean,
+  "threshold": integer
+}
+```
 
 ### Contract Vehicles
-- `GET /v1/contracts` - List all Contract Vehicles
-- `POST /v1/contracts` - Create a new Contract Vehicle
-  - Body: `{"name": "string", "supported": boolean, "notes": "string"}`
-- `PATCH /v1/contracts/{name}` - Update a Contract Vehicle (partial updates)
-  - Body: `{"supported": boolean, "notes": "string"}` (all fields optional)
-- `DELETE /v1/contracts/{name}` - Delete a Contract Vehicle
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/v1/contracts` | List all contract vehicles |
+| `POST` | `/v1/contracts` | Create new contract vehicle |
+| `PATCH` | `/v1/contracts/{name}` | Update contract (partial) |
+| `DELETE` | `/v1/contracts/{name}` | Delete contract |
+
+**Contract Body Schema:**
+```json
+{
+  "name": "string",
+  "supported": boolean,
+  "notes": "string"
+}
+```
 
 **Note:** All create endpoints return `409 Conflict` if a resource with the same name already exists. All update/delete endpoints return `404 Not Found` if the resource doesn't exist.
+
+## TUI Interface
+
+The Textual-based Terminal User Interface provides interactive management of sales operations:
+
+### Features
+- **RFQ Management** - View, filter, and process RFQs
+- **Analytics Dashboard** - Real-time pipeline metrics
+- **OEM & Contract Management** - CRUD operations for vendors
+- **AI Guidance** - Get AI-powered recommendations
+- **IntroMail Analysis** - Automated email processing
+- **Artifacts View** - Export and file management
+
+### Screenshot
+```
+┌─ Red River Sales TUI ────────────────────────────────────────┐
+│  📊 Dashboard  │  📧 RFQs  │  🤝 OEMs  │  📋 Contracts  │    │
+├──────────────────────────────────────────────────────────────┤
+│                                                               │
+│  Pipeline Summary:                                            │
+│  ├─ Total RFQs: 42                                           │
+│  ├─ Qualified: 28                                            │
+│  ├─ In Progress: 14                                          │
+│  └─ Won This Month: 6                                        │
+│                                                               │
+│  Recent Activity:                                             │
+│  • RFQ-2025-001: Federal IT Modernization                   │
+│  • RFQ-2025-002: Cloud Migration Project                    │
+│                                                               │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Launch TUI
+```bash
+# Development mode
+kc run:tui
+
+# Production mode
+python -m tui.app --config production
+```
+
+## Phase 3 Enhancements (v1.3.0)
+
+### AI Router
+- **Multi-model support:** OpenAI (gpt-5-thinking, gpt-4-turbo), Anthropic (claude-3.5, claude-3-opus), Gemini (gemini-1.5-pro, gemini-1.5-flash)
+- **Unified endpoint:** `/v1/ai/ask` for general queries
+- **Model validation:** Automatic fallback to default model
+
+### System Monitoring
+- **Recent actions logging:** Last 10 requests tracked in `data/state.json`
+- **Request tracking:** All responses include `x-request-id` and `x-latency-ms` headers
+- **Performance:** <3ms average latency
+
+### Federal FY Routing
+- **Automatic routing:** Opportunities routed to `40 Projects/Opportunities/FYxx/` based on close date
+- **Triage queue:** Invalid dates route to `Triage/` folder
+- **FY calculation:** Oct 1 (N-1) to Sep 30 (N)
+
+### Obsidian Dashboard
+- **Location:** `obsidian/50 Dashboards/Opportunities Dashboard.md`
+- **10 Dataview queries:** Pipeline analysis, FY breakdown, top opportunities, etc.
+- **YAML aliases:** Non-breaking aliases for dashboard compatibility
+
+See [CHANGELOG.md](CHANGELOG.md) for complete details.
 
 ## Logging
 
@@ -99,29 +232,56 @@ All requests are logged in structured JSON format with the following fields:
 }
 ```
 
-Every response includes an `X-Request-ID` header for request tracking.
+Every response includes an `X-Request-ID` header for request tracking and an `X-Latency-MS` header for performance monitoring.
 
 ## Project Structure
 
 ```
 red-river-sales-automation/
 ├── mcp/
-│   ├── api/              # API endpoints
-│   │   └── main.py       # FastAPI application
-│   └── core/             # Core modules
-│       ├── config.py     # Configuration loader
-│       └── logging.py    # JSON logging setup
-├── scripts/              # Shell scripts
-│   ├── dev.sh           # Development server
-│   ├── test.sh          # Run tests
-│   ├── lint.sh          # Run linter
-│   └── build.sh         # Build checks
-├── tests/               # Test suite
-│   └── test_health.py   # Health endpoint tests
-├── .env.sample          # Environment template
-├── logging.json         # Logging configuration
-├── requirements.txt     # Python dependencies
-└── kilo.yml            # Kilo Code task aliases
+│   ├── api/                  # API endpoints
+│   │   ├── main.py          # FastAPI application
+│   │   └── v1/              # Version 1 endpoints
+│   │       ├── ai.py        # AI router endpoints
+│   │       ├── contacts.py  # Contact export
+│   │       ├── contracts.py # Contract vehicles
+│   │       ├── email.py     # Email ingestion
+│   │       ├── obsidian.py  # Obsidian integration
+│   │       ├── oems.py      # OEM management
+│   │       └── system.py    # System monitoring
+│   └── core/                # Core modules
+│       ├── ai_router.py     # AI model routing
+│       ├── config.py        # Configuration loader
+│       ├── logging.py       # JSON logging setup
+│       └── store.py         # State persistence
+├── tui/                     # Terminal UI
+│   ├── app.py              # TUI application
+│   └── rrtui/              # UI components
+├── obsidian/               # Obsidian vault integration
+│   ├── 40 Projects/        # Project notes (FY-routed)
+│   ├── 50 Dashboards/      # Dataview dashboards
+│   └── 60 Projects/        # Sprint summaries
+├── scripts/                # Shell scripts
+│   ├── dev.sh             # Development server
+│   ├── test.sh            # Run tests
+│   ├── lint.sh            # Run linter
+│   └── build.sh           # Build checks
+├── tests/                  # Test suite (71 tests)
+│   ├── test_ai_endpoints.py
+│   ├── test_contacts_export.py
+│   ├── test_contracts.py
+│   ├── test_email_ingest.py
+│   ├── test_health.py
+│   ├── test_obsidian.py
+│   └── test_oems.py
+├── docs/                   # Documentation
+│   ├── PHASE3_OVERVIEW.md # Phase 3 features
+│   └── architecture_phase3.md # Architecture diagram
+├── .env.sample            # Environment template
+├── CHANGELOG.md           # Version history
+├── logging.json           # Logging configuration
+├── requirements.txt       # Python dependencies
+└── kilo.yml              # Kilo Code task aliases
 ```
 
 ## Development
@@ -133,12 +293,76 @@ kc run:dev    # Start development server
 kc run:test   # Run test suite
 kc run:lint   # Run linter
 kc run:build  # Run lint + tests
+kc run:tui    # Launch TUI interface
 ```
 
 ### Environment Variables
 
 See [`.env.sample`](.env.sample) for all available configuration options.
 
+### Running Tests
+
+```bash
+# Run all tests
+pytest -v
+
+# Run specific test file
+pytest tests/test_ai_endpoints.py -v
+
+# Run with coverage
+pytest --cov=mcp --cov-report=html
+```
+
+### Code Quality
+
+```bash
+# Format code
+ruff format .
+
+# Lint code
+ruff check .
+
+# Type checking (if mypy configured)
+mypy mcp/
+```
+
+## Architecture
+
+See [docs/architecture_phase3.md](docs/architecture_phase3.md) for detailed architecture diagrams and component descriptions.
+
+## Documentation
+
+- [CHANGELOG.md](CHANGELOG.md) - Version history and release notes
+- [docs/PHASE3_OVERVIEW.md](docs/PHASE3_OVERVIEW.md) - Phase 3 feature overview
+- [docs/architecture_phase3.md](docs/architecture_phase3.md) - Architecture diagrams
+- [RUNBOOK.md](RUNBOOK.md) - Operational procedures
+- [TUI README](tui/README.md) - TUI-specific documentation
+
+## Release History
+
+- **v1.3.0** (2025-10-26) - Phase 3: Integrations & Dashboard Enhancements
+  - AI Router with 6 models
+  - System monitoring & logging
+  - Federal FY routing
+  - Obsidian Dataview dashboard
+  - 71 tests passing
+
+See [CHANGELOG.md](CHANGELOG.md) for complete history.
+
+## Contributing
+
+This is a proprietary project for Red River Sales Automation. For internal contributions:
+
+1. Create a feature branch: `git checkout -b feature/your-feature`
+2. Make changes and add tests
+3. Run quality checks: `kc run:build`
+4. Commit with conventional commits: `feat:`, `fix:`, `docs:`, etc.
+5. Push and create a PR
+
 ## License
 
 Proprietary - Red River Sales Automation
+
+---
+
+**Built with** FastAPI, Textual, Obsidian, and powered by AI ✨
