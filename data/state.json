@@ -9,44 +9,8 @@
   ],
   "recent_actions": [
     {
-      "request_id": "ad6365ad-bbc6-48c5-b334-a7865972f7e2",
-      "timestamp": "2025-10-29T16:32:55.785048+00:00",
-      "method": "HEAD",
-      "path": "/v1/cv/vehicles",
-      "latency_ms": 0,
-      "status_code": 405,
-      "context": {}
-    },
-    {
-      "request_id": "813f3028-bca6-4e50-a444-dc99fbdcdb36",
-      "timestamp": "2025-10-29T16:32:55.765822+00:00",
-      "method": "HEAD",
-      "path": "/v1/crm/formats",
-      "latency_ms": 0,
-      "status_code": 405,
-      "context": {}
-    },
-    {
-      "request_id": "1402f47b-cc30-494e-b90c-3c84004617a6",
-      "timestamp": "2025-10-29T16:32:55.749842+00:00",
-      "method": "HEAD",
-      "path": "/v1/forecast/all",
-      "latency_ms": 0,
-      "status_code": 405,
-      "context": {}
-    },
-    {
-      "request_id": "7432f7ad-0f9a-40a9-9f6d-5a1eb2773f20",
-      "timestamp": "2025-10-29T16:32:25.703257+00:00",
-      "method": "GET",
-      "path": "/v1/info",
-      "latency_ms": 0,
-      "status_code": 200,
-      "context": {}
-    },
-    {
-      "request_id": "ed6c6ef7-cc4e-43bd-9106-8e1d254f64f3",
-      "timestamp": "2025-10-29T16:23:09.990725+00:00",
+      "request_id": "ae9ec38a-c9a2-4345-a226-8ab52f4de63b",
+      "timestamp": "2025-10-29T19:46:10.943160+00:00",
       "method": "GET",
       "path": "/v1/oems",
       "latency_ms": 0,
@@ -54,8 +18,8 @@
       "context": {}
     },
     {
-      "request_id": "9f64375b-8abc-4550-a9c0-5bdf89427ecc",
-      "timestamp": "2025-10-29T16:23:09.988601+00:00",
+      "request_id": "79768bfd-d6af-4b3e-8257-b1686ea4d37f",
+      "timestamp": "2025-10-29T19:46:10.941293+00:00",
       "method": "DELETE",
       "path": "/v1/oems/Microsoft",
       "latency_ms": 0,
@@ -63,8 +27,8 @@
       "context": {}
     },
     {
-      "request_id": "b08f8c0d-80e0-4c1b-b955-b381e4f2d3dd",
-      "timestamp": "2025-10-29T16:23:09.986692+00:00",
+      "request_id": "d439f09c-9857-4532-b86e-422d9ef843ab",
+      "timestamp": "2025-10-29T19:46:10.939603+00:00",
       "method": "PATCH",
       "path": "/v1/oems/Microsoft",
       "latency_ms": 0,
@@ -72,8 +36,8 @@
       "context": {}
     },
     {
-      "request_id": "2add6f19-04b6-492a-9db2-8a1bbe77a343",
-      "timestamp": "2025-10-29T16:23:09.984543+00:00",
+      "request_id": "ae1198bd-201d-4630-99c8-2ccfe4c9801a",
+      "timestamp": "2025-10-29T19:46:10.937693+00:00",
       "method": "GET",
       "path": "/v1/oems",
       "latency_ms": 0,
@@ -81,8 +45,8 @@
       "context": {}
     },
     {
-      "request_id": "23781f4e-28db-44cd-9c82-142815549d96",
-      "timestamp": "2025-10-29T16:23:09.982874+00:00",
+      "request_id": "51a4e037-9ef6-4ceb-9f66-62cbddd8c6af",
+      "timestamp": "2025-10-29T19:46:10.936246+00:00",
       "method": "POST",
       "path": "/v1/oems",
       "latency_ms": 0,
@@ -90,9 +54,45 @@
       "context": {}
     },
     {
-      "request_id": "66ee4037-a342-464a-a7c5-1cdb4a47aab8",
-      "timestamp": "2025-10-29T16:23:09.979701+00:00",
+      "request_id": "6da2446c-7abc-45a6-9d42-e75ad31a60a2",
+      "timestamp": "2025-10-29T19:46:10.933558+00:00",
       "method": "DELETE",
+      "path": "/v1/oems/NonExistent",
+      "latency_ms": 0,
+      "status_code": 404,
+      "context": {}
+    },
+    {
+      "request_id": "e6bb63fd-15d0-45f3-b570-c6a15e3f1cec",
+      "timestamp": "2025-10-29T19:46:10.931292+00:00",
+      "method": "GET",
+      "path": "/v1/oems",
+      "latency_ms": 0,
+      "status_code": 200,
+      "context": {}
+    },
+    {
+      "request_id": "a91a0f21-a315-498e-9726-f53df0bbb327",
+      "timestamp": "2025-10-29T19:46:10.929806+00:00",
+      "method": "DELETE",
+      "path": "/v1/oems/Oracle",
+      "latency_ms": 0,
+      "status_code": 204,
+      "context": {}
+    },
+    {
+      "request_id": "66a54ce0-5308-4db3-9c66-da5e60744306",
+      "timestamp": "2025-10-29T19:46:10.927965+00:00",
+      "method": "POST",
+      "path": "/v1/oems",
+      "latency_ms": 0,
+      "status_code": 201,
+      "context": {}
+    },
+    {
+      "request_id": "5a52a511-f6f3-45df-9076-5e102a0275d1",
+      "timestamp": "2025-10-29T19:46:10.924582+00:00",
+      "method": "PATCH",
       "path": "/v1/oems/NonExistent",
       "latency_ms": 0,
       "status_code": 404,
