@@ -1,17 +1,17 @@
 ---
-id: govly_sig_missing_001
-title: Missing Signature Test
+id: govly_happy_001
+title: Happy Path Test
 source: Govly
 triage: true
-created_at: 2025-10-29T19:11:39.251291
+created_at: 2025-10-29T19:11:39.281180
 status: triage
 ---
 
-# Missing Signature Test
+# Happy Path Test
 
 **Source:** Govly
 **Status:** Triage
-**Created:** 2025-10-29T19:11:39.251291
+**Created:** 2025-10-29T19:11:39.281180
 
 ## Summary
 

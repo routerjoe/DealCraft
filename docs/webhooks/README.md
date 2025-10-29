@@ -136,23 +136,48 @@ RADAR_WEBHOOK_SECRET=your_radar_secret_here
 
 To rotate webhook secrets without downtime:
 
-1. **Configure dual-secret support** (if available):
+1. **Generate new secret**:
    ```bash
-   GOVLY_WEBHOOK_SECRET=new_secret
-   GOVLY_WEBHOOK_SECRET_OLD=old_secret
+   python3 -c "import secrets; print(secrets.token_urlsafe(32))"
+   # Example output: xK9mP2nQ4rT6sU8wV0yX2zA4bC6dE8fG
    ```
 
-2. **Deploy with both secrets active**
-
-3. **Update webhook provider with new secret**
-
-4. **Monitor logs for old secret usage**
-
-5. **Remove old secret after 24-48 hours**:
+2. **Configure dual-secret support**:
    ```bash
-   # Remove old secret from .env
-   GOVLY_WEBHOOK_SECRET=new_secret
+   GOVLY_WEBHOOK_SECRET=xK9mP2nQ4rT6sU8wV0yX2zA4bC6dE8fG  # New secret
+   GOVLY_SECRET_V2=old_govly_secret_here                  # Old secret (fallback)
    ```
+
+3. **Deploy with both secrets active** - Server now accepts webhooks signed with either secret
+
+4. **Update webhook provider (Govly) with new secret** - Configure Govly to use new signing secret
+
+5. **Monitor logs for old secret usage**:
+   ```bash
+   # Check for fallback authentication
+   grep "fallback secret" /var/log/mcp/webhook.log
+   ```
+
+6. **Remove old secret after 24-48 hours**:
+   ```bash
+   # Once all webhooks use new secret, remove fallback from .env
+   GOVLY_WEBHOOK_SECRET=xK9mP2nQ4rT6sU8wV0yX2zA4bC6dE8fG
+   # GOVLY_SECRET_V2 removed
+   ```
+
+**Example Rotation Scenario:**
+```bash
+# Step 1: Current production config
+GOVLY_WEBHOOK_SECRET=old_secret_abc123
+
+# Step 2: Add new secret while keeping old
+GOVLY_WEBHOOK_SECRET=new_secret_xyz789
+GOVLY_SECRET_V2=old_secret_abc123
+
+# Step 3: After Govly provider updated and verified
+GOVLY_WEBHOOK_SECRET=new_secret_xyz789
+# GOVLY_SECRET_V2 removed
+```
 
 ## Replay Protection
 
@@ -285,18 +310,19 @@ Auto-ingested from Govly webhook. Awaiting manual review and enrichment.
 
 ## Dry-Run Mode
 
-For testing webhooks without creating opportunities, use dry-run mode (planned for Sprint 10 development):
+For testing webhooks without creating opportunities, use dry-run mode:
 
 ### Dry-Run Request
 
 ```bash
-curl -X POST http://localhost:8000/v1/govly/webhook?dry_run=true \
+curl -X POST "http://localhost:8000/v1/govly/webhook?dry_run=true" \
   -H "Content-Type: application/json" \
   -d '{
     "event_id": "test_123",
     "event_type": "opportunity",
     "title": "Test Opportunity",
-    "estimated_amount": 100000
+    "estimated_amount": 100000,
+    "close_date": "2025-11-15T23:59:59Z"
   }'
 ```
 
@@ -307,24 +333,85 @@ curl -X POST http://localhost:8000/v1/govly/webhook?dry_run=true \
   "opportunity_id": "govly_test_123",
   "message": "Dry-run: Govly opportunity govly_test_123 would be ingested",
   "dry_run": true,
-  "actions": {
-    "create_state_entry": true,
-    "create_obsidian_file": true,
-    "fy_routing": "FY26",
-    "file_path": "obsidian/40 Projects/Opportunities/Triage/govly_test_123.md"
-  }
+  "fy_route": "FY26"
 }
 ```
 
 ### Dry-Run Behavior
 
-When `?dry_run=true` is specified:
+When `?dry_run=true` query parameter is specified:
 - ✅ Validates payload schema
+- ✅ Verifies signature (if secrets configured)
+- ✅ Checks replay protection (marks as seen)
 - ✅ Calculates FY routing
 - ✅ Generates opportunity ID
 - ❌ Does NOT create state.json entry
 - ❌ Does NOT create Obsidian file
-- ✅ Returns preview of actions that would be taken
+- ✅ Returns preview with FY routing
+
+**Use Cases:**
+- Testing webhook integration before going live
+- Validating payload schemas
+- Verifying FY routing logic
+- Confirming signature verification works
+
+### Example: Testing Contract Vehicles
+
+**SEWP (NASA GSFC):**
+```bash
+curl -X POST "http://localhost:8000/v1/govly/webhook?dry_run=true" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event_id": "sewp_001",
+    "event_type": "opportunity",
+    "title": "SEWP VI IT Hardware Acquisition",
+    "description": "Federal IT hardware procurement under SEWP VI",
+    "estimated_amount": 750000,
+    "agency": "NASA",
+    "close_date": "2026-03-15T23:59:59Z"
+  }'
+```
+
+**CHESS (Army):**
+```bash
+curl -X POST "http://localhost:8000/v1/govly/webhook?dry_run=true" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event_id": "chess_002",
+    "event_type": "opportunity",
+    "title": "CHESS IT Services Contract",
+    "description": "Army IT services under CHESS contract vehicle",
+    "estimated_amount": 1250000,
+    "agency": "Army",
+    "close_date": "2026-02-28T23:59:59Z"
+  }'
+```
+
+**AFCENT (Air Force Central Command):**
+```bash
+curl -X POST "http://localhost:8000/v1/govly/webhook?dry_run=true" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event_id": "afcent_003",
+    "event_type": "opportunity",
+    "title": "AFCENT Cybersecurity Services",
+    "description": "Air Force Central Command cybersecurity contract",
+    "estimated_amount": 2500000,
+    "agency": "Air Force",
+    "close_date": "2026-06-30T23:59:59Z"
+  }'
+```
+
+**Expected Response for Each:**
+```json
+{
+  "status": "success",
+  "opportunity_id": "govly_sewp_001",  // or chess_002, afcent_003
+  "message": "Dry-run: Govly opportunity would be ingested",
+  "dry_run": true,
+  "fy_route": "FY26"  // Calculated based on close_date
+}
+```
 
 ## Testing & Validation
 
