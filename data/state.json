@@ -9,93 +9,93 @@
   ],
   "recent_actions": [
     {
-      "request_id": "ad6365ad-bbc6-48c5-b334-a7865972f7e2",
-      "timestamp": "2025-10-29T16:32:55.785048+00:00",
-      "method": "HEAD",
-      "path": "/v1/cv/vehicles",
-      "latency_ms": 0,
-      "status_code": 405,
-      "context": {}
-    },
-    {
-      "request_id": "813f3028-bca6-4e50-a444-dc99fbdcdb36",
-      "timestamp": "2025-10-29T16:32:55.765822+00:00",
-      "method": "HEAD",
-      "path": "/v1/crm/formats",
-      "latency_ms": 0,
-      "status_code": 405,
-      "context": {}
-    },
-    {
-      "request_id": "1402f47b-cc30-494e-b90c-3c84004617a6",
-      "timestamp": "2025-10-29T16:32:55.749842+00:00",
-      "method": "HEAD",
-      "path": "/v1/forecast/all",
-      "latency_ms": 0,
-      "status_code": 405,
-      "context": {}
-    },
-    {
-      "request_id": "7432f7ad-0f9a-40a9-9f6d-5a1eb2773f20",
-      "timestamp": "2025-10-29T16:32:25.703257+00:00",
+      "request_id": "d17a8627-5833-4939-a8c9-420fb3ff6806",
+      "timestamp": "2025-10-29T17:21:58.680861+00:00",
       "method": "GET",
-      "path": "/v1/info",
+      "path": "/v1/account-plans/formats",
       "latency_ms": 0,
       "status_code": 200,
       "context": {}
     },
     {
-      "request_id": "ed6c6ef7-cc4e-43bd-9106-8e1d254f64f3",
-      "timestamp": "2025-10-29T16:23:09.990725+00:00",
-      "method": "GET",
-      "path": "/v1/oems",
-      "latency_ms": 0,
-      "status_code": 200,
-      "context": {}
-    },
-    {
-      "request_id": "9f64375b-8abc-4550-a9c0-5bdf89427ecc",
-      "timestamp": "2025-10-29T16:23:09.988601+00:00",
-      "method": "DELETE",
-      "path": "/v1/oems/Microsoft",
-      "latency_ms": 0,
-      "status_code": 204,
-      "context": {}
-    },
-    {
-      "request_id": "b08f8c0d-80e0-4c1b-b955-b381e4f2d3dd",
-      "timestamp": "2025-10-29T16:23:09.986692+00:00",
-      "method": "PATCH",
-      "path": "/v1/oems/Microsoft",
-      "latency_ms": 0,
-      "status_code": 200,
-      "context": {}
-    },
-    {
-      "request_id": "2add6f19-04b6-492a-9db2-8a1bbe77a343",
-      "timestamp": "2025-10-29T16:23:09.984543+00:00",
-      "method": "GET",
-      "path": "/v1/oems",
-      "latency_ms": 0,
-      "status_code": 200,
-      "context": {}
-    },
-    {
-      "request_id": "23781f4e-28db-44cd-9c82-142815549d96",
-      "timestamp": "2025-10-29T16:23:09.982874+00:00",
+      "request_id": "70976a7b-ce3d-4169-ac9a-4b63046364d7",
+      "timestamp": "2025-10-29T17:21:58.678745+00:00",
       "method": "POST",
-      "path": "/v1/oems",
+      "path": "/v1/account-plans/generate",
       "latency_ms": 0,
-      "status_code": 201,
+      "status_code": 200,
       "context": {}
     },
     {
-      "request_id": "66ee4037-a342-464a-a7c5-1cdb4a47aab8",
-      "timestamp": "2025-10-29T16:23:09.979701+00:00",
-      "method": "DELETE",
-      "path": "/v1/oems/NonExistent",
+      "request_id": "822c1298-dff6-4681-bab2-d4592fb145a5",
+      "timestamp": "2025-10-29T17:21:58.676198+00:00",
+      "method": "POST",
+      "path": "/v1/account-plans/generate",
       "latency_ms": 0,
-      "status_code": 404,
+      "status_code": 200,
+      "context": {}
+    },
+    {
+      "request_id": "c615ec11-41cb-47eb-a084-149930f6e7b7",
+      "timestamp": "2025-10-29T17:21:58.673267+00:00",
+      "method": "POST",
+      "path": "/v1/account-plans/generate",
+      "latency_ms": 0,
+      "status_code": 200,
+      "context": {}
+    },
+    {
+      "request_id": "012e4d6b-717a-4e43-a825-0bb15eed7a3c",
+      "timestamp": "2025-10-29T17:21:58.671020+00:00",
+      "method": "POST",
+      "path": "/v1/account-plans/generate",
+      "latency_ms": 0,
+      "status_code": 200,
+      "context": {}
+    },
+    {
+      "request_id": "398d8372-3b7a-4b18-9488-88aa3bf9049e",
+      "timestamp": "2025-10-29T17:21:58.667770+00:00",
+      "method": "POST",
+      "path": "/v1/account-plans/generate",
+      "latency_ms": 1,
+      "status_code": 200,
+      "context": {}
+    },
+    {
+      "request_id": "d187bc69-580c-48ae-a68c-0a23f2948314",
+      "timestamp": "2025-10-29T17:21:58.664491+00:00",
+      "method": "POST",
+      "path": "/v1/account-plans/generate",
+      "latency_ms": 0,
+      "status_code": 200,
+      "context": {}
+    },
+    {
+      "request_id": "bf1a0039-a167-45de-b1bc-3145e4003a50",
+      "timestamp": "2025-10-29T17:21:58.661674+00:00",
+      "method": "POST",
+      "path": "/v1/account-plans/generate",
+      "latency_ms": 0,
+      "status_code": 200,
+      "context": {}
+    },
+    {
+      "request_id": "7a0f2157-708d-4aba-a1fd-253ef11c03e9",
+      "timestamp": "2025-10-29T17:21:58.659635+00:00",
+      "method": "GET",
+      "path": "/v1/account-plans/formats",
+      "latency_ms": 0,
+      "status_code": 200,
+      "context": {}
+    },
+    {
+      "request_id": "688ad21b-5035-42e5-9c3f-91d15d9832b5",
+      "timestamp": "2025-10-29T17:21:58.656669+00:00",
+      "method": "POST",
+      "path": "/v1/account-plans/generate",
+      "latency_ms": 0,
+      "status_code": 200,
       "context": {}
     }
   ]
