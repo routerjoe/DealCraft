@@ -1,17 +1,25 @@
 """
-Forecast Hub Engine - Phase 4
-Generates AI-driven forecasts for opportunities across FY25, FY26, FY27.
-Persists forecasts to data/forecast.json with derived fields on opportunity notes.
+Forecast Hub Engine - Phase 5
+Generates AI-driven forecasts with intelligent scoring for opportunities.
+Features:
+- Multi-factor opportunity scoring (OEM alignment, partner fit, etc.)
+- Confidence intervals
+- FY-based forecasting (FY25/26/27)
+- Export to Obsidian and CSV
+- Win probability modeling
 """
 
+import csv
 import json
 import statistics
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Header, HTTPException, Response
 from pydantic import BaseModel, Field
+
+from mcp.core.scoring import scorer
 
 router = APIRouter(prefix="/v1/forecast", tags=["forecast"])
 
@@ -35,17 +43,29 @@ class ForecastRequest(BaseModel):
 
 
 class ForecastData(BaseModel):
-    """Forecast data for a single opportunity."""
+    """Forecast data for a single opportunity with intelligent scoring."""
 
     opportunity_id: str
     opportunity_name: str
     projected_amount_FY25: float
     projected_amount_FY26: float
     projected_amount_FY27: float
-    confidence_score: int  # 0-100
+    confidence_score: int  # 0-100 (legacy field)
     reasoning: str
     generated_at: str  # ISO 8601
     model_used: str
+
+    # Phase 5: Intelligent Scoring Fields
+    win_prob: float = Field(default=0.0, description="Win probability (0-100)")
+    score_raw: float = Field(default=0.0, description="Raw composite score (0-100)")
+    score_scaled: float = Field(default=0.0, description="Scaled score (0-100)")
+    oem_alignment_score: float = Field(default=0.0, description="OEM strategic alignment")
+    partner_fit_score: float = Field(default=0.0, description="Partner ecosystem fit")
+    contract_vehicle_score: float = Field(default=0.0, description="Contract vehicle priority")
+    govly_relevance_score: float = Field(default=0.0, description="Govly/federal relevance")
+
+    # Confidence interval
+    confidence_interval: Optional[Dict[str, float]] = Field(default=None, description="Statistical confidence bounds")
 
 
 class ForecastSummary(BaseModel):
@@ -117,13 +137,14 @@ def get_opportunities() -> List[Dict[str, Any]]:
 
 def generate_forecast_for_opportunity(opp: Dict[str, Any], model: str = "gpt-5-thinking") -> ForecastData:
     """
-    Generate forecast for a single opportunity.
-    Uses simple heuristic-based forecasting (can be replaced with AI model).
+    Generate forecast for a single opportunity with intelligent scoring.
+    Phase 5: Integrates multi-factor scoring engine.
     """
     opp_id = opp.get("id", "unknown")
-    opp_name = opp.get("name", "Unknown Opportunity")
+    opp_name = opp.get("name", opp.get("title", "Unknown Opportunity"))
     current_amount = float(opp.get("amount", opp.get("est_amount", 0)))
     close_date_str = opp.get("close_date", opp.get("est_close", ""))
+    stage = opp.get("stage", "Unknown")
 
     # Parse close date to determine FY
     try:
@@ -133,10 +154,7 @@ def generate_forecast_for_opportunity(opp: Dict[str, Any], model: str = "gpt-5-t
 
         close_date = datetime.now(timezone.utc)
 
-    # Simple heuristic: distribute amount across FYs based on close date
-    # FY25: Oct 2024 - Sep 2025
-    # FY26: Oct 2025 - Sep 2026
-    # FY27: Oct 2026 - Sep 2027
+    # FY distribution logic
     from datetime import timezone
 
     fy26_start = datetime(2025, 10, 1, tzinfo=timezone.utc)
@@ -158,10 +176,18 @@ def generate_forecast_for_opportunity(opp: Dict[str, Any], model: str = "gpt-5-t
         fy27_amount = current_amount * 0.75
         confidence = 65
 
+    # Phase 5: Calculate intelligent scores
+    scores = scorer.calculate_composite_score(opp)
+    confidence_interval = scorer.calculate_confidence_interval(scores["win_prob"], current_amount, stage)
+
     reasoning = (
         f"Forecast based on close_date ({close_date_str}). "
-        f"Current amount: ${current_amount:,.2f}. "
-        f"Distributed across FY25-27 based on fiscal year alignment."
+        f"Amount: ${current_amount:,.2f}. "
+        f"Win probability: {scores['win_prob']:.1f}% "
+        f"(OEM: {scores['oem_alignment_score']:.0f}, "
+        f"Partner: {scores['partner_fit_score']:.0f}, "
+        f"Vehicle: {scores['contract_vehicle_score']:.0f}). "
+        f"Distributed across FY25-27 based on fiscal alignment."
     )
 
     return ForecastData(
@@ -174,6 +200,15 @@ def generate_forecast_for_opportunity(opp: Dict[str, Any], model: str = "gpt-5-t
         reasoning=reasoning,
         generated_at=datetime.utcnow().isoformat() + "Z",
         model_used=model,
+        # Phase 5 scoring fields
+        win_prob=scores["win_prob"],
+        score_raw=scores["score_raw"],
+        score_scaled=scores["score_scaled"],
+        oem_alignment_score=scores["oem_alignment_score"],
+        partner_fit_score=scores["partner_fit_score"],
+        contract_vehicle_score=scores["contract_vehicle_score"],
+        govly_relevance_score=scores["govly_relevance_score"],
+        confidence_interval=confidence_interval,
     )
 
 
@@ -260,6 +295,366 @@ async def run_forecast(request: ForecastRequest, x_request_id: str = Header(defa
             "latency_ms": round(latency_ms, 2),
         }
 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/all", response_model=Dict[str, Any])
+async def get_all_forecasts(x_request_id: str = Header(default="unknown")) -> Dict[str, Any]:
+    """
+    Get all forecasts.
+    GET /v1/forecast/all
+
+    Returns:
+    {
+        "total": 10,
+        "forecasts": [...]
+    }
+    """
+    try:
+        forecasts = load_forecasts()
+
+        return {
+            "request_id": x_request_id,
+            "total": len(forecasts),
+            "forecasts": [f.model_dump() for f in forecasts.values()],
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/FY{fiscal_year}", response_model=Dict[str, Any])
+async def get_forecasts_by_fy(fiscal_year: int, x_request_id: str = Header(default="unknown")) -> Dict[str, Any]:
+    """
+    Get forecasts for a specific fiscal year.
+    GET /v1/forecast/FY25
+
+    Returns forecasts with projected amounts for the specified FY.
+    """
+    try:
+        forecasts = load_forecasts()
+
+        # Filter forecasts with significant amounts in the requested FY
+        fy_key = f"projected_amount_FY{fiscal_year}"
+        fy_forecasts = []
+
+        for forecast in forecasts.values():
+            forecast_dict = forecast.model_dump()
+            if fy_key in forecast_dict and forecast_dict[fy_key] > 0:
+                fy_forecasts.append(forecast_dict)
+
+        # Sort by projected amount for this FY (descending)
+        fy_forecasts.sort(key=lambda x: x.get(fy_key, 0), reverse=True)
+
+        # Calculate total for this FY
+        total_fy = sum(f.get(fy_key, 0) for f in fy_forecasts)
+
+        return {
+            "request_id": x_request_id,
+            "fiscal_year": f"FY{fiscal_year}",
+            "total_opportunities": len(fy_forecasts),
+            "total_projected": round(total_fy, 2),
+            "forecasts": fy_forecasts,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/top", response_model=Dict[str, Any])
+async def get_top_forecasts(
+    limit: int = 10, sort_by: str = "win_prob", fiscal_year: Optional[int] = None, x_request_id: str = Header(default="unknown")
+) -> Dict[str, Any]:
+    """
+    Get top forecasts ranked by various criteria.
+    GET /v1/forecast/top?limit=10&sort_by=win_prob&fiscal_year=25
+
+    sort_by options:
+    - win_prob: Win probability
+    - score_raw: Raw composite score
+    - projected_amount: Total projected amount across all FYs
+    - FY25, FY26, FY27: Specific FY amounts
+
+    Returns:
+    {
+        "top_deals": [...],
+        "sort_criteria": "win_prob",
+        "limit": 10
+    }
+    """
+    try:
+        forecasts = load_forecasts()
+
+        if not forecasts:
+            return {
+                "request_id": x_request_id,
+                "top_deals": [],
+                "sort_criteria": sort_by,
+                "limit": limit,
+            }
+
+        forecast_list = [f.model_dump() for f in forecasts.values()]
+
+        # Determine sort key
+        if sort_by in ["FY25", "FY26", "FY27"]:
+            sort_key = f"projected_amount_{sort_by}"
+        elif sort_by == "projected_amount":
+            # Calculate total projected amount
+            for f in forecast_list:
+                f["total_projected"] = (
+                    f.get("projected_amount_FY25", 0) + f.get("projected_amount_FY26", 0) + f.get("projected_amount_FY27", 0)
+                )
+            sort_key = "total_projected"
+        else:
+            sort_key = sort_by
+
+        # Sort by specified criteria (descending)
+        forecast_list.sort(key=lambda x: x.get(sort_key, 0), reverse=True)
+
+        # Apply limit
+        top_deals = forecast_list[:limit]
+
+        return {
+            "request_id": x_request_id,
+            "top_deals": top_deals,
+            "sort_criteria": sort_by,
+            "limit": limit,
+            "total_available": len(forecast_list),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/export/csv")
+async def export_forecasts_csv(fiscal_year: Optional[int] = None, x_request_id: str = Header(default="unknown")) -> Response:
+    """
+    Export forecasts to CSV format.
+    GET /v1/forecast/export/csv?fiscal_year=25
+
+    If fiscal_year is provided, exports only that FY's data.
+    Otherwise, exports all forecasts with all FY columns.
+    """
+    try:
+        forecasts = load_forecasts()
+
+        if not forecasts:
+            raise HTTPException(status_code=404, detail="No forecasts available to export")
+
+        # Prepare CSV data
+        import io
+
+        output = io.StringIO()
+
+        # Define columns
+        if fiscal_year:
+            fieldnames = [
+                "opportunity_id",
+                "opportunity_name",
+                f"projected_amount_FY{fiscal_year}",
+                "win_prob",
+                "confidence_score",
+                "oem_alignment_score",
+                "partner_fit_score",
+                "contract_vehicle_score",
+                "govly_relevance_score",
+                "generated_at",
+            ]
+        else:
+            fieldnames = [
+                "opportunity_id",
+                "opportunity_name",
+                "projected_amount_FY25",
+                "projected_amount_FY26",
+                "projected_amount_FY27",
+                "total_projected",
+                "win_prob",
+                "confidence_score",
+                "oem_alignment_score",
+                "partner_fit_score",
+                "contract_vehicle_score",
+                "govly_relevance_score",
+                "confidence_interval_lower",
+                "confidence_interval_upper",
+                "generated_at",
+                "model_used",
+            ]
+
+        writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+
+        for forecast in forecasts.values():
+            row = forecast.model_dump()
+
+            # Add calculated fields
+            if not fiscal_year:
+                row["total_projected"] = (
+                    row.get("projected_amount_FY25", 0) + row.get("projected_amount_FY26", 0) + row.get("projected_amount_FY27", 0)
+                )
+
+                # Flatten confidence interval
+                ci = row.get("confidence_interval", {})
+                if ci:
+                    row["confidence_interval_lower"] = ci.get("lower_bound", 0)
+                    row["confidence_interval_upper"] = ci.get("upper_bound", 0)
+
+            writer.writerow(row)
+
+        # Prepare response
+        output.seek(0)
+        filename = f"forecast_FY{fiscal_year}.csv" if fiscal_year else "forecast_all.csv"
+
+        return Response(
+            content=output.getvalue(),
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+                "X-Request-ID": x_request_id,
+            },
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/export/obsidian", response_model=Dict[str, Any])
+async def export_forecasts_obsidian(x_request_id: str = Header(default="unknown")) -> Dict[str, Any]:
+    """
+    Export forecasts to Obsidian Forecast Dashboard.
+    POST /v1/forecast/export/obsidian
+
+    Creates/updates: obsidian/50 Dashboards/Forecast Dashboard.md
+
+    Returns:
+    {
+        "path": "obsidian/50 Dashboards/Forecast Dashboard.md",
+        "opportunities_exported": 10,
+        "total_FY25": 1000000,
+        "total_FY26": 2000000,
+        "total_FY27": 500000
+    }
+    """
+    try:
+        forecasts = load_forecasts()
+
+        if not forecasts:
+            raise HTTPException(status_code=404, detail="No forecasts available to export")
+
+        # Calculate summary statistics
+        forecast_list = list(forecasts.values())
+        total_fy25 = sum(f.projected_amount_FY25 for f in forecast_list)
+        total_fy26 = sum(f.projected_amount_FY26 for f in forecast_list)
+        total_fy27 = sum(f.projected_amount_FY27 for f in forecast_list)
+        avg_win_prob = statistics.mean([f.win_prob for f in forecast_list]) if forecast_list else 0
+
+        # Sort by win probability (descending)
+        sorted_forecasts = sorted(forecast_list, key=lambda x: x.win_prob, reverse=True)
+
+        # Create dashboard content
+        dashboard_lines = [
+            "---",
+            "title: Forecast Dashboard",
+            "type: dashboard",
+            "tags:",
+            "  - forecast",
+            "  - dashboard",
+            "  - 50-hub",
+            f"updated: {datetime.utcnow().isoformat()}Z",
+            "---",
+            "",
+            "# 📊 Forecast Dashboard",
+            "",
+            f"**Last Updated:** {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}",
+            "",
+            "## Summary",
+            "",
+            f"- **Total Opportunities:** {len(forecast_list)}",
+            f"- **Average Win Probability:** {avg_win_prob:.1f}%",
+            "",
+            "### Projected Revenue by Fiscal Year",
+            "",
+            "| Fiscal Year | Projected Amount | Opportunity Count |",
+            "|-------------|------------------|-------------------|",
+            f"| **FY25** | ${total_fy25:,.2f} | {sum(1 for f in forecast_list if f.projected_amount_FY25 > 0)} |",
+            f"| **FY26** | ${total_fy26:,.2f} | {sum(1 for f in forecast_list if f.projected_amount_FY26 > 0)} |",
+            f"| **FY27** | ${total_fy27:,.2f} | {sum(1 for f in forecast_list if f.projected_amount_FY27 > 0)} |",
+            f"| **Total** | ${total_fy25 + total_fy26 + total_fy27:,.2f} | {len(forecast_list)} |",
+            "",
+            "## Top Opportunities by Win Probability",
+            "",
+            "| Rank | Opportunity | Win Prob | FY25 | FY26 | FY27 | Scores (OEM/Partner/Vehicle) |",
+            "|------|-------------|----------|------|------|------|------------------------------|",
+        ]
+
+        # Add top 20 opportunities
+        for idx, forecast in enumerate(sorted_forecasts[:20], 1):
+            opp_name = forecast.opportunity_name[:40]  # Truncate long names
+            dashboard_lines.append(
+                f"| {idx} | {opp_name} | {forecast.win_prob:.1f}% | "
+                f"${forecast.projected_amount_FY25:,.0f} | "
+                f"${forecast.projected_amount_FY26:,.0f} | "
+                f"${forecast.projected_amount_FY27:,.0f} | "
+                f"{forecast.oem_alignment_score:.0f}/{forecast.partner_fit_score:.0f}/{forecast.contract_vehicle_score:.0f} |"
+            )
+
+        dashboard_lines.extend(
+            [
+                "",
+                "## Confidence Distribution",
+                "",
+                f"- **High Confidence (≥75%):** {sum(1 for f in forecast_list if f.win_prob >= 75)} opportunities",
+                f"- **Medium Confidence (50-74%):** {sum(1 for f in forecast_list if 50 <= f.win_prob < 75)} opportunities",
+                f"- **Low Confidence (<50%):** {sum(1 for f in forecast_list if f.win_prob < 50)} opportunities",
+                "",
+                "## OEM Heat Map (Top 5)",
+                "",
+            ]
+        )
+
+        # Group by OEM alignment score and show top performers
+        high_oem = sorted([f for f in forecast_list if f.oem_alignment_score >= 85], key=lambda x: x.oem_alignment_score, reverse=True)[:5]
+
+        if high_oem:
+            dashboard_lines.append("| Opportunity | OEM Score | Win Prob | Total Projected |")
+            dashboard_lines.append("|-------------|-----------|----------|-----------------|")
+            for f in high_oem:
+                total_proj = f.projected_amount_FY25 + f.projected_amount_FY26 + f.projected_amount_FY27
+                dashboard_lines.append(
+                    f"| {f.opportunity_name[:40]} | {f.oem_alignment_score:.0f} | " f"{f.win_prob:.1f}% | ${total_proj:,.0f} |"
+                )
+        else:
+            dashboard_lines.append("*No high OEM alignment opportunities at this time*")
+
+        dashboard_lines.extend(
+            [
+                "",
+                "---",
+                "",
+                "*This dashboard is auto-generated by the Forecast Hub Engine.*",
+                "*Scores are calculated using multi-factor analysis including OEM alignment, "
+                "partner fit, contract vehicle priority, and Govly relevance.*",
+                "",
+            ]
+        )
+
+        # Write to Obsidian
+        dashboard_path = Path("obsidian/50 Dashboards")
+        dashboard_path.mkdir(parents=True, exist_ok=True)
+
+        dashboard_file = dashboard_path / "Forecast Dashboard.md"
+        dashboard_file.write_text("\n".join(dashboard_lines), encoding="utf-8")
+
+        return {
+            "request_id": x_request_id,
+            "path": str(dashboard_file),
+            "opportunities_exported": len(forecast_list),
+            "total_FY25": round(total_fy25, 2),
+            "total_FY26": round(total_fy26, 2),
+            "total_FY27": round(total_fy27, 2),
+            "dashboard_updated": True,
+        }
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

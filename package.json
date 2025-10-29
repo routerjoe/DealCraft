@@ -17,7 +17,10 @@
     "test:rfq-e2e": "npm run build && node dist/dev/test_rfq_e2e.js",
     "test:intromail-analyzer": "npm run build && node dist/dev/test_intromail_analyzer.js",
     "test:intromail-intros": "npm run build && node dist/dev/test_intromail_intros.js",
-    "watch:intromail-inbox": "npm run build && node dist/dev/watch_intromail_inbox.js"
+    "watch:intromail-inbox": "npm run build && node dist/dev/watch_intromail_inbox.js",
+    "build:partners-base": "npx tsx src/tools/partners/build_partners_base.ts",
+    "normalize:oem-hubs": "npx tsx src/tools/partners/normalize_oem_hubs.ts",
+    "fix:oem-hubs": "npx tsx src/tools/partners/fix_oem_hubs.ts"
   },
   "keywords": [
     "mcp",
