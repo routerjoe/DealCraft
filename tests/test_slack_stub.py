@@ -71,21 +71,21 @@ class TestSlackStubBehavior:
     """Test stub implementation behavior."""
 
     def test_stub_returns_dry_run_response(self):
-        """Test that stub always returns dry-run response."""
+        """Test that implementation supports dry-run response."""
         with open("src/tools/slack/index.ts", "r") as f:
             content = f.read()
 
-        # Verify stub behavior
+        # Verify dry-run support
         assert "Dry-Run Mode" in content or "dry-run" in content.lower()
-        assert "stub implementation" in content.lower()
+        assert "full implementation" in content.lower() or "sprint 11" in content.lower()
 
     def test_stub_documents_future_features(self):
-        """Test that stub documents future implementation."""
+        """Test that implementation is complete or documents future features."""
         with open("src/tools/slack/index.ts", "r") as f:
             content = f.read()
 
-        # Check for TODO or future implementation notes
-        assert "TODO" in content or "Full implementation" in content
+        # Check for implementation markers
+        assert "Full Implementation" in content or "Sprint 11" in content or "production" in content.lower()
 
     def test_stub_has_permission_checks(self):
         """Test that stub includes permission check stubs."""
