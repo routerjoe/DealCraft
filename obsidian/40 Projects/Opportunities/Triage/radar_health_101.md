@@ -3,7 +3,7 @@ id: radar_health_101
 title: Health Test Corp - Contract
 source: Radar
 triage: true
-created_at: 2025-10-29T17:12:46.672969
+created_at: 2025-10-29T19:11:39.276349
 status: triage
 ---
 
@@ -11,7 +11,7 @@ status: triage
 
 **Source:** Radar
 **Status:** Triage
-**Created:** 2025-10-29T17:12:46.672969
+**Created:** 2025-10-29T19:11:39.276349
 
 ## Summary
 
