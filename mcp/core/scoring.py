@@ -250,12 +250,15 @@ class OpportunityScorer:
         except (ValueError, AttributeError):
             return 0.75  # Default if date is invalid
 
-    def calculate_composite_score(self, opportunity: Dict[str, Any]) -> Dict[str, Any]:
+    def calculate_composite_score(self, opportunity: Dict[str, Any], include_reasoning: bool = False) -> Dict[str, Any]:
         """
         Calculate comprehensive multi-factor score for an opportunity.
 
+        Phase 9: Enhanced with Phase 6-8 factors (CRM, CV, attribution)
+
         Args:
             opportunity: Opportunity data dictionary
+            include_reasoning: If True, include detailed score reasoning
 
         Returns:
             Dictionary containing all scores and final win probability
@@ -280,6 +283,11 @@ class OpportunityScorer:
         source = opportunity.get("source", "")
         vehicle = opportunity.get("contract_vehicle", "")
 
+        # Phase 6-8: Additional context
+        region = opportunity.get("region", "")
+        customer_org = opportunity.get("customer_org", "")
+        contracts_recommended = opportunity.get("contracts_recommended", [])
+
         # Calculate individual scores
         oem_score = self.calculate_oem_alignment_score(oems)
         partner_score = self.calculate_partner_fit_score(partners, oems)
@@ -288,6 +296,22 @@ class OpportunityScorer:
         amount_score = self.calculate_amount_score(amount)
         stage_prob = self.calculate_stage_probability(stage)
         time_factor = self.calculate_time_decay_factor(close_date)
+
+        # Phase 9: Apply bonuses for Phase 6-8 enhancements
+        # Region bonus (strategic regions get +2%)
+        region_bonus = 0.0
+        if region in ["East", "West", "Central"]:
+            region_bonus = 2.0
+
+        # Customer org bonus (known orgs +3%)
+        org_bonus = 0.0
+        if customer_org and len(customer_org) > 0:
+            org_bonus = 3.0
+
+        # CV recommendation bonus (+5% if CV recommended)
+        cv_bonus = 0.0
+        if contracts_recommended and len(contracts_recommended) > 0:
+            cv_bonus = 5.0
 
         # Calculate weighted composite score (0-100)
         weights = {
@@ -306,15 +330,35 @@ class OpportunityScorer:
             + amount_score * weights["amount"]
         )
 
+        # Apply Phase 9 bonuses
+        enhanced_score = min(raw_score + region_bonus + org_bonus + cv_bonus, 100.0)
+
         # Apply stage probability and time decay to get final win probability
-        win_probability = raw_score * stage_prob * time_factor / 100.0
+        win_probability = enhanced_score * stage_prob * time_factor / 100.0
 
         # Scale win probability to 0-100
         win_prob_scaled = min(win_probability * 100, 100.0)
 
-        return {
+        # Build score reasoning (Phase 9)
+        score_reasoning = []
+        if include_reasoning:
+            score_reasoning.append(
+                f"Base Score: {raw_score:.1f}% (OEM:{oem_score:.0f} Partner:{partner_score:.0f} Vehicle:{vehicle_score:.0f})"
+            )
+            if region_bonus > 0:
+                score_reasoning.append(f"+ Region Bonus: {region_bonus:.0f}% ({region})")
+            if org_bonus > 0:
+                score_reasoning.append(f"+ Customer Org Bonus: {org_bonus:.0f}%")
+            if cv_bonus > 0:
+                score_reasoning.append(f"+ CV Recommended Bonus: {cv_bonus:.0f}% ({len(contracts_recommended)} vehicles)")
+            score_reasoning.append(f"= Enhanced Score: {enhanced_score:.1f}%")
+            score_reasoning.append(f"× Stage Probability: {stage_prob*100:.0f}% ({stage})")
+            score_reasoning.append(f"× Time Decay: {time_factor:.2f}")
+            score_reasoning.append(f"= Win Probability: {win_prob_scaled:.1f}%")
+
+        result = {
             "score_raw": round(raw_score, 2),
-            "score_scaled": round(raw_score, 2),  # Same as raw for now
+            "score_scaled": round(enhanced_score, 2),  # Enhanced with bonuses
             "win_prob": round(win_prob_scaled, 2),
             "oem_alignment_score": round(oem_score, 2),
             "partner_fit_score": round(partner_score, 2),
@@ -323,10 +367,19 @@ class OpportunityScorer:
             "amount_score": round(amount_score, 2),
             "stage_probability": round(stage_prob * 100, 2),
             "time_decay_factor": round(time_factor, 2),
+            # Phase 9: Enhanced factors
+            "region_bonus": round(region_bonus, 2),
+            "customer_org_bonus": round(org_bonus, 2),
+            "cv_recommendation_bonus": round(cv_bonus, 2),
             "weights_used": weights,
-            "scoring_model": "multi_factor_v1",
+            "scoring_model": "multi_factor_v2_enhanced",  # Updated version
             "scored_at": datetime.utcnow().isoformat() + "Z",
         }
+
+        if include_reasoning:
+            result["score_reasoning"] = score_reasoning
+
+        return result
 
     def calculate_confidence_interval(self, win_prob: float, amount: float, stage: str) -> Dict[str, float]:
         """
