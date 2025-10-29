@@ -408,6 +408,45 @@ Phase 4: Forecast & Govly Automation Batch - See full release notes: [docs/relea
 
 ---
 
+### Sprint 10: Govly/Radar Webhooks (feature/sprint10-webhooks)
+- **HMAC-SHA256 signature verification** for Govly and Radar webhooks
+  - Govly: `X-Govly-Signature` header validation
+  - Radar: `X-Radar-Signature` header validation
+  - Dual-key rotation support via `GOVLY_SECRET_V2` for zero-downtime rotation
+- **Replay protection** - 5-minute nonce cache keyed by (source, event_id)
+  - Returns 409 Conflict on duplicate events with `{"error":"replay_detected"}`
+- **Federal FY routing** - Automatic routing to FY folders based on close_date/contract_date
+  - Valid dates → `obsidian/40 Projects/Opportunities/FY{26|27}/`
+  - Invalid/missing dates → `obsidian/40 Projects/Opportunities/Triage/`
+- **Dry-run mode** - Query param `?dry_run=true` previews actions without writes
+- **Updated documentation** with SEWP/CHESS/AFCENT examples and secret rotation guide
+- **Environment variables:** `GOVLY_WEBHOOK_SECRET`, `GOVLY_SECRET_V2`, `RADAR_WEBHOOK_SECRET`
+
+### Sprint 11: Slack Bot + MCP Bridge (feature/sprint11-slack-bot)
+- **Slack slash commands** - `/rr` command with three subcommands:
+  - `/rr forecast top [count]` → calls `GET /v1/forecast/top`
+  - `/rr cv recommend [agency]` → calls `POST /v1/cv/recommend`
+  - `/rr recent [hours]` → calls `GET /v1/system/recent-actions`
+- **HMAC-SHA256 signature verification** using `crypto.timingSafeEqual` for Slack requests
+- **Role-based access control (RBAC)** - Allowlist via `ALLOWLIST_USER_EMAILS` (default: "Joe Nolan")
+- **MCP API integration** - TypeScript fetch calls to Python MCP server via `MCP_BASE_URL`
+- **Async job queueing** - In-memory queue for long-running commands with ephemeral responses
+- **Formatted Slack responses** - Rich formatting with emoji, markdown, ephemeral delivery
+- **Environment variables:** `SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET`, `ALLOWLIST_USER_EMAILS`, `MCP_BASE_URL`
+
+### Sprint 14: Forecast v2.1 Refinement (feature/sprint14-ml-refinement)
+- **Audited region bonuses** based on historical win rates (FY23-FY25):
+  - East: 2.5%, West: 2.0%, Central: 1.5%
+- **Tiered customer org bonuses** by strategic value:
+  - DOD: 4.0%, Civilian: 3.0%, Default: 2.0%
+- **Scaled CV recommendation bonuses** by flexibility:
+  - Single CV: 5.0%, Multiple CVs: 7.0%
+- **Guardrails:** `MAX_TOTAL_BONUS=15.0` with proportional scaling if exceeded
+- **Score bounds:** `MIN_SCORE=0`, `MAX_SCORE=100`, `MIN_WIN_PROB=0`, `MAX_WIN_PROB=1`
+- **Feature store stub** - In-memory persistence (`save_features`, `get_features`, `FEATURE_SCHEMA`)
+- **Model version:** `multi_factor_v2.1_audited`
+- **New score field:** `total_bonuses_applied`
+
 ## [Unreleased]
 
 ### Planned (Phase 6)
