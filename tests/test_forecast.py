@@ -198,3 +198,272 @@ def test_forecast_amounts_sum_correctly():
     # Sum should be close to original amount (within reason)
     total_forecast = forecast["projected_amount_FY25"] + forecast["projected_amount_FY26"] + forecast["projected_amount_FY27"]
     assert total_forecast > 0
+
+
+# ============================================================================
+# Phase 5: Intelligent Scoring Tests
+# ============================================================================
+
+
+def test_forecast_includes_scoring_fields():
+    """Test that Phase 5 forecasts include intelligent scoring fields."""
+    response = client.post("/v1/forecast/run", json={})
+    assert response.status_code == 200
+
+    forecast = response.json()["forecasts"][0]
+
+    # Check Phase 5 scoring fields are present
+    assert "win_prob" in forecast
+    assert "score_raw" in forecast
+    assert "score_scaled" in forecast
+    assert "oem_alignment_score" in forecast
+    assert "partner_fit_score" in forecast
+    assert "contract_vehicle_score" in forecast
+    assert "govly_relevance_score" in forecast
+    assert "confidence_interval" in forecast
+
+    # Check scoring values are in valid ranges
+    assert 0 <= forecast["win_prob"] <= 100
+    assert 0 <= forecast["score_raw"] <= 100
+    assert 0 <= forecast["oem_alignment_score"] <= 100
+
+
+def test_confidence_interval_structure():
+    """Test that confidence interval has required fields."""
+    response = client.post("/v1/forecast/run", json={})
+    assert response.status_code == 200
+
+    forecast = response.json()["forecasts"][0]
+    ci = forecast["confidence_interval"]
+
+    assert "lower_bound" in ci
+    assert "upper_bound" in ci
+    assert "interval_width" in ci
+    assert "confidence_level" in ci
+
+    # Bounds should be valid
+    assert 0 <= ci["lower_bound"] <= 100
+    assert 0 <= ci["upper_bound"] <= 100
+    assert ci["lower_bound"] <= ci["upper_bound"]
+
+
+# ============================================================================
+# Phase 5: New Endpoint Tests
+# ============================================================================
+
+
+def test_get_all_forecasts():
+    """Test GET /v1/forecast/all endpoint."""
+    # First generate forecasts
+    client.post("/v1/forecast/run", json={})
+
+    # Then get all
+    response = client.get("/v1/forecast/all")
+
+    assert response.status_code == 200
+    data = response.json()
+
+    assert "total" in data
+    assert "forecasts" in data
+    assert data["total"] == len(data["forecasts"])
+    assert data["total"] == 2  # Two test opportunities
+
+
+def test_get_forecasts_by_fy():
+    """Test GET /v1/forecast/FYxx endpoint."""
+    # Generate forecasts
+    client.post("/v1/forecast/run", json={})
+
+    # Test FY25
+    response = client.get("/v1/forecast/FY25")
+    assert response.status_code == 200
+    data = response.json()
+
+    assert "fiscal_year" in data
+    assert data["fiscal_year"] == "FY25"
+    assert "total_opportunities" in data
+    assert "total_projected" in data
+    assert "forecasts" in data
+
+    # Verify forecasts have FY25 amounts
+    for forecast in data["forecasts"]:
+        assert "projected_amount_FY25" in forecast
+        assert forecast["projected_amount_FY25"] > 0
+
+
+def test_get_top_forecasts():
+    """Test GET /v1/forecast/top endpoint."""
+    # Generate forecasts
+    client.post("/v1/forecast/run", json={})
+
+    # Get top forecasts by win probability
+    response = client.get("/v1/forecast/top?limit=5&sort_by=win_prob")
+
+    assert response.status_code == 200
+    data = response.json()
+
+    assert "top_deals" in data
+    assert "sort_criteria" in data
+    assert "limit" in data
+    assert data["sort_criteria"] == "win_prob"
+    assert len(data["top_deals"]) <= 5
+
+    # Verify sorted by win probability (descending)
+    if len(data["top_deals"]) > 1:
+        for i in range(len(data["top_deals"]) - 1):
+            assert data["top_deals"][i]["win_prob"] >= data["top_deals"][i + 1]["win_prob"]
+
+
+def test_top_forecasts_sort_by_fy():
+    """Test GET /v1/forecast/top with FY sorting."""
+    # Generate forecasts
+    client.post("/v1/forecast/run", json={})
+
+    # Sort by FY25
+    response = client.get("/v1/forecast/top?sort_by=FY25")
+
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["sort_criteria"] == "FY25"
+    assert len(data["top_deals"]) > 0
+
+
+def test_export_csv_all():
+    """Test CSV export for all forecasts."""
+    # Generate forecasts
+    client.post("/v1/forecast/run", json={})
+
+    # Export CSV
+    response = client.get("/v1/forecast/export/csv")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "text/csv; charset=utf-8"
+    assert "Content-Disposition" in response.headers
+    assert "forecast_all.csv" in response.headers["Content-Disposition"]
+
+    # Verify CSV content
+    csv_content = response.text
+    lines = csv_content.strip().split("\n")
+
+    # Should have header + data rows
+    assert len(lines) >= 2  # Header + at least 1 data row
+
+    # Check header includes key columns
+    header = lines[0]
+    assert "opportunity_id" in header
+    assert "win_prob" in header
+    assert "projected_amount_FY25" in header
+
+
+def test_export_csv_specific_fy():
+    """Test CSV export for specific fiscal year."""
+    # Generate forecasts
+    client.post("/v1/forecast/run", json={})
+
+    # Export FY25
+    response = client.get("/v1/forecast/export/csv?fiscal_year=25")
+
+    assert response.status_code == 200
+    assert "forecast_FY25.csv" in response.headers["Content-Disposition"]
+
+
+def test_export_csv_no_forecasts():
+    """Test CSV export with no forecasts available."""
+    response = client.get("/v1/forecast/export/csv")
+
+    assert response.status_code == 404
+    assert "No forecasts available" in response.json()["detail"]
+
+
+def test_export_obsidian():
+    """Test Obsidian dashboard export."""
+    # Generate forecasts
+    client.post("/v1/forecast/run", json={})
+
+    # Export to Obsidian
+    response = client.post("/v1/forecast/export/obsidian")
+
+    assert response.status_code == 200
+    data = response.json()
+
+    assert "path" in data
+    assert "opportunities_exported" in data
+    assert "total_FY25" in data
+    assert "total_FY26" in data
+    assert "total_FY27" in data
+    assert "dashboard_updated" in data
+
+    assert data["opportunities_exported"] == 2
+    assert data["dashboard_updated"] is True
+    assert "Forecast Dashboard.md" in data["path"]
+
+    # Verify file was created
+    from pathlib import Path
+
+    dashboard_path = Path(data["path"])
+    assert dashboard_path.exists()
+
+    # Verify content structure
+    content = dashboard_path.read_text()
+    assert "# 📊 Forecast Dashboard" in content
+    assert "Summary" in content
+    assert "FY25" in content
+    assert "FY26" in content
+    assert "FY27" in content
+
+
+def test_export_obsidian_no_forecasts():
+    """Test Obsidian export with no forecasts."""
+    response = client.post("/v1/forecast/export/obsidian")
+
+    assert response.status_code == 404
+    assert "No forecasts available" in response.json()["detail"]
+
+
+def test_forecast_summary_with_scores():
+    """Test that summary includes scoring information."""
+    # Generate forecasts
+    client.post("/v1/forecast/run", json={})
+
+    # Get summary
+    response = client.get("/v1/forecast/summary")
+
+    assert response.status_code == 200
+    data = response.json()
+
+    # Existing fields
+    assert "total_opportunities" in data
+    assert "avg_confidence" in data
+
+    # FY totals should be present
+    assert "total_projected_FY25" in data
+    assert "total_projected_FY26" in data
+    assert "total_projected_FY27" in data
+
+
+def test_top_forecasts_empty_state():
+    """Test top forecasts with no data."""
+    response = client.get("/v1/forecast/top")
+
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["top_deals"] == []
+    assert data["limit"] == 10
+
+
+def test_forecast_by_fy_invalid():
+    """Test FY endpoint with invalid fiscal year."""
+    # Generate forecasts
+    client.post("/v1/forecast/run", json={})
+
+    # Request invalid FY
+    response = client.get("/v1/forecast/FY99")
+
+    assert response.status_code == 200
+    data = response.json()
+
+    # Should return empty or minimal data
+    assert data["fiscal_year"] == "FY99"
+    assert data["total_opportunities"] >= 0

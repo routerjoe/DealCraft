@@ -6,6 +6,7 @@ from textual.widgets import Footer, Header
 
 from tui.panels.ai import AIPanel
 from tui.panels.contracts import ContractsPanel
+from tui.panels.forecast import ForecastPanel
 from tui.panels.metrics import MetricsPanel
 from tui.panels.oems import OEMPanel
 from tui.theme import RED_RIVER_LIGHT
@@ -59,6 +60,12 @@ class RedRiverTUI(App):
         min-width: 35;
     }
 
+    #forecast-panel {
+        border: solid $success;
+        height: 1fr;
+        min-width: 50;
+    }
+
     DataTable {
         height: 1fr;
     }
@@ -105,6 +112,9 @@ class RedRiverTUI(App):
             with Container(id="contract-panel"):
                 yield ContractsPanel(self.api_base)
 
+            with Container(id="forecast-panel"):
+                yield ForecastPanel(self.api_base)
+
             with Container(id="ai-panel"):
                 yield AIPanel(self.api_base)
 
@@ -125,6 +135,7 @@ class RedRiverTUI(App):
         help_text = """
         OEM Panel: A=Add, T=Toggle, ↑↓=Threshold, D=Delete, R=Refresh
         Contract Panel: C=Add, S=Toggle, E=Edit, X=Delete, R=Refresh
+        Forecast Panel: F=Refresh, Y=Cycle FY, E=Export CSV, O=Export Obsidian
         AI Panel: G=Generate, I=Switch Model
         Metrics Panel: M=Refresh, P=Toggle Auto-refresh
         Global: Q=Quit, ?=Help
