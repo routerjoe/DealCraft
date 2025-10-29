@@ -57,6 +57,189 @@ CV_RECOMMENDATION_BONUS_AUDITED = {
 
 **Rationale:** Opportunities with multiple CV options close 15% faster and at 8% higher rate due to procurement flexibility.
 
+## Before/After Examples
+
+### Example 1: East Region DoD Opportunity
+
+**Opportunity:**
+```python
+{
+    "oems": ["Cisco"],           # 92 points
+    "amount": 1000000,           # 80 points
+    "region": "East",
+    "customer_org": "DOD",
+    "contracts_recommended": ["SEWP V", "GSA Schedule"],  # 2 CVs
+    "stage": "Proposal",
+    "close_date": "2026-03-15"
+}
+```
+
+**v2.0 Scoring:**
+```
+Raw Score: 75.5
++ Region Bonus: 2.0% (flat)
++ Org Bonus: 3.0% (flat)
++ CV Bonus: 5.0% (flat)
+= Enhanced Score: 85.5
+× Stage Probability: 45% (Proposal)
+× Time Decay: 0.85
+= Win Probability: 32.7%
+```
+
+**v2.1 Scoring:**
+```
+Raw Score: 75.5
++ Region Bonus: 2.5% (East audited)
++ Org Bonus: 4.0% (DOD tier)
++ CV Bonus: 7.0% (multiple CVs)
+= Total Bonuses: 13.5% (under 15% cap)
+= Enhanced Score: 89.0
+× Stage Probability: 45% (Proposal)
+× Time Decay: 0.85
+= Win Probability: 34.1%
+```
+
+**Change:** +1.4% win probability due to refined bonuses
+
+---
+
+### Example 2: Central Region Civilian with Single CV
+
+**Opportunity:**
+```python
+{
+    "oems": ["Dell"],            # 90 points
+    "amount": 500000,            # 70 points
+    "region": "Central",
+    "customer_org": "GSA",       # Civilian
+    "contracts_recommended": ["GSA Schedule"],  # 1 CV
+    "stage": "Discovery",
+    "close_date": "2026-06-30"
+}
+```
+
+**v2.0 Scoring:**
+```
+Raw Score: 68.0
++ Region Bonus: 2.0% (flat)
++ Org Bonus: 3.0% (flat)
++ CV Bonus: 5.0% (flat)
+= Enhanced Score: 78.0
+× Stage Probability: 25% (Discovery)
+× Time Decay: 0.75
+= Win Probability: 14.6%
+```
+
+**v2.1 Scoring:**
+```
+Raw Score: 68.0
++ Region Bonus: 1.5% (Central audited, lower)
++ Org Bonus: 3.0% (Civilian tier)
++ CV Bonus: 5.0% (single CV)
+= Total Bonuses: 9.5% (under 15% cap)
+= Enhanced Score: 77.5
+× Stage Probability: 25% (Discovery)
+× Time Decay: 0.75
+= Win Probability: 14.5%
+```
+
+**Change:** -0.1% win probability (Central region lower bonus)
+
+---
+
+### Example 3: Bonus Cap Scenario
+
+**Opportunity with Extreme Bonuses:**
+```python
+{
+    "oems": ["Microsoft"],       # 95 points
+    "amount": 10000000,          # 95 points
+    "region": "East",
+    "customer_org": "DOD",
+    "contracts_recommended": ["SEWP V", "GSA Schedule", "DHS FirstSource"],  # 3 CVs
+    "stage": "Negotiation",
+    "close_date": "2025-12-01"
+}
+```
+
+**v2.0 Scoring:**
+```
+Raw Score: 93.0
++ Region Bonus: 2.0%
++ Org Bonus: 3.0%
++ CV Bonus: 5.0%
+= Enhanced Score: 100.0 (capped)
+× Stage Probability: 75% (Negotiation)
+× Time Decay: 1.0
+= Win Probability: 75.0%
+```
+
+**v2.1 Scoring (Without Cap):**
+```
+Raw Score: 93.0
++ Region Bonus: 2.5% (East)
++ Org Bonus: 4.0% (DOD)
++ CV Bonus: 7.0% (multiple)
+= Total Bonuses: 13.5% would apply
+```
+
+**v2.1 Scoring (With Guardrails):**
+```
+Raw Score: 93.0
++ Total Bonuses Before Cap: 13.5%
+✓ Under MAX_TOTAL_BONUS (15.0%)
+= Enhanced Score: 100.0 (capped at MAX_SCORE)
+× Stage Probability: 75% (Negotiation)
+× Time Decay: 1.0
+= Win Probability: 75.0%
+```
+
+**Change:** No change (score already at ceiling)
+
+---
+
+### Example 4: Bonus Cap Applied
+
+**Hypothetical Edge Case:**
+```python
+{
+    "oems": ["Microsoft"],
+    "amount": 8000000,
+    "region": "East",
+    "customer_org": "DOD Defense Contract Management Agency",
+    "contracts_recommended": ["SEWP V", "GSA 70", "CHESS"],
+    "stage": "Proposal",
+    "close_date": "2026-02-15"
+}
+```
+
+**Uncapped Calculation:**
+```
+Raw Score: 91.0
++ Region Bonus: 2.5% (East)
++ Org Bonus: 4.0% (DOD)
++ CV Bonus: 7.0% (multiple)
+= Total Bonuses Before Cap: 13.5%
+```
+
+**With MAX_TOTAL_BONUS = 15.0:**
+```
+Total Bonuses: 13.5% < 15.0% cap
+✓ No scaling needed
+= Enhanced Score: 100.0 (capped at MAX_SCORE)
+```
+
+**If bonuses were 18% (hypothetical):**
+```
+Total Bonuses Before Cap: 18.0%
+Scale Factor: 15.0 / 18.0 = 0.833
++ Region Bonus: 2.5 × 0.833 = 2.08%
++ Org Bonus: 4.0 × 0.833 = 3.33%
++ CV Bonus: 7.0 × 0.833 = 5.83%
+= Total Bonuses After Cap: 11.24%
+= Enhanced Score: 91.0 + 11.24 = 100.0 (still capped at MAX_SCORE)
+```
+
 ### Guardrails
 
 **Score Bounds:**
