@@ -5,39 +5,72 @@
       "name": "Test Opportunity 1",
       "amount": 100000,
       "close_date": "2025-03-15T00:00:00Z"
+    },
+    {
+      "id": "govly_header_test_001",
+      "title": "Header Test",
+      "source": "govly",
+      "source_id": "header_test_001",
+      "description": null,
+      "estimated_amount": 50000.0,
+      "agency": null,
+      "posted_date": null,
+      "close_date": null,
+      "source_url": null,
+      "triage": true,
+      "created_at": "2025-10-29T17:33:08.269025",
+      "request_id": null
+    },
+    {
+      "id": "govly_rate_test",
+      "title": "Test",
+      "source": "govly",
+      "source_id": "rate_test",
+      "description": null,
+      "estimated_amount": 100000.0,
+      "agency": null,
+      "posted_date": null,
+      "close_date": null,
+      "source_url": null,
+      "triage": true,
+      "created_at": "2025-10-29T17:33:08.640936",
+      "request_id": null
+    },
+    {
+      "id": "govly_header_test_001",
+      "title": "Header Test",
+      "source": "govly",
+      "source_id": "header_test_001",
+      "description": null,
+      "estimated_amount": 50000.0,
+      "agency": null,
+      "posted_date": null,
+      "close_date": null,
+      "source_url": null,
+      "triage": true,
+      "created_at": "2025-10-29T17:33:38.231403",
+      "request_id": null
+    },
+    {
+      "id": "govly_rate_test",
+      "title": "Test",
+      "source": "govly",
+      "source_id": "rate_test",
+      "description": null,
+      "estimated_amount": 100000.0,
+      "agency": null,
+      "posted_date": null,
+      "close_date": null,
+      "source_url": null,
+      "triage": true,
+      "created_at": "2025-10-29T17:33:38.634389",
+      "request_id": null
     }
   ],
   "recent_actions": [
     {
-      "request_id": "ad6365ad-bbc6-48c5-b334-a7865972f7e2",
-      "timestamp": "2025-10-29T16:32:55.785048+00:00",
-      "method": "HEAD",
-      "path": "/v1/cv/vehicles",
-      "latency_ms": 0,
-      "status_code": 405,
-      "context": {}
-    },
-    {
-      "request_id": "813f3028-bca6-4e50-a444-dc99fbdcdb36",
-      "timestamp": "2025-10-29T16:32:55.765822+00:00",
-      "method": "HEAD",
-      "path": "/v1/crm/formats",
-      "latency_ms": 0,
-      "status_code": 405,
-      "context": {}
-    },
-    {
-      "request_id": "1402f47b-cc30-494e-b90c-3c84004617a6",
-      "timestamp": "2025-10-29T16:32:55.749842+00:00",
-      "method": "HEAD",
-      "path": "/v1/forecast/all",
-      "latency_ms": 0,
-      "status_code": 405,
-      "context": {}
-    },
-    {
-      "request_id": "7432f7ad-0f9a-40a9-9f6d-5a1eb2773f20",
-      "timestamp": "2025-10-29T16:32:25.703257+00:00",
+      "request_id": "fd1678bf-dd8b-4d84-b550-c5f3a5672cff",
+      "timestamp": "2025-10-29T17:33:38.649065+00:00",
       "method": "GET",
       "path": "/v1/info",
       "latency_ms": 0,
@@ -45,57 +78,84 @@
       "context": {}
     },
     {
-      "request_id": "ed6c6ef7-cc4e-43bd-9106-8e1d254f64f3",
-      "timestamp": "2025-10-29T16:23:09.990725+00:00",
+      "request_id": "b0d63e45-8e10-404f-978e-487507363ca5",
+      "timestamp": "2025-10-29T17:33:38.639732+00:00",
       "method": "GET",
-      "path": "/v1/oems",
+      "path": "/v1/info",
       "latency_ms": 0,
       "status_code": 200,
       "context": {}
     },
     {
-      "request_id": "9f64375b-8abc-4550-a9c0-5bdf89427ecc",
-      "timestamp": "2025-10-29T16:23:09.988601+00:00",
-      "method": "DELETE",
-      "path": "/v1/oems/Microsoft",
-      "latency_ms": 0,
-      "status_code": 204,
-      "context": {}
-    },
-    {
-      "request_id": "b08f8c0d-80e0-4c1b-b955-b381e4f2d3dd",
-      "timestamp": "2025-10-29T16:23:09.986692+00:00",
-      "method": "PATCH",
-      "path": "/v1/oems/Microsoft",
-      "latency_ms": 0,
-      "status_code": 200,
-      "context": {}
-    },
-    {
-      "request_id": "2add6f19-04b6-492a-9db2-8a1bbe77a343",
-      "timestamp": "2025-10-29T16:23:09.984543+00:00",
+      "request_id": "fd5f8af0-c2d7-4dba-a345-16c11ed1c060",
+      "timestamp": "2025-10-29T17:33:38.637536+00:00",
       "method": "GET",
-      "path": "/v1/oems",
+      "path": "/v1/info",
       "latency_ms": 0,
       "status_code": 200,
       "context": {}
     },
     {
-      "request_id": "23781f4e-28db-44cd-9c82-142815549d96",
-      "timestamp": "2025-10-29T16:23:09.982874+00:00",
+      "request_id": "327eb594-05b2-4185-8281-f6ff71b9bae9",
+      "timestamp": "2025-10-29T17:33:38.635210+00:00",
       "method": "POST",
-      "path": "/v1/oems",
-      "latency_ms": 0,
-      "status_code": 201,
+      "path": "/v1/govly/webhook",
+      "latency_ms": 1,
+      "status_code": 200,
       "context": {}
     },
     {
-      "request_id": "66ee4037-a342-464a-a7c5-1cdb4a47aab8",
-      "timestamp": "2025-10-29T16:23:09.979701+00:00",
-      "method": "DELETE",
-      "path": "/v1/oems/NonExistent",
+      "request_id": "9d1aca89-72c7-4531-87fc-2110cb4c3585",
+      "timestamp": "2025-10-29T17:33:38.632698+00:00",
+      "method": "POST",
+      "path": "/v1/ai/ask",
       "latency_ms": 0,
-      "status_code": 404,
+      "status_code": 422,
+      "context": {}
+    },
+    {
+      "request_id": "a5a837ba-bd7c-4974-8fb6-e72e116e8313",
+      "timestamp": "2025-10-29T17:33:38.627050+00:00",
+      "method": "GET",
+      "path": "/v1/info",
+      "latency_ms": 0,
+      "status_code": 200,
+      "context": {}
+    },
+    {
+      "request_id": "19ffa38a-5e9e-4d12-91f3-b752f8031e46",
+      "timestamp": "2025-10-29T17:33:38.624983+00:00",
+      "method": "GET",
+      "path": "/v1/info",
+      "latency_ms": 0,
+      "status_code": 200,
+      "context": {}
+    },
+    {
+      "request_id": "1e33639a-149d-456f-ae15-c19bd64bd632",
+      "timestamp": "2025-10-29T17:33:38.623533+00:00",
+      "method": "GET",
+      "path": "/v1/info",
+      "latency_ms": 0,
+      "status_code": 200,
+      "context": {}
+    },
+    {
+      "request_id": "7adbf8c9-75e2-4cf9-b1dd-644481acec7e",
+      "timestamp": "2025-10-29T17:33:38.621998+00:00",
+      "method": "GET",
+      "path": "/v1/info",
+      "latency_ms": 0,
+      "status_code": 200,
+      "context": {}
+    },
+    {
+      "request_id": "6cca817d-f734-4a72-85d1-efa6f40db2fe",
+      "timestamp": "2025-10-29T17:33:38.620595+00:00",
+      "method": "GET",
+      "path": "/v1/info",
+      "latency_ms": 0,
+      "status_code": 200,
       "context": {}
     }
   ]
