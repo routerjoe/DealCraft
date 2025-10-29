@@ -65,6 +65,16 @@ try:
 except Exception:
     metrics_router = None
 
+try:
+    from mcp.api.v1.crm import router as crm_router
+except Exception:
+    crm_router = None
+
+try:
+    from mcp.api.v1.cv import router as cv_router
+except Exception:
+    cv_router = None
+
 
 app = FastAPI(title="Red River Sales MCP API", version="1.0.0")
 
@@ -186,6 +196,13 @@ async def api_info(request: Request):
                 "/v1/system/recent-actions",
                 "/v1/forecast/run",
                 "/v1/forecast/summary",
+                "/v1/forecast/all",
+                "/v1/forecast/top",
+                "/v1/forecast/export/csv",
+                "/v1/forecast/export/obsidian",
+                "/v1/crm/export",
+                "/v1/crm/attribution",
+                "/v1/crm/formats",
                 "/v1/govly/webhook",
                 "/v1/radar/webhook",
                 "/v1/metrics",
@@ -216,3 +233,7 @@ if webhooks_router is not None:
     app.include_router(webhooks_router, tags=["webhooks"])
 if metrics_router is not None:
     app.include_router(metrics_router, tags=["metrics"])
+if crm_router is not None:
+    app.include_router(crm_router, tags=["crm"])
+if cv_router is not None:
+    app.include_router(cv_router, tags=["contract_vehicles"])

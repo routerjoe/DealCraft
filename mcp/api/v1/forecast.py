@@ -176,19 +176,21 @@ def generate_forecast_for_opportunity(opp: Dict[str, Any], model: str = "gpt-5-t
         fy27_amount = current_amount * 0.75
         confidence = 65
 
-    # Phase 5: Calculate intelligent scores
-    scores = scorer.calculate_composite_score(opp)
+    # Phase 9: Calculate enhanced intelligent scores with reasoning
+    scores = scorer.calculate_composite_score(opp, include_reasoning=True)
     confidence_interval = scorer.calculate_confidence_interval(scores["win_prob"], current_amount, stage)
 
-    reasoning = (
-        f"Forecast based on close_date ({close_date_str}). "
-        f"Amount: ${current_amount:,.2f}. "
-        f"Win probability: {scores['win_prob']:.1f}% "
-        f"(OEM: {scores['oem_alignment_score']:.0f}, "
-        f"Partner: {scores['partner_fit_score']:.0f}, "
-        f"Vehicle: {scores['contract_vehicle_score']:.0f}). "
-        f"Distributed across FY25-27 based on fiscal alignment."
-    )
+    # Build detailed reasoning
+    reasoning_parts = [f"Forecast based on close_date ({close_date_str}). Amount: ${current_amount:,.2f}."]
+
+    # Add score reasoning if available
+    if "score_reasoning" in scores:
+        reasoning_parts.append("Scoring breakdown:")
+        reasoning_parts.extend(scores["score_reasoning"])
+
+    reasoning_parts.append(f"Distributed across FY25-27 based on fiscal alignment (Stage: {stage}).")
+
+    reasoning = " ".join(reasoning_parts)
 
     return ForecastData(
         opportunity_id=opp_id,
