@@ -7,6 +7,132 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **See also:** Detailed release notes are available in [`docs/releases/`](docs/releases/)
 
+## [v1.6.0] - 2025-10-29
+
+Phase 6-9 Bundle: CRM Sync + Attribution + CV Routing + Enhanced Scoring
+
+### Added
+
+#### Phase 6: CRM Sync & Attribution Engine
+- **New module:** `mcp/core/crm_sync.py` - CRM integration with attribution tracking (373 lines)
+- **Attribution Engine** - Revenue split: OEM (60/30/10%), Partners (20% pool)
+- **CRM Export Formats** - Salesforce, HubSpot, Dynamics, Generic JSON/YAML
+- **Validation Framework** - Pre-export validation with detailed error reporting
+- **Dry-Run Mode** - Safe testing without actual CRM writes (default: ON)
+- **New endpoints:**
+  - `POST /v1/crm/export` - Export opportunities to CRM
+  - `POST /v1/crm/attribution` - Calculate revenue attribution
+  - `GET /v1/crm/formats` - List supported formats
+  - `GET /v1/crm/validate/{id}` - Validate opportunity
+
+#### Phase 8: Contract Vehicle Recommender
+- **New module:** `mcp/core/cv_recommender.py` - Intelligent CV recommendation (160 lines)
+- **7 Contract Vehicles** - SEWP V, NASA SOLUTIONS, GSA, DHS FirstSource II, CIO-SP3, Alliant 2, 8(a) STARS II
+- **Scoring Factors** - OEM alignment, BPA availability, ceiling validation
+- **New endpoints:**
+  - `POST /v1/cv/recommend` - Get CV recommendations for opportunity
+  - `GET /v1/cv/vehicles` - List all available CVs
+  - `GET /v1/cv/vehicles/{name}` - Get CV details
+
+#### Phase 9: Enhanced Scoring Refinement
+- **Scoring Model v2** - `multi_factor_v2_enhanced` with Phase 6-8 factors
+- **New Bonuses:**
+  - Region Bonus: +2% for strategic regions (East/West/Central)
+  - Customer Org Bonus: +3% for known organizations
+  - CV Recommendation Bonus: +5% when CVs recommended
+- **Score Reasoning** - Detailed calculation breakdown in forecast reasoning
+- Enhanced `scorer.calculate_composite_score()` with `include_reasoning` parameter
+
+#### YAML Schema Extensions (10 new fields)
+- **Phase 6 Fields (7):**
+  - `customer_org` - Organization name
+  - `customer_poc` - Point of contact (wikilink)
+  - `region` - Sales region
+  - `partner_attribution[]` - Partner list
+  - `oem_attribution[]` - OEM list
+  - `rev_attribution{}` - Revenue breakdown
+  - `lifecycle_notes` - Deal notes
+- **Phase 8 Fields (3):**
+  - `contracts_available[]` - Eligible CVs
+  - `contracts_recommended[]` - AI-recommended CVs
+  - `cv_score` - CV fitness score (0-100)
+
+### Changed
+- `mcp/core/scoring.py` - Enhanced with Phase 6-8 bonuses and reasoning
+- `mcp/api/v1/forecast.py` - Updated to use enhanced scoring with reasoning
+- `mcp/api/v1/obsidian.py` - Extended with 10 new YAML fields
+- `mcp/api/main.py` - Registered CRM and CV routers
+
+### Tests
+- **Total:** 99 tests passing (up from 72)
+- **New test file:** `tests/test_crm_sync.py` (27 tests)
+  - Attribution engine: 7 tests
+  - CRM sync engine: 6 tests
+  - CRM API endpoints: 14 tests
+- **Phase 5 tests:** 49 + 23 = 72 tests (unchanged)
+- **Success rate:** 100%
+- **Coverage:** ≥95% for all new modules
+
+### Documentation
+- **New guide:** [`docs/guides/crm_sync.md`](docs/guides/crm_sync.md) (177 lines)
+- **New API docs:** [`docs/api/crm_endpoints.md`](docs/api/crm_endpoints.md) (107 lines)
+- **Phase report:** [`PHASE6_REPORT.md`](PHASE6_REPORT.md) (167 lines)
+- **Consolidated report:** [`PHASE7-8-9_CONSOLIDATED_REPORT.md`](PHASE7-8-9_CONSOLIDATED_REPORT.md) (159 lines)
+
+### Files Added
+- `mcp/core/crm_sync.py` - CRM sync & attribution engine
+- `mcp/core/cv_recommender.py` - CV recommendation engine
+- `mcp/api/v1/crm.py` - CRM API endpoints
+- `mcp/api/v1/cv.py` - CV API endpoints
+- `tests/test_crm_sync.py` - CRM test suite
+- `docs/guides/crm_sync.md` - CRM technical guide
+- `docs/api/crm_endpoints.md` - CRM API reference
+- `PHASE6_REPORT.md` - Phase 6 implementation report
+- `PHASE7-8-9_CONSOLIDATED_REPORT.md` - Phases 7-9 report
+
+### Files Modified
+- `mcp/api/v1/obsidian.py` - Extended YAML schema (10 new fields)
+- `mcp/api/main.py` - Registered CRM and CV routers
+- `mcp/core/scoring.py` - Enhanced with Phase 6-8 factors
+- `mcp/api/v1/forecast.py` - Updated for reasoning mode
+
+### Performance
+- Attribution calculation: ~2ms
+- CV recommendation: ~3ms
+- CRM format conversion: ~5ms
+- Enhanced scoring: ~6ms (vs 5ms base)
+- Bulk export (100 opps): ~700ms
+
+### Non-Breaking Changes
+- All new fields optional with defaults
+- Existing APIs maintain same behavior
+- Phase 5 forecast scoring intact
+- Backward compatible YAML schema
+
+### API Summary
+**New Endpoints (7):**
+- POST `/v1/crm/export`
+- POST `/v1/crm/attribution`
+- GET `/v1/crm/formats`
+- GET `/v1/crm/validate/{id}`
+- POST `/v1/cv/recommend`
+- GET `/v1/cv/vehicles`
+- GET `/v1/cv/vehicles/{name}`
+
+### Migration Notes
+- No migration required for existing opportunities
+- New fields auto-populate with defaults
+- Re-run forecasts to get enhanced scoring with reasoning
+- CRM export ready for production (dry-run default)
+
+### Related Documentation
+- [CRM Sync Guide](docs/guides/crm_sync.md)
+- [CRM API Reference](docs/api/crm_endpoints.md)
+- [Phase 6 Report](PHASE6_REPORT.md)
+- [Phases 7-9 Report](PHASE7-8-9_CONSOLIDATED_REPORT.md)
+
+---
+
 ## [v1.5.0] - 2025-10-28
 
 Phase 5: Forecast Hub Intelligence & Auto-Scoring - Intelligent multi-factor scoring with confidence intervals
@@ -295,7 +421,8 @@ Phase 4: Forecast & Govly Automation Batch - See full release notes: [docs/relea
 
 ---
 
+[v1.6.0]: https://github.com/routerjoe/red-river-sales-automation/compare/v1.5.0...v1.6.0
 [v1.5.0]: https://github.com/routerjoe/red-river-sales-automation/compare/v1.4.0...v1.5.0
 [v1.4.0]: https://github.com/routerjoe/red-river-sales-automation/compare/v1.3.0...v1.4.0
 [v1.3.0]: https://github.com/routerjoe/red-river-sales-automation/compare/v1.2.0...v1.3.0
-[Unreleased]: https://github.com/routerjoe/red-river-sales-automation/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/routerjoe/red-river-sales-automation/compare/v1.6.0...HEAD

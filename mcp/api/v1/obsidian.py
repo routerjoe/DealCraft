@@ -55,6 +55,19 @@ class OpportunityIn(BaseModel):
     source: str = Field(..., min_length=1)
     tags: Optional[List[str]] = None
 
+    # Phase 6: CRM & Attribution Fields
+    customer_org: Optional[str] = None
+    customer_poc: Optional[str] = None
+    region: Optional[str] = None
+    partner_attribution: Optional[List[str]] = None
+    oem_attribution: Optional[List[str]] = None
+    lifecycle_notes: Optional[str] = None
+
+    # Phase 8: Contract Vehicle Fields
+    contracts_available: Optional[List[str]] = None
+    contracts_recommended: Optional[List[str]] = None
+    cv_score: Optional[float] = None
+
     @field_validator("close_date")
     @classmethod
     def valid_date(cls, v: str) -> str:
@@ -107,6 +120,20 @@ def render_markdown(data: OpportunityIn) -> str:
     amount_yaml = f"{float(data.amount):.1f}"
     amount_md = f"{float(data.amount):.1f}"
 
+    # Phase 6: Process attribution fields
+    customer_org = data.customer_org or ""
+    customer_poc = data.customer_poc or ""
+    region = data.region or ""
+    partner_attr = data.partner_attribution or []
+    oem_attr = data.oem_attribution or []
+    lifecycle_notes = data.lifecycle_notes or ""
+
+    # Phase 8: Process CV fields
+    contracts_avail = data.contracts_available or []
+    contracts_rec = data.contracts_recommended or []
+    cv_score = data.cv_score or 0.0
+
+    # Build frontmatter list dynamically
     frontmatter_lines = [
         "---",
         f"id: {data.id}",
@@ -125,11 +152,58 @@ def render_markdown(data: OpportunityIn) -> str:
         f"  - {data.oem}",
         "partners: []",
         'contract_vehicle: ""',
-        "tags:",
-        *[f"- {t}" for t in tags],
-        "---",
-        "",
+        # Phase 6: CRM & Attribution fields
+        f'customer_org: "{customer_org}"',
+        f'customer_poc: "{customer_poc}"',
+        f'region: "{region}"',
+        "partner_attribution:",
     ]
+
+    # Add partner attribution items
+    if partner_attr:
+        frontmatter_lines.extend(f"  - {p}" for p in partner_attr)
+    else:
+        frontmatter_lines.append("  []")
+
+    frontmatter_lines.append("oem_attribution:")
+
+    # Add OEM attribution items
+    if oem_attr:
+        frontmatter_lines.extend(f"  - {o}" for o in oem_attr)
+    else:
+        frontmatter_lines.append("  []")
+
+    frontmatter_lines.extend(
+        [
+            "rev_attribution: {}",
+            f'lifecycle_notes: "{lifecycle_notes}"',
+            # Phase 8: CV fields
+            "contracts_available:",
+        ]
+    )
+
+    # Add contracts available
+    if contracts_avail:
+        frontmatter_lines.extend(f"  - {c}" for c in contracts_avail)
+    else:
+        frontmatter_lines.append("  []")
+
+    frontmatter_lines.append("contracts_recommended:")
+
+    # Add contracts recommended
+    if contracts_rec:
+        frontmatter_lines.extend(f"  - {c}" for c in contracts_rec)
+    else:
+        frontmatter_lines.append("  []")
+
+    frontmatter_lines.extend(
+        [
+            f"cv_score: {cv_score:.1f}",
+            "tags:",
+        ]
+    )
+    frontmatter_lines.extend(f"- {t}" for t in tags)
+    frontmatter_lines.extend(["---", ""])
 
     body_lines = [
         f"# {data.title}",
