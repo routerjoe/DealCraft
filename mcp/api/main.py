@@ -76,7 +76,7 @@ except Exception:
     cv_router = None
 
 
-app = FastAPI(title="Red River Sales MCP API", version="1.0.0")
+app = FastAPI(title="Red River Sales MCP API", version="1.6.0")
 
 
 def log_action_to_state(
@@ -179,7 +179,7 @@ async def api_info(request: Request):
     return JSONResponse(
         content={
             "name": "Red River Sales MCP API",
-            "version": "1.0.0",
+            "version": "1.6.0",
             "environment": environment,
             "endpoints": [
                 "/v1/oems",
@@ -203,6 +203,10 @@ async def api_info(request: Request):
                 "/v1/crm/export",
                 "/v1/crm/attribution",
                 "/v1/crm/formats",
+                "/v1/crm/validate/{id}",
+                "/v1/cv/recommend",
+                "/v1/cv/vehicles",
+                "/v1/cv/vehicles/{name}",
                 "/v1/govly/webhook",
                 "/v1/radar/webhook",
                 "/v1/metrics",

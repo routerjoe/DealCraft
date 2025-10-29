@@ -30,7 +30,7 @@ def test_api_info():
     assert "version" in data
     assert "environment" in data
     assert data["name"] == "Red River Sales MCP API"
-    assert data["version"] == "1.0.0"
+    assert data["version"] == "1.6.0"
 
 
 def test_api_info_has_request_id():
