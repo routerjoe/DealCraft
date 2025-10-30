@@ -125,7 +125,8 @@ class TestSlackDocumentation:
         """Test that sprint plan exists."""
         from pathlib import Path
 
-        sprint_plan = Path("docs/sprint_plan.md")
+        # Check for latest sprint plan (Sprint 15 as of v1.7.0)
+        sprint_plan = Path("docs/sprint_15_plan.md")
         assert sprint_plan.exists()
         assert sprint_plan.stat().st_size > 0
 
