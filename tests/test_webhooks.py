@@ -36,13 +36,15 @@ def setup_and_teardown():
         with open(TEST_STATE_FILE, "w") as f:
             f.write(original_state)
 
-    # Clean up test opportunity files
-    triage_dir = Path("obsidian/40 Projects/Opportunities/Triage")
-    if triage_dir.exists():
-        for file in triage_dir.glob("govly_*.md"):
-            file.unlink()
-        for file in triage_dir.glob("radar_*.md"):
-            file.unlink()
+    # Clean up test opportunity files (both Triage and FY directories)
+    base_dir = Path("obsidian/40 Projects/Opportunities")
+    for subdir in ["Triage", "FY2026"]:
+        dir_path = base_dir / subdir
+        if dir_path.exists():
+            for file in dir_path.glob("govly_*.md"):
+                file.unlink()
+            for file in dir_path.glob("radar_*.md"):
+                file.unlink()
 
 
 def test_govly_webhook_success():
@@ -94,7 +96,9 @@ def test_govly_webhook_creates_state_entry():
     assert opp["id"] == "govly_state_test_456"
     assert opp["title"] == "State Test Opportunity"
     assert opp["source"] == "govly"
-    assert opp["triage"] is True
+    # FY routing: Dec 2025 close_date routes to FY2026, so triage=False
+    assert opp["triage"] is False
+    assert opp["fy"] == "FY2026"
     assert opp["estimated_amount"] == 250000
 
 
@@ -115,8 +119,8 @@ def test_govly_webhook_creates_markdown():
     response = client.post("/v1/govly/webhook", json=payload)
     assert response.status_code == 200
 
-    # Check markdown file exists
-    md_path = Path("obsidian/40 Projects/Opportunities/Triage/govly_md_test_789.md")
+    # Check markdown file exists (Nov 2025 close_date routes to FY2026)
+    md_path = Path("obsidian/40 Projects/Opportunities/FY2026/govly_md_test_789.md")
     assert md_path.exists()
 
     # Check content
@@ -172,7 +176,9 @@ def test_radar_webhook_creates_state_entry():
     assert opp["id"] == "radar_state_222"
     assert opp["title"] == "TechCorp - Modification"
     assert opp["source"] == "radar"
-    assert opp["triage"] is True
+    # FY routing: Oct 2025 contract_date routes to FY2026, so triage=False
+    assert opp["triage"] is False
+    assert opp["fy"] == "FY2026"
     assert opp["estimated_amount"] == 750000
 
 
@@ -191,8 +197,8 @@ def test_radar_webhook_creates_markdown():
     response = client.post("/v1/radar/webhook", json=payload)
     assert response.status_code == 200
 
-    # Check markdown file exists
-    md_path = Path("obsidian/40 Projects/Opportunities/Triage/radar_md_333.md")
+    # Check markdown file exists (Oct 2025 contract_date routes to FY2026)
+    md_path = Path("obsidian/40 Projects/Opportunities/FY2026/radar_md_333.md")
     assert md_path.exists()
 
     # Check content
