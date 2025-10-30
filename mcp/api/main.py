@@ -26,6 +26,11 @@ except Exception:
     oems_router = None
 
 try:
+    from mcp.api.v1.oems_ex import router as oems_ex_router
+except Exception:
+    oems_ex_router = None
+
+try:
     from mcp.api.v1.contracts import router as contracts_router
 except Exception:
     contracts_router = None
@@ -86,7 +91,7 @@ except Exception:
     account_plans_router = None
 
 
-app = FastAPI(title="Red River Sales MCP API", version="1.6.0")
+app = FastAPI(title="Red River Sales MCP API", version="1.7.0")
 
 # Add rate limiting middleware
 app.add_middleware(RateLimitMiddleware)
@@ -196,6 +201,10 @@ async def api_info(request: Request):
             "environment": environment,
             "endpoints": [
                 "/v1/oems",
+                "/v1/oems/all",
+                "/v1/oems/add",
+                "/v1/oems/{name}",
+                "/v1/oems/export/obsidian",
                 "/v1/contracts",
                 "/v1/ai/models",
                 "/v1/ai/guidance",
@@ -232,6 +241,8 @@ async def api_info(request: Request):
 # Mount routers if present
 if oems_router is not None:
     app.include_router(oems_router, prefix="/v1", tags=["oems"])
+if oems_ex_router is not None:
+    app.include_router(oems_ex_router, prefix="/v1", tags=["oems_ex"])
 if contracts_router is not None:
     app.include_router(contracts_router, prefix="/v1", tags=["contracts"])
 if ai_router is not None:
