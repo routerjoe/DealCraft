@@ -1,6 +1,6 @@
 {
   "name": "red-river-sales-automation",
-  "version": "1.0.0",
+  "version": "1.6.0",
   "description": "Comprehensive MCP server for Red River sales operations - RFQ processing, CRM, and analytics",
   "type": "module",
   "main": "dist/index.js",

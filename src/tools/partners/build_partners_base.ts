@@ -523,10 +523,10 @@ function validateData(records: OEMRecord[]): ValidationResult[] {
     }
 
     if (record.red_river_tier) {
-      const validRRTier = record.red_river_tier.program &&
+      const validRRTier = !!(record.red_river_tier.program &&
                           record.red_river_tier.tier &&
                           record.red_river_tier.as_of &&
-                          record.red_river_tier.source_doc;
+                          record.red_river_tier.source_doc);
       checks.push({
         name: 'Red River Tier',
         passed: validRRTier,
