@@ -9,8 +9,8 @@
   ],
   "recent_actions": [
     {
-      "request_id": "d17a8627-5833-4939-a8c9-420fb3ff6806",
-      "timestamp": "2025-10-29T17:21:58.680861+00:00",
+      "request_id": "a26d122b-6104-4ab5-949b-7b06fe008b1a",
+      "timestamp": "2025-10-30T17:12:52.110688+00:00",
       "method": "GET",
       "path": "/v1/account-plans/formats",
       "latency_ms": 0,
@@ -18,8 +18,8 @@
       "context": {}
     },
     {
-      "request_id": "70976a7b-ce3d-4169-ac9a-4b63046364d7",
-      "timestamp": "2025-10-29T17:21:58.678745+00:00",
+      "request_id": "9891d079-2747-454b-a6b4-ef0286e6cc91",
+      "timestamp": "2025-10-30T17:12:52.107977+00:00",
       "method": "POST",
       "path": "/v1/account-plans/generate",
       "latency_ms": 0,
@@ -27,8 +27,8 @@
       "context": {}
     },
     {
-      "request_id": "822c1298-dff6-4681-bab2-d4592fb145a5",
-      "timestamp": "2025-10-29T17:21:58.676198+00:00",
+      "request_id": "daf795e1-f484-4b12-87fb-e2f6d68d1143",
+      "timestamp": "2025-10-30T17:12:52.105250+00:00",
       "method": "POST",
       "path": "/v1/account-plans/generate",
       "latency_ms": 0,
@@ -36,26 +36,8 @@
       "context": {}
     },
     {
-      "request_id": "c615ec11-41cb-47eb-a084-149930f6e7b7",
-      "timestamp": "2025-10-29T17:21:58.673267+00:00",
-      "method": "POST",
-      "path": "/v1/account-plans/generate",
-      "latency_ms": 0,
-      "status_code": 200,
-      "context": {}
-    },
-    {
-      "request_id": "012e4d6b-717a-4e43-a825-0bb15eed7a3c",
-      "timestamp": "2025-10-29T17:21:58.671020+00:00",
-      "method": "POST",
-      "path": "/v1/account-plans/generate",
-      "latency_ms": 0,
-      "status_code": 200,
-      "context": {}
-    },
-    {
-      "request_id": "398d8372-3b7a-4b18-9488-88aa3bf9049e",
-      "timestamp": "2025-10-29T17:21:58.667770+00:00",
+      "request_id": "906ca6f9-34a6-4c41-ab84-02693ab0974c",
+      "timestamp": "2025-10-30T17:12:52.101356+00:00",
       "method": "POST",
       "path": "/v1/account-plans/generate",
       "latency_ms": 1,
@@ -63,8 +45,8 @@
       "context": {}
     },
     {
-      "request_id": "d187bc69-580c-48ae-a68c-0a23f2948314",
-      "timestamp": "2025-10-29T17:21:58.664491+00:00",
+      "request_id": "66e7040c-c6c4-47b0-afac-b41934e1cbd5",
+      "timestamp": "2025-10-30T17:12:52.097643+00:00",
       "method": "POST",
       "path": "/v1/account-plans/generate",
       "latency_ms": 0,
@@ -72,8 +54,8 @@
       "context": {}
     },
     {
-      "request_id": "bf1a0039-a167-45de-b1bc-3145e4003a50",
-      "timestamp": "2025-10-29T17:21:58.661674+00:00",
+      "request_id": "e6bd4108-33fd-42c2-99db-8a0f82173834",
+      "timestamp": "2025-10-30T17:12:52.094547+00:00",
       "method": "POST",
       "path": "/v1/account-plans/generate",
       "latency_ms": 0,
@@ -81,8 +63,26 @@
       "context": {}
     },
     {
-      "request_id": "7a0f2157-708d-4aba-a1fd-253ef11c03e9",
-      "timestamp": "2025-10-29T17:21:58.659635+00:00",
+      "request_id": "46bd52fc-d10c-4827-bde7-f411184446f1",
+      "timestamp": "2025-10-30T17:12:52.091992+00:00",
+      "method": "POST",
+      "path": "/v1/account-plans/generate",
+      "latency_ms": 0,
+      "status_code": 200,
+      "context": {}
+    },
+    {
+      "request_id": "47521521-10e5-48bd-b22c-dfeea487eeef",
+      "timestamp": "2025-10-30T17:12:52.088750+00:00",
+      "method": "POST",
+      "path": "/v1/account-plans/generate",
+      "latency_ms": 0,
+      "status_code": 200,
+      "context": {}
+    },
+    {
+      "request_id": "f6d588d0-3d2c-41b0-bc25-c1003f4d51f3",
+      "timestamp": "2025-10-30T17:12:52.085229+00:00",
       "method": "GET",
       "path": "/v1/account-plans/formats",
       "latency_ms": 0,
@@ -90,8 +90,8 @@
       "context": {}
     },
     {
-      "request_id": "688ad21b-5035-42e5-9c3f-91d15d9832b5",
-      "timestamp": "2025-10-29T17:21:58.656669+00:00",
+      "request_id": "141d52c1-ba3a-4962-852a-345467468beb",
+      "timestamp": "2025-10-30T17:12:52.081393+00:00",
       "method": "POST",
       "path": "/v1/account-plans/generate",
       "latency_ms": 0,

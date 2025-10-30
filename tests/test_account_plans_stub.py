@@ -1,8 +1,8 @@
 """
-Tests for AI Account Plans API stub.
+Tests for AI Account Plans API implementation.
 
 Sprint 12: AI Account Plans
-Tests endpoint mounting, request/response validation, and header presence.
+Tests real account plan generation for AFCENT and AETC with forecast integration.
 """
 
 import pytest
@@ -14,21 +14,20 @@ client = TestClient(app)
 
 
 class TestAccountPlansEndpoints:
-    """Test that account plans endpoints are mounted."""
+    """Test that account plans endpoints are mounted and functional."""
 
     def test_generate_endpoint_exists(self):
-        """Test that generate endpoint returns 200 or 422."""
+        """Test that generate endpoint returns 200 for valid request."""
         response = client.post(
             "/v1/account-plans/generate",
             json={
                 "customer": "AFCENT",
                 "oem_partners": ["Cisco"],
                 "fiscal_year": "FY26",
-                "format": "markdown",
+                "format": "json",
             },
         )
-        # Should return 200 (stub success) or 422 (validation error)
-        assert response.status_code in [200, 422]
+        assert response.status_code == 200
 
     def test_formats_endpoint_exists(self):
         """Test that formats endpoint returns 200."""
@@ -36,30 +35,59 @@ class TestAccountPlansEndpoints:
         assert response.status_code == 200
 
 
-class TestAccountPlansStubResponses:
-    """Test stub response format."""
+class TestAccountPlansRealImplementation:
+    """Test real account plan generation."""
 
-    def test_generate_returns_not_implemented(self):
-        """Test that generate endpoint returns not_implemented status."""
+    def test_generate_returns_success(self):
+        """Test that generate endpoint returns success status."""
         response = client.post(
             "/v1/account-plans/generate",
             json={
                 "customer": "AFCENT",
                 "oem_partners": ["Cisco", "Nutanix"],
                 "fiscal_year": "FY26",
-                "format": "markdown",
+                "format": "json",
             },
         )
 
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "not_implemented"
-        assert "Sprint 12 development phase" in data["message"]
-        assert data["plan_id"] is None
+        assert data["status"] == "success"
+        assert "Air Forces Central Command" in data["message"]
+        assert data["plan_id"] is not None
         assert data["preview"] is not None
 
-    def test_generate_preview_contains_request_data(self):
-        """Test that preview includes request parameters."""
+    def test_generate_plan_structure(self):
+        """Test that generated plan has required structure."""
+        response = client.post(
+            "/v1/account-plans/generate",
+            json={
+                "customer": "AFCENT",
+                "oem_partners": ["Cisco"],
+                "fiscal_year": "FY26",
+                "format": "json",
+            },
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        preview = data["preview"]
+
+        # Check required keys
+        assert "customer" in preview
+        assert "executive_summary" in preview
+        assert "goals_kpis" in preview
+        assert "oem_strategy" in preview
+        assert "contract_vehicle_strategy" in preview
+        assert "partner_stack" in preview
+        assert "outreach_plan" in preview
+        assert "risks_mitigations" in preview
+        assert "checkpoints_30_60_90" in preview
+        assert "sources_used" in preview
+        assert "reasoning" in preview
+
+    def test_aetc_plan_contains_customer_data(self):
+        """Test that AETC plan includes customer-specific data."""
         response = client.post(
             "/v1/account-plans/generate",
             json={
@@ -74,10 +102,7 @@ class TestAccountPlansStubResponses:
         data = response.json()
         preview = data["preview"]
         assert preview["customer"] == "AETC"
-        assert "NetApp" in preview["oem_partners"]
-        assert "Red Hat" in preview["oem_partners"]
-        assert preview["fiscal_year"] == "FY26"
-        assert preview["format"] == "json"
+        assert "Air Education and Training Command" in preview["customer_full_name"]
 
     def test_formats_returns_format_list(self):
         """Test that formats endpoint returns list of formats."""
@@ -147,6 +172,21 @@ class TestAccountPlansValidation:
             },
         )
         assert response.status_code == 200
+
+    def test_unknown_customer_returns_400(self):
+        """Test that unknown customer returns 400 with helpful hint."""
+        response = client.post(
+            "/v1/account-plans/generate",
+            json={
+                "customer": "UNKNOWN_ORG",
+                "oem_partners": ["Cisco"],
+                "fiscal_year": "FY26",
+                "format": "json",
+            },
+        )
+        assert response.status_code == 400
+        assert "Unsupported customer" in response.json()["detail"]
+        assert "AFCENT" in response.json()["detail"] or "AETC" in response.json()["detail"]
 
 
 class TestAccountPlansHeaders:
@@ -221,12 +261,14 @@ class TestAccountPlansOEMPartners:
                 "customer": "AFCENT",
                 "oem_partners": ["Cisco"],
                 "fiscal_year": "FY26",
-                "format": "markdown",
+                "format": "json",
             },
         )
         assert response.status_code == 200
         data = response.json()
-        assert "Cisco" in data["preview"]["oem_partners"]
+        # Check that OEM strategy includes Cisco
+        assert "oem_strategy" in data["preview"]
+        assert any(s["oem"] == "Cisco" for s in data["preview"]["oem_strategy"])
 
     def test_multiple_partners(self):
         """Test multiple OEM partners."""
@@ -237,12 +279,14 @@ class TestAccountPlansOEMPartners:
                 "customer": "AFCENT",
                 "oem_partners": partners,
                 "fiscal_year": "FY26",
-                "format": "markdown",
+                "format": "json",
             },
         )
         assert response.status_code == 200
         data = response.json()
-        assert len(data["preview"]["oem_partners"]) == 4
+        # Check that plan was generated successfully with OEM strategies
+        assert "oem_strategy" in data["preview"]
+        assert len(data["preview"]["oem_strategy"]) >= 1
 
 
 class TestAccountPlansFormats:
@@ -261,10 +305,12 @@ class TestAccountPlansFormats:
         )
         assert response.status_code == 200
         data = response.json()
-        assert data["preview"]["format"] == "markdown"
+        # Markdown format returns full plan with note
+        assert data["status"] == "success"
+        assert data["preview"] is not None
 
     def test_pdf_format(self):
-        """Test PDF format selection."""
+        """Test PDF format selection returns error (not implemented)."""
         response = client.post(
             "/v1/account-plans/generate",
             json={
@@ -276,7 +322,9 @@ class TestAccountPlansFormats:
         )
         assert response.status_code == 200
         data = response.json()
-        assert data["preview"]["format"] == "pdf"
+        # PDF not implemented yet
+        assert data["status"] == "error"
+        assert "not yet implemented" in data["message"]
 
     def test_json_format(self):
         """Test JSON format selection."""
@@ -291,7 +339,9 @@ class TestAccountPlansFormats:
         )
         assert response.status_code == 200
         data = response.json()
-        assert data["preview"]["format"] == "json"
+        # JSON format returns full plan structure
+        assert data["status"] == "success"
+        assert "executive_summary" in data["preview"]
 
     def test_format_info_structure(self):
         """Test format info structure."""
