@@ -7,7 +7,12 @@ from datetime import datetime, timezone
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+from mcp.api.middleware.rate_limit import RateLimitMiddleware
+from mcp.core.log_filters import install_redacting_filter
 from mcp.core.store import read_json, write_json
+
+# Install redacting filter on root logger to protect all logs
+install_redacting_filter()
 
 logger = logging.getLogger(__name__)
 
@@ -77,6 +82,9 @@ except Exception:
 
 
 app = FastAPI(title="Red River Sales MCP API", version="1.6.0")
+
+# Add rate limiting middleware
+app.add_middleware(RateLimitMiddleware)
 
 
 def log_action_to_state(

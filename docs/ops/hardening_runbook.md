@@ -1,540 +1,553 @@
-# Production Hardening Runbook
-
-**Version:** 1.0  
-**Last Updated:** October 29, 2025 EDT  
-**Sprint:** 15 - Production Hardening
-
-## Overview
-
-This runbook covers production-ready security controls, rate limiting, monitoring, and operational procedures for the Red River Sales MCP API.
-
-## Rate Limiting
-
-### Policies
-
-**Default Rate Limits:**
-```python
-RATE_LIMIT_POLICIES = {
-    "default": {
-        "requests": 100,
-        "window": 60,  # seconds
-        "strategy": "sliding_window"
-    },
-    "webhook": {
-        "requests": 1000,
-        "window": 60,
-        "strategy": "fixed_window"
-    },
-    "ai": {
-        "requests": 20,
-        "window": 60,
-        "strategy": "token_bucket"
-    },
-    "export": {
-        "requests": 10,
-        "window": 60,
-        "strategy": "leaky_bucket"
-    }
-}
-```
-
-### Implementation
-
-**Middleware (Planned):**
-```python
-from fastapi import Request, HTTPException
-
-async def rate_limit_middleware(request: Request, call_next):
-    client_ip = request.client.host
-    endpoint = request.url.path
-    
-    # Check rate limit
-    if not check_rate_limit(client_ip, endpoint):
-        raise HTTPException(
-            status_code=429,
-            detail="Rate limit exceeded",
-            headers={
-                "Retry-After": "60",
-                "X-RateLimit-Limit": "100",
-                "X-RateLimit-Remaining": "0",
-                "X-RateLimit-Reset": str(get_reset_time())
-            }
-        )
-    
-    response = await call_next(request)
-    
-    # Add rate limit headers
-    add_rate_limit_headers(response, client_ip, endpoint)
-    
-    return response
-```
-
-### Response Headers
-
-When rate limited:
-```
-HTTP/1.1 429 Too Many Requests
-X-RateLimit-Limit: 100
-X-RateLimit-Remaining: 0
-X-RateLimit-Reset: 1698609660
-Retry-After: 60
-Content-Type: application/json
-
-{
-  "error": "rate_limit_exceeded",
-  "message": "Too many requests. Please try again later.",
-  "retry_after": 60
-}
-```
-
-## Header Validation
-
-### Required Headers (Response)
-
-ALL responses MUST include:
-```
-X-Request-ID: <uuid4>
-X-Latency-MS: <integer>
-```
-
-**Validation:** See [`test_headers_contract.py`](../../tests/test_headers_contract.py)
-
-### Optional Headers (Request)
-
-Clients MAY send:
-```
-X-Client-ID: <client_identifier>
-X-Trace-ID: <distributed_trace_id>
-```
-
-### Security Headers (Response)
-
-Recommended security headers:
-```
-X-Content-Type-Options: nosniff
-X-Frame-Options: DENY
-X-XSS-Protection: 1; mode=block
-Strict-Transport-Security: max-age=31536000
-```
-
-## Log Redaction
-
-### Sensitive Data Patterns
-
-**PII (Personally Identifiable Information):**
-- Email addresses
-- Phone numbers
-- Social Security Numbers
-- Credit card numbers
-
-**Secrets:**
-- API keys (ANTHROPIC_API_KEY, OPENAI_API_KEY, etc.)
-- Webhook secrets (GOVLY_WEBHOOK_SECRET, etc.)
-- Slack tokens (SLACK_BOT_TOKEN, etc.)
-- Passwords
-
-### Redaction Rules
-
-```python
-import re
-
-REDACTION_PATTERNS = {
-    "email": r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
-    "phone": r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b',
-    "api_key": r'(sk-|xoxb-|xoxp-)[A-Za-z0-9-_]{20,}',
-    "ssn": r'\b\d{3}-\d{2}-\d{4}\b',
-}
-
-def redact_sensitive_data(text: str) -> str:
-    """Redact sensitive data from logs."""
-    for pattern_name, pattern in REDACTION_PATTERNS.items():
-        text = re.sub(pattern, f"[REDACTED_{pattern_name.upper()}]", text)
-    return text
-```
-
-**Example:**
-```python
-# Before
-log.info(f"User joe.nolan@redriver.com accessed API with key sk-abc123")
-
-# After redaction
-log.info(f"User [REDACTED_EMAIL] accessed API with key [REDACTED_API_KEY]")
-```
-
-## Backup & Restore
-
-### State File Backup
-
-**Automated Backups:**
-```bash
-#!/bin/bash
-# Backup state.json every hour
-BACKUP_DIR="data/backups"
-mkdir -p $BACKUP_DIR
-
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-cp data/state.json "$BACKUP_DIR/state_${TIMESTAMP}.json"
-
-# Keep last 168 backups (1 week of hourly)
-ls -t $BACKUP_DIR/state_*.json | tail -n +169 | xargs rm -f
-```
-
-**Manual Backup:**
-```bash
-# Create backup
-cp data/state.json data/state.backup.json
-
-# With timestamp
-cp data/state.json "data/state.$(date +%Y%m%d_%H%M%S).backup.json"
-```
-
-### Restore Procedures
-
-**Restore from backup:**
-```bash
-# Stop API
-pm2 stop mcp-api
-
-# Restore state
-cp data/backups/state_20251029_120000.json data/state.json
-
-# Restart API
-pm2 restart mcp-api
-
-# Verify
-curl http://localhost:8000/v1/system/recent-actions
-```
-
-**Validate restore:**
-```bash
-# Check JSON validity
-python -c "import json; json.load(open('data/state.json'))"
-
-# Check required structure
-jq '.opportunities, .recent_actions' data/state.json
-```
-
-## SLO & SLI Monitoring
-
-### Service Level Objectives
-
-| Metric | Target | Measurement | Alert Threshold |
-|--------|--------|-------------|-----------------|
-| Availability | 99.9% | Uptime / Total Time | < 99.8% |
-| Latency (P95) | < 100ms | Response time distribution | > 150ms |
-| Latency (P99) | < 500ms | Response time distribution | > 750ms |
-| Error Rate | < 0.1% | 5xx / Total Requests | > 0.2% |
-| Rate Limit Violations | < 1% | 429 / Total Requests | > 2% |
-
-### Monitoring Queries
-
-**Prometheus/Grafana:**
-```promql
-# Availability (last 30 days)
-avg_over_time(up{job="mcp-api"}[30d])
-
-# P95 Latency
-histogram_quantile(0.95, rate(http_request_duration_ms_bucket[5m]))
-
-# Error Rate
-rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m])
-```
-
-**Log-Based (Loki/CloudWatch):**
-```logql
-# Error rate
-count_over_time({job="mcp-api"} |= "ERROR" [5m]) / count_over_time({job="mcp-api"} [5m])
-```
-
-### Alerting Rules
-
-**Critical Alerts:**
-- Availability < 99.5% (5 min window)
-- P99 Latency > 1s (5 min window)
-- Error rate > 1% (5 min window)
-
-**Warning Alerts:**
-- Availability < 99.8% (15 min window)
-- P95 Latency > 150ms (15 min window)
-- Error rate > 0.2% (15 min window)
-
-## Security Controls
-
-### Authentication (Future)
-
-**Planned for post-Sprint 15:**
-- API key authentication
-- JWT token validation
-- OAuth 2.0 integration
-- Role-based access control (RBAC)
-
-### Input Validation
-
-**All endpoints validate:**
-- Request payload schema (Pydantic)
-- Query parameters
-- Header formats
-- File uploads (if applicable)
-
-### Output Sanitization
-
-**Prevent information disclosure:**
-- No stack traces in production
-- Generic error messages
-- Redact internal paths
-- No version info in headers
-
-## Incident Response
-
-### Severity Levels
-
-**P0 - Critical:** Service down, data loss
-- Response: Immediate (< 15 min)
-- Communication: Notify stakeholders
-- Resolution: All hands on deck
-
-**P1 - High:** Severe degradation, security issue
-- Response: Within 1 hour
-- Communication: Notify team
-- Resolution: Assigned owner + backup
-
-**P2 - Medium:** Partial degradation, non-critical bug
-- Response: Within 4 hours
-- Communication: Team slack
-- Resolution: Regular sprint work
-
-**P3 - Low:** Minor issue, enhancement request
-- Response: Next sprint
-- Communication: Backlog
-- Resolution: Prioritize in planning
-
-### Escalation Path
-
-1. **On-Call Engineer** - First responder
-2. **Team Lead** - Escalate if no resolution in 30 min
-3. **Engineering Manager** - Escalate if P0 or >2 hours
-4. **CTO** - Escalate if data loss or security breach
-
-### Communication Templates
-
-**Incident Start:**
-```
-🚨 INCIDENT: <Brief Description>
-Severity: P<0-3>
-Start Time: <timestamp>
-Impact: <affected services>
-Status: Investigating
-ETA: <estimate or unknown>
-```
-
-**Incident Update:**
-```
-📢 UPDATE: <Incident ID>
-Status: <investigating|identified|fixing|monitoring>
-Progress: <what's been done>
-Next Steps: <what's next>
-ETA: <updated estimate>
-```
-
-**Incident Resolved:**
-```
-✅ RESOLVED: <Incident ID>
-Resolution: <what fixed it>
-Duration: <total time>
-Root Cause: <brief explanation>
-Follow-up: <link to postmortem>
-```
-
-## Production Deployment
-
-### Pre-Deployment Checklist
-
-- [ ] All tests passing (pytest -v)
-- [ ] Linting clean (ruff check .)
-- [ ] Environment variables configured
-- [ ] Secrets rotated (if needed)
-- [ ] Backup created
-- [ ] Rollback plan ready
-- [ ] Monitoring enabled
-- [ ] On-call schedule set
-
-### Deployment Process
-
-1. **Pre-deployment:**
-   ```bash
-   # Run full test suite
-   pytest -v
-   
-   # Create backup
-   ./scripts/backup.sh
-   
-   # Tag release
-   git tag -a v1.7.0 -m "Release v1.7.0: Sprint 15 Hardening"
-   git push origin v1.7.0
-   ```
-
-2. **Deployment:**
-   ```bash
-   # Pull latest code
-   git pull origin main
-   
-   # Install dependencies
-   pip install -r requirements.txt
-   
-   # Restart service
-   pm2 restart mcp-api
-   ```
-
-3. **Post-deployment:**
-   ```bash
-   # Health check
-   curl http://localhost:8000/healthz
-   
-   # Verify version
-   curl http://localhost:8000/v1/info | jq '.version'
-   
-   # Check logs
-   pm2 logs mcp-api --lines 50
-   ```
-
-### Rollback Procedure
-
-```bash
-# Stop current version
-pm2 stop mcp-api
-
-# Restore previous version
-git checkout v1.6.0
-
-# Restore state backup
-cp data/backups/state_<timestamp>.json data/state.json
-
-# Restart service
-pm2 restart mcp-api
-
-# Verify
-curl http://localhost:8000/healthz
-```
-
-## Monitoring & Observability
-
-### Health Checks
-
-**Liveness:** `/healthz` - Returns 200 if service running  
-**Readiness:** `/v1/info` - Returns 200 with version info
-
-### Metrics to Track
-
-**Request Metrics:**
-- Total requests per minute
-- Requests by endpoint
-- Requests by status code (2xx, 4xx, 5xx)
-- Average latency per endpoint
-
-**Resource Metrics:**
-- CPU usage (target: < 70%)
-- Memory usage (target: < 80%)
-- Disk usage (target: < 85%)
-- Network I/O
-
-**Application Metrics:**
-- Opportunities created per hour
-- Webhooks processed per hour
-- Forecast calculations per day
-- AI requests per hour
-
-### Log Aggregation
-
-**Structured Logging:**
-All logs in JSON format:
-```json
-{
-  "timestamp": "2025-10-29T13:00:00Z",
-  "level": "INFO",
-  "message": "Request processed",
-  "request_id": "a1b2c3d4",
-  "method": "GET",
-  "path": "/v1/forecast/summary",
-  "status": 200,
-  "latency_ms": 45
-}
-```
-
-**Log Retention:**
-- Development: 7 days
-- Staging: 30 days
-- Production: 90 days
-
-## Troubleshooting
-
-### High Latency
-
-**Symptoms:**
-- P95 latency > 100ms
-- P99 latency > 500ms
-- Slow API responses
-
-**Diagnosis:**
-```bash
-# Check recent actions for slow requests
-curl http://localhost:8000/v1/system/recent-actions | jq '.actions[] | select(.latency_ms > 100)'
-
-# Review logs
-grep "latency_ms" logs/app.log | awk '{if($NF > 100) print}'
-```
-
-**Solutions:**
-- Add caching for frequent queries
-- Optimize database queries
-- Scale horizontally
-- Add CDN for static content
-
-### High Error Rate
-
-**Symptoms:**
-- Error rate > 0.1%
-- Frequent 5xx responses
-- Client complaints
-
-**Diagnosis:**
-```bash
-# Check error distribution
-curl http://localhost:8000/v1/metrics | jq '.errors_by_endpoint'
-
-# Review error logs
-grep "ERROR" logs/app.log | tail -50
-```
-
-**Solutions:**
-- Fix application bugs
-- Add retry logic
-- Improve error handling
-- Validate inputs more strictly
-
-### Rate Limit Violations
-
-**Symptoms:**
-- Frequent 429 responses
-- Client reports being blocked
-
-**Diagnosis:**
-```bash
-# Check rate limit stats
-grep "429" logs/app.log | wc -l
-
-# Identify top offenders
-grep "429" logs/app.log | grep -oE 'client_ip":"[^"]+' | sort | uniq -c | sort -rn
-```
-
-**Solutions:**
-- Increase limits for legitimate clients
-- Add API key authentication
-- Implement tiered rate limits
-- Block abusive IPs
+# Hardening Runbook
+
+Operational guide for production hardening, monitoring, and incident response for the Red River Sales MCP API.
+
+## Table of Contents
+
+1. [Service Level Objectives (SLOs)](#service-level-objectives-slos)
+2. [Rate Limiting Policy](#rate-limiting-policy)
+3. [Log Redaction](#log-redaction)
+4. [Incident Response](#incident-response)
+5. [Backup & Restore](#backup--restore)
+6. [Monitoring & Alerts](#monitoring--alerts)
+7. [Security Checklist](#security-checklist)
 
 ---
 
-**Related Documentation:**
-- [Sprint 15 Plan](../sprint_plan.md)
-- [API Documentation](../api/endpoints.md)
-- [RUNBOOK.md](../../RUNBOOK.md)
+## Service Level Objectives (SLOs)
+
+### Target SLOs
+
+| Metric | Target | Measurement Window |
+|--------|--------|-------------------|
+| **Availability** | 99.9% | 30 days |
+| **P95 Latency** | < 100ms | 1 hour |
+| **P99 Latency** | < 500ms | 1 hour |
+| **Error Rate** | < 0.1% | 1 hour |
+| **Rate Limit Rejections** | < 1% | 1 hour |
+
+### SLO Monitoring
+
+**Health Check Endpoint**: `GET /healthz`
+- Expected response: `{"status":"healthy"}`
+- Should return within 10ms
+- Monitor every 30 seconds
+
+**Metrics Endpoint**: `GET /v1/metrics`
+- Returns aggregated request statistics
+- Use for SLO dashboard
+
+### SLO Violation Response
+
+1. **Availability < 99.9%**
+   - Check server logs: `tail -f logs/mcp.log`
+   - Verify dependencies (database, external APIs)
+   - Review recent deployments
+   - Escalate to P1 if outage > 5 minutes
+
+2. **P95 Latency > 100ms**
+   - Check slow query log
+   - Review rate limit rejections (may indicate load)
+   - Check external API latencies
+   - Consider horizontal scaling
+
+3. **Error Rate > 0.1%**
+   - Review error logs: `grep ERROR logs/mcp.log`
+   - Check for malformed requests
+   - Verify API contract compliance
+
+---
+
+## Rate Limiting Policy
+
+### Rate Limit Groups
+
+| Group | Limit (req/min) | Routes | Justification |
+|-------|-----------------|--------|---------------|
+| **GENERAL** | 100 | All routes (default) | Standard API usage |
+| **WEBHOOKS** | 1000 | `/v1/govly/webhook`, `/v1/radar/webhook` | High-volume external integrations |
+| **AI** | 20 | `/v1/ai/*` | Expensive AI operations |
+
+### Rate Limit Response
+
+When rate limited, clients receive:
+```json
+{
+  "error": "rate_limited",
+  "message": "Rate limit exceeded for AI endpoints",
+  "retry_after": 45,
+  "limit": 20
+}
+```
+
+**Status Code**: `429 Too Many Requests`
+
+**Header**: `Retry-After: <seconds>`
+
+### Checking Rate Limit Status
+
+```python
+from mcp.api.middleware.rate_limit import _buckets, RATE_LIMITS
+
+# View current bucket counts
+for (group, minute), count in _buckets.items():
+    print(f"{group} (minute {minute}): {count}/{RATE_LIMITS[group]}")
+```
+
+### Override/Escalation Path
+
+⚠️ **Temporary rate limit lifts should be used sparingly and documented.**
+
+#### Method 1: Environment Override (Recommended)
+
+```python
+# In mcp/api/middleware/rate_limit.py
+import os
+
+RATE_LIMITS = {
+    "GENERAL": int(os.getenv("RATE_LIMIT_GENERAL", "100")),
+    "WEBHOOKS": int(os.getenv("RATE_LIMIT_WEBHOOKS", "1000")),
+    "AI": int(os.getenv("RATE_LIMIT_AI", "20")),
+}
+```
+
+Set environment variable:
+```bash
+export RATE_LIMIT_AI=50  # Temporarily increase AI limit
+```
+
+#### Method 2: Code Modification (Emergency Only)
+
+1. Edit `mcp/api/middleware/rate_limit.py`
+2. Update `RATE_LIMITS` dictionary
+3. Restart server
+4. **Create incident ticket** documenting change
+5. Revert after emergency resolved
+
+**Risk**: Permanent changes may lead to abuse or infrastructure strain.
+
+### Rate Limit Bypass for Testing
+
+```python
+# In tests only - monkeypatch the limits
+import mcp.api.middleware.rate_limit as rl
+monkeypatch.setattr(rl, "RATE_LIMITS", {
+    "GENERAL": 999999,
+    "WEBHOOKS": 999999,
+    "AI": 999999,
+})
+```
+
+---
+
+## Log Redaction
+
+### Redacted Patterns
+
+The system automatically redacts sensitive information in all logs:
+
+| Pattern | Example | Redacted |
+|---------|---------|----------|
+| Bearer tokens | `Authorization: Bearer abc123` | `Authorization: Bearer ***` |
+| API keys | `sk-1234567890abcdef` | `sk-***` |
+| Email addresses | `user@example.com` | `***@***.***` |
+| Slack tokens | `xoxb-1234567890` | `xox*-***` |
+| Webhook signatures | `x-webhook-signature: abc123` | `x-webhook-signature: ***` |
+| Secret params | `token=abc123` | `token=***` |
+| URL secrets | `?apikey=xyz` | `?apikey=***` |
+
+### Extending Redaction Patterns
+
+Edit `mcp/core/log_filters.py`:
+
+```python
+self.patterns.append((
+    re.compile(r"your-new-pattern", re.IGNORECASE),
+    "your-replacement"
+))
+```
+
+**Testing redaction**:
+```python
+from mcp.core.log_filters import RedactingFilter
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("test")
+filter = RedactingFilter()
+logger.addFilter(filter)
+
+logger.info("User logged in with token=abc123")
+# Output: "User logged in with token=***"
+```
+
+### Verifying Redaction
+
+```bash
+# Check logs for exposed secrets (should return nothing)
+grep -E 'sk-[A-Za-z0-9]{20,}' logs/mcp.log
+grep -E 'Bearer [A-Za-z0-9]+' logs/mcp.log
+grep -E '[a-z0-9]+@[a-z0-9]+\.[a-z]+' logs/mcp.log
+
+# If any matches found, investigate immediately
+```
+
+---
+
+## Incident Response
+
+### Incident Severity Levels
+
+#### P0 - Critical (Complete Outage)
+**Response Time**: < 5 minutes
+**Examples**:
+- API completely down
+- Database unavailable
+- Security breach
+
+**Actions**:
+1. Page on-call engineer
+2. Enable incident bridge
+3. Post status update every 15 minutes
+4. Create incident ticket
+
+**Commands**:
+```bash
+# Check if server is running
+ps aux | grep uvicorn
+
+# Check logs for crashes
+tail -100 logs/mcp.log | grep -i error
+
+# Restart server (if safe)
+./start-server.sh
+
+# Check health
+curl http://localhost:8000/healthz
+```
+
+#### P1 - Major (Degraded Service)
+**Response Time**: < 15 minutes
+**Examples**:
+- Error rate > 5%
+- Latency > 1s
+- Rate limits blocking legitimate traffic
+
+**Actions**:
+1. Notify team via Slack
+2. Investigate logs
+3. Apply temporary fixes
+4. Schedule permanent fix
+
+**Commands**:
+```bash
+# Check error rate
+grep ERROR logs/mcp.log | tail -100
+
+# Check slow requests (latency > 1000ms)
+grep "x-latency-ms" logs/mcp.log | awk '$NF > 1000'
+
+# Check rate limit rejections
+grep "rate_limited" logs/mcp.log | wc -l
+```
+
+#### P2 - Minor (Limited Impact)
+**Response Time**: < 1 hour
+**Examples**:
+- Single endpoint failing
+- Non-critical feature broken
+- Increased error rate on low-traffic endpoint
+
+**Actions**:
+1. Create ticket
+2. Investigate during business hours
+3. Document workaround if available
+
+#### P3 - Cosmetic (No Impact)
+**Response Time**: Next sprint
+**Examples**:
+- Log formatting issues
+- Minor documentation errors
+
+### Incident Command Center
+
+**Log Location**: `/Users/jonolan/projects/red-river-sales-automation/logs/`
+
+**Key Log Files**:
+- `mcp.log` - Main application log
+- `error.log` - Error-level messages only
+- `access.log` - HTTP access log (if configured)
+
+**Quick Log Analysis**:
+```bash
+# Last 100 errors
+tail -100 logs/mcp.log | grep ERROR
+
+# Error frequency by type
+grep ERROR logs/mcp.log | cut -d: -f3 | sort | uniq -c | sort -rn
+
+# Recent 429 responses (rate limited)
+grep "429" logs/mcp.log | tail -20
+
+# Slow requests (> 500ms)
+grep "x-latency-ms" logs/mcp.log | awk -F'x-latency-ms: ' '$2 > 500' | tail -20
+```
+
+### Rollback Procedure
+
+1. **Identify last known good commit**:
+   ```bash
+   git log --oneline -10
+   ```
+
+2. **Checkout previous version**:
+   ```bash
+   git checkout <commit-hash>
+   ```
+
+3. **Restart services**:
+   ```bash
+   ./start-server.sh
+   ```
+
+4. **Verify health**:
+   ```bash
+   curl http://localhost:8000/healthz
+   pytest tests/test_health.py
+   ```
+
+5. **Notify stakeholders** of rollback
+
+---
+
+## Backup & Restore
+
+### Backup Strategy
+
+#### Application State
+
+**Location**: `data/state.json`, `data/forecast.json`
+
+**Cadence**: Continuous (auto-save on every write)
+
+**Backup**:
+```bash
+# Manual backup
+cp data/state.json data/state.json.$(date +%Y%m%d_%H%M%S)
+cp data/forecast.json data/forecast.json.$(date +%Y%m%d_%H%M%S)
+
+# Automated backup (add to cron)
+0 2 * * * cd /path/to/project && ./scripts/backup_data.sh
+```
+
+#### Database Backups
+
+**SQLite databases**: `data/*.db`
+
+**Backup**:
+```bash
+# Backup all databases
+for db in data/*.db; do
+    sqlite3 "$db" ".backup 'data/backups/$(basename $db).$(date +%Y%m%d_%H%M%S)'"
+done
+```
+
+**Retention**: Keep 30 days of daily backups
+
+### Restore Procedure
+
+1. **Stop services**:
+   ```bash
+   pkill -f uvicorn
+   ```
+
+2. **Restore files**:
+   ```bash
+   cp data/backups/state.json.20251030_140000 data/state.json
+   ```
+
+3. **Verify integrity**:
+   ```bash
+   python3 -c "import json; json.load(open('data/state.json'))"
+   ```
+
+4. **Restart services**:
+   ```bash
+   ./start-server.sh
+   ```
+
+5. **Verify health**:
+   ```bash
+   curl http://localhost:8000/healthz
+   curl http://localhost:8000/v1/info
+   ```
+
+### Quick Verify Commands
+
+```bash
+# Check state file integrity
+jq . data/state.json > /dev/null && echo "Valid JSON" || echo "CORRUPT"
+
+# Check forecast file
+jq . data/forecast.json > /dev/null && echo "Valid JSON" || echo "CORRUPT"
+
+# Check database integrity
+sqlite3 data/partners_base.db "PRAGMA integrity_check;"
+```
+
+---
+
+## Monitoring & Alerts
+
+### Health Check Monitoring
+
+**Endpoint**: `GET /healthz`
+
+**Expected Response**: `{"status":"healthy"}`
+
+**Monitoring Setup** (example with curl + cron):
+```bash
+# Add to crontab: */5 * * * * (every 5 minutes)
+curl -sf http://localhost:8000/healthz | grep -q healthy || echo "ALERT: Health check failed"
+```
+
+### Metrics Collection
+
+**Endpoint**: `GET /v1/metrics`
+
+**Response**:
+```json
+{
+  "requests_total": 12345,
+  "requests_per_minute": 42,
+  "error_rate": 0.002,
+  "avg_latency_ms": 45
+}
+```
+
+### Alert Thresholds
+
+| Metric | Warning | Critical |
+|--------|---------|----------|
+| Error Rate | > 1% | > 5% |
+| P95 Latency | > 200ms | > 500ms |
+| Health Check Fails | 2 consecutive | 5 consecutive |
+| Rate Limit Rejections | > 5% | > 10% |
+
+---
+
+## Security Checklist
+
+### Pre-Deployment
+
+- [ ] All secrets in environment variables (not committed)
+- [ ] Rate limiting enabled
+- [ ] Log redaction filter installed
+- [ ] HTTPS/TLS configured (production)
+- [ ] Firewall rules applied
+- [ ] Database access restricted
+- [ ] Backup automation configured
+
+### Production
+
+- [ ] Monitor health check endpoint
+- [ ] Review logs daily for anomalies
+- [ ] Verify no secrets in logs
+- [ ] Test incident response procedures monthly
+- [ ] Keep dependencies updated
+- [ ] Review rate limit effectiveness weekly
+
+### Incident Post-Mortem
+
+After any P0 or P1 incident:
+1. Document timeline
+2. Identify root cause
+3. List action items
+4. Update runbook with lessons learned
+5. Test prevention measures
+
+---
+
+## Quick Reference
+
+### Start Server
+```bash
+./start-server.sh
+# or
+uvicorn mcp.api.main:app --host 0.0.0.0 --port 8000
+```
+
+### Stop Server
+```bash
+pkill -f uvicorn
+```
+
+### Check Logs
+```bash
+tail -f logs/mcp.log
+```
+
+### Run Tests
+```bash
+pytest -v
+```
+
+### Check Rate Limits
+```bash
+curl -I http://localhost:8000/v1/info
+# Look for x-request-id and x-latency-ms headers
+```
+
+### Emergency Contacts
+
+- **On-Call Engineer**: [Configure paging system]
+- **Team Slack**: #red-river-ops
+- **Escalation**: [Manager contact]
+
+---
+
+## Appendix
+
+### Log Rotation
+
+Configure logrotate:
+```
+/path/to/logs/mcp.log {
+    daily
+    rotate 30
+    compress
+    delaycompress
+    notifempty
+    create 0640 www-data www-data
+    sharedscripts
+    postrotate
+        systemctl reload mcp-api
+    endscript
+}
+```
+
+### Performance Tuning
+
+**Uvicorn workers** (for production):
+```bash
+uvicorn mcp.api.main:app \
+  --host 0.0.0.0 \
+  --port 8000 \
+  --workers 4 \
+  --log-level info
+```
+
+**Database optimization**:
+```sql
+-- Add indexes for common queries
+CREATE INDEX idx_contracts_oem ON contracts(oem_id);
+CREATE INDEX idx_forecast_date ON forecast(created_at);
+```
+
+---
+
+## Document History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0 | 2025-10-30 | Initial hardening runbook |

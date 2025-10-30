@@ -1,119 +1,269 @@
 """
-Rate limiting stub tests.
+Rate limiting tests.
 
 Sprint 15: Production Hardening
-Placeholder tests for rate limiting functionality (to be implemented).
+Tests for rate limiting middleware functionality.
 """
+
+import time
 
 import pytest
 from fastapi.testclient import TestClient
 
 from mcp.api.main import app
+from mcp.api.middleware import rate_limit
 
 client = TestClient(app)
 
 
-@pytest.mark.xfail(reason="Rate limiting not yet implemented - planned for Sprint 15 dev")
-class TestRateLimitingStub:
-    """Stub tests for rate limiting functionality."""
+class TestRateLimitingGeneral:
+    """Test rate limiting for GENERAL endpoints."""
 
-    def test_rate_limit_headers_present(self):
-        """Test that rate limit headers are included in responses."""
-        response = client.get("/v1/info")
+    def test_general_endpoint_rate_limit(self, monkeypatch):
+        """Test that GENERAL endpoints enforce 100 req/min limit."""
+        # Fix time to a specific minute
+        fixed_time = 1000000.0  # Some fixed epoch time
+        monkeypatch.setattr(time, "time", lambda: fixed_time)
 
-        # Future implementation should include these headers
-        headers = {k.lower(): v for k, v in response.headers.items()}
-        assert "x-ratelimit-limit" in headers
-        assert "x-ratelimit-remaining" in headers
-        assert "x-ratelimit-reset" in headers
+        # Clear any existing buckets
+        rate_limit._buckets.clear()
 
-    def test_rate_limit_exceeded_returns_429(self):
-        """Test that exceeding rate limit returns 429."""
-        # Make many requests quickly
-        for i in range(150):  # Exceeds default 100/min
+        # Make 100 requests - should all succeed
+        success_count = 0
+        for i in range(100):
             response = client.get("/v1/info")
+            if response.status_code == 200:
+                success_count += 1
 
-            if response.status_code == 429:
-                # Rate limit should be enforced
-                data = response.json()
-                assert "rate_limit" in data.get("error", "").lower()
+        assert success_count == 100, "First 100 requests should succeed"
 
-                # Should have retry-after header
-                headers = {k.lower(): v for k, v in response.headers.items()}
-                assert "retry-after" in headers
+        # 101st request should be rate limited
+        response = client.get("/v1/info")
+        assert response.status_code == 429
+        data = response.json()
+        assert data["error"] == "rate_limited"
+        assert "GENERAL" in data["message"]
+        assert data["limit"] == 100
+        assert "retry_after" in data
+
+    def test_rate_limit_window_reset(self, monkeypatch):
+        """Test that rate limit resets after minute window."""
+        # Start at minute 0
+        fixed_time = [1000000.0]  # Use list to allow modification
+
+        def mock_time():
+            return fixed_time[0]
+
+        monkeypatch.setattr(time, "time", mock_time)
+
+        # Clear buckets
+        rate_limit._buckets.clear()
+
+        # Fill up the bucket (100 requests)
+        for i in range(100):
+            response = client.get("/v1/info")
+            assert response.status_code == 200
+
+        # Next request should fail
+        response = client.get("/v1/info")
+        assert response.status_code == 429
+
+        # Advance time by 61 seconds (next minute)
+        fixed_time[0] += 61
+
+        # Should work again
+        response = client.get("/v1/info")
+        assert response.status_code == 200
+
+
+class TestRateLimitingWebhooks:
+    """Test rate limiting for WEBHOOK endpoints."""
+
+    def test_webhook_endpoint_higher_limit(self, monkeypatch):
+        """Test that WEBHOOK endpoints have 1000 req/min limit."""
+        # Fix time
+        fixed_time = 2000000.0
+        monkeypatch.setattr(time, "time", lambda: fixed_time)
+
+        # Clear buckets
+        rate_limit._buckets.clear()
+
+        # Make 200 requests to webhook - should all succeed (well under 1000 limit)
+        success_count = 0
+        for i in range(200):
+            response = client.post(
+                "/v1/govly/webhook",
+                json={
+                    "event_id": f"test_{i}",
+                    "event_type": "opportunity",
+                    "title": "Test Opportunity",
+                    "estimated_amount": 100000,
+                },
+            )
+            if response.status_code == 200:
+                success_count += 1
+
+        assert success_count == 200, "First 200 webhook requests should succeed"
+
+        # Make 800 more to reach limit (total 1000)
+        for i in range(800):
+            response = client.post(
+                "/v1/govly/webhook",
+                json={
+                    "event_id": f"test_{i + 200}",
+                    "event_type": "opportunity",
+                    "title": "Test Opportunity",
+                    "estimated_amount": 100000,
+                },
+            )
+            if response.status_code != 200:
                 break
         else:
-            pytest.fail("Rate limit was not enforced after 150 requests")
+            # All 800 should succeed
+            pass
 
-    def test_rate_limit_per_endpoint(self):
-        """Test that rate limits vary by endpoint type."""
-        # AI endpoints should have lower limits
-        ai_response = client.post("/v1/ai/ask", json={"question": "test", "model": "gpt-4-turbo"})
-
-        # Webhook endpoints should have higher limits
-        webhook_response = client.post(
-            "/v1/govly/webhook", json={"event_id": "rate_test", "event_type": "opportunity", "title": "Test", "estimated_amount": 100000}
+        # 1001st request should be rate limited
+        response = client.post(
+            "/v1/govly/webhook",
+            json={
+                "event_id": "test_1001",
+                "event_type": "opportunity",
+                "title": "Test Opportunity",
+                "estimated_amount": 100000,
+            },
         )
+        assert response.status_code == 429
+        data = response.json()
+        assert data["error"] == "rate_limited"
+        assert "WEBHOOKS" in data["message"]
+        assert data["limit"] == 1000
 
-        # Future: AI should have X-RateLimit-Limit: 20
-        # Future: Webhook should have X-RateLimit-Limit: 1000
-        # For now, just check they respond
-        assert ai_response.status_code in [200, 422]
-        assert webhook_response.status_code == 200
 
-    def test_rate_limit_per_client_ip(self):
-        """Test that rate limits are enforced per client IP."""
-        # Future implementation should track by IP
-        # For now, this is a placeholder
+class TestRateLimitingAI:
+    """Test rate limiting for AI endpoints."""
+
+    def test_ai_endpoint_lower_limit(self, monkeypatch):
+        """Test that AI endpoints have 20 req/min limit."""
+        # Fix time
+        fixed_time = 3000000.0
+        monkeypatch.setattr(time, "time", lambda: fixed_time)
+
+        # Clear buckets
+        rate_limit._buckets.clear()
+
+        # Make 20 requests - should all succeed
+        success_count = 0
+        for i in range(20):
+            response = client.post(
+                "/v1/ai/ask",
+                json={"question": f"Test question {i}", "model": "gpt-4-turbo"},
+            )
+            # AI endpoint may return 422 if validation fails, but shouldn't rate limit
+            if response.status_code in [200, 422]:
+                success_count += 1
+
+        assert success_count == 20, "First 20 AI requests should not be rate limited"
+
+        # 21st request should be rate limited
+        response = client.post(
+            "/v1/ai/ask",
+            json={"question": "Test question 21", "model": "gpt-4-turbo"},
+        )
+        assert response.status_code == 429
+        data = response.json()
+        assert data["error"] == "rate_limited"
+        assert "AI" in data["message"]
+        assert data["limit"] == 20
+
+
+class TestRateLimitClassification:
+    """Test route classification logic."""
+
+    def test_classify_webhook_routes(self):
+        """Test that webhook routes are classified correctly."""
+        assert rate_limit.classify_path("/v1/govly/webhook") == "WEBHOOKS"
+        assert rate_limit.classify_path("/v1/radar/webhook") == "WEBHOOKS"
+        assert rate_limit.classify_path("/webhook/test") == "WEBHOOKS"
+
+    def test_classify_ai_routes(self):
+        """Test that AI routes are classified correctly."""
+        assert rate_limit.classify_path("/v1/ai/ask") == "AI"
+        assert rate_limit.classify_path("/v1/ai/models") == "AI"
+        assert rate_limit.classify_path("/v1/ai/guidance") == "AI"
+
+    def test_classify_general_routes(self):
+        """Test that general routes are classified correctly."""
+        assert rate_limit.classify_path("/v1/info") == "GENERAL"
+        assert rate_limit.classify_path("/v1/oems") == "GENERAL"
+        assert rate_limit.classify_path("/v1/contracts") == "GENERAL"
+        assert rate_limit.classify_path("/healthz") == "GENERAL"
+
+
+class TestRateLimitResponse:
+    """Test rate limit response format."""
+
+    def test_rate_limit_response_format(self, monkeypatch):
+        """Test that rate limit response has correct format."""
+        # Fix time
+        fixed_time = 4000000.0
+        monkeypatch.setattr(time, "time", lambda: fixed_time)
+
+        # Clear buckets
+        rate_limit._buckets.clear()
+
+        # Exhaust GENERAL limit
+        for i in range(100):
+            client.get("/v1/info")
+
+        # Get rate limited response
         response = client.get("/v1/info")
-        assert response.status_code == 200
+        assert response.status_code == 429
 
-    def test_rate_limit_window_reset(self):
-        """Test that rate limit window resets after time period."""
-        # Future implementation should reset after window
-        # For now, this is a placeholder
-        response = client.get("/v1/info")
-        assert response.status_code == 200
+        # Check response structure
+        data = response.json()
+        assert "error" in data
+        assert data["error"] == "rate_limited"
+        assert "message" in data
+        assert "retry_after" in data
+        assert "limit" in data
 
-
-@pytest.mark.xfail(reason="Rate limit configuration not yet implemented")
-class TestRateLimitConfiguration:
-    """Test rate limit configuration."""
-
-    def test_rate_limit_policies_defined(self):
-        """Test that rate limit policies are defined."""
-        # TODO: Implement in mcp/core/config.py or middleware
-        from mcp.core.config import RATE_LIMIT_POLICIES
-
-        assert "default" in RATE_LIMIT_POLICIES
-        assert "webhook" in RATE_LIMIT_POLICIES
-        assert "ai" in RATE_LIMIT_POLICIES
-        assert "export" in RATE_LIMIT_POLICIES
-
-    def test_rate_limit_strategy_configurable(self):
-        """Test that rate limit strategy can be configured."""
-        # TODO: Implement strategy selection
-        from mcp.core.config import RATE_LIMIT_POLICIES
-
-        # Should support different strategies
-        strategies = [p.get("strategy") for p in RATE_LIMIT_POLICIES.values()]
-        assert "sliding_window" in strategies or "fixed_window" in strategies
+        # Check headers
+        assert "Retry-After" in response.headers
+        retry_after = int(response.headers["Retry-After"])
+        assert 0 < retry_after <= 60
 
 
-class TestRateLimitBypass:
-    """Test rate limit bypass for internal tools."""
+class TestRateLimitBucketCleanup:
+    """Test that old buckets are cleaned up."""
 
-    @pytest.mark.xfail(reason="Bypass mechanism not yet implemented")
-    def test_internal_client_bypass(self):
-        """Test that internal clients can bypass rate limits."""
-        # TODO: Implement bypass via X-Internal-Client header
-        response = client.get("/v1/info", headers={"X-Internal-Client": "true"})
+    def test_bucket_cleanup(self, monkeypatch):
+        """Test that buckets older than 2 minutes are cleaned up."""
+        # Start at minute 1000
+        fixed_time = [60000.0]  # Minute 1000
 
-        headers = {k.lower(): v for k, v in response.headers.items()}
-        # Should have no rate limit or very high limit
-        if "x-ratelimit-limit" in headers:
-            limit = int(headers["x-ratelimit-limit"])
-            assert limit > 1000  # Internal clients get higher limits
+        def mock_time():
+            return fixed_time[0]
+
+        monkeypatch.setattr(time, "time", mock_time)
+
+        # Clear buckets
+        rate_limit._buckets.clear()
+
+        # Make a request at minute 1000
+        client.get("/v1/info")
+        assert len(rate_limit._buckets) == 1
+
+        # Advance to minute 1003 (3 minutes later)
+        fixed_time[0] = 60000.0 + (3 * 60)
+
+        # Make another request - should clean up old bucket
+        client.get("/v1/info")
+
+        # Should only have current minute's bucket
+        current_minute = int(fixed_time[0] / 60)
+        buckets = [k for k in rate_limit._buckets.keys()]
+        assert len(buckets) <= 2  # Current minute + maybe one more
+        assert all(k[1] >= current_minute - 2 for k in buckets)
 
 
 if __name__ == "__main__":
