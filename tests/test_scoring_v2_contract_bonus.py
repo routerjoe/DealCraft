@@ -1,4 +1,4 @@
-"""Extended tests for scoring v2 context bonuses - Phase 9."""
+"""Extended tests for scoring v2 context bonuses - Phase 9, updated for v2.1 audited values."""
 
 import pytest
 
@@ -12,15 +12,15 @@ def scorer():
 
 
 class TestCVRecommendationBonus:
-    """Test CV recommendation bonus (+5%)."""
+    """Test CV recommendation bonus (v2.1: single=5%, multiple=7%)."""
 
     def test_cv_bonus_applied(self, scorer):
-        """Test that CV recommendations add 5% bonus."""
+        """Test that CV recommendations add bonus (v2.1: multiple CVs = 7%)."""
         opp_with_cv = {
             "oems": ["Microsoft"],
             "amount": 1000000,
             "stage": "Proposal",
-            "contracts_recommended": ["SEWP V", "GSA Schedule"],
+            "contracts_recommended": ["SEWP V", "GSA Schedule"],  # 2 CVs = multiple
         }
 
         opp_without_cv = {
@@ -33,28 +33,28 @@ class TestCVRecommendationBonus:
         scores_with = scorer.calculate_composite_score(opp_with_cv)
         scores_without = scorer.calculate_composite_score(opp_without_cv)
 
-        # score_scaled should be 5 points higher with CV
-        assert scores_with["score_scaled"] >= scores_without["score_scaled"] + 4.9
+        # v2.1: Multiple CVs should be 7 points higher
+        assert scores_with["score_scaled"] >= scores_without["score_scaled"] + 6.9
 
     def test_cv_bonus_in_results(self, scorer):
-        """Test CV bonus is recorded in results."""
+        """Test CV bonus is recorded in results (v2.1: single CV = 5%)."""
         opp = {
             "oems": ["Cisco"],
             "amount": 500000,
-            "contracts_recommended": ["DHS FirstSource II"],
+            "contracts_recommended": ["DHS FirstSource II"],  # 1 CV = single
         }
 
         scores = scorer.calculate_composite_score(opp)
 
         assert "cv_recommendation_bonus" in scores
-        assert scores["cv_recommendation_bonus"] == 5.0
+        assert scores["cv_recommendation_bonus"] == 5.0  # Single CV
 
 
 class TestRegionBonus:
-    """Test region bonus (+2%)."""
+    """Test region bonus (v2.1: East=2.5%, West=2.0%, Central=1.5%)."""
 
     def test_region_bonus_applied(self, scorer):
-        """Test that strategic regions add 2% bonus."""
+        """Test that strategic regions add bonus (v2.1: East = 2.5%)."""
         opp_with_region = {
             "oems": ["Dell"],
             "amount": 500000,
@@ -70,12 +70,14 @@ class TestRegionBonus:
         scores_with = scorer.calculate_composite_score(opp_with_region)
         scores_without = scorer.calculate_composite_score(opp_without_region)
 
-        # score_scaled should be 2 points higher
-        assert scores_with["score_scaled"] >= scores_without["score_scaled"] + 1.9
+        # v2.1: East should be 2.5 points higher
+        assert scores_with["score_scaled"] >= scores_without["score_scaled"] + 2.4
 
     def test_strategic_regions_get_bonus(self, scorer):
-        """Test East, West, Central regions get bonus."""
-        for region in ["East", "West", "Central"]:
+        """Test East, West, Central regions get differentiated bonuses (v2.1 audited)."""
+        expected_bonuses = {"East": 2.5, "West": 2.0, "Central": 1.5}
+
+        for region, expected_bonus in expected_bonuses.items():
             opp = {
                 "oems": ["Microsoft"],
                 "amount": 1000000,
@@ -83,7 +85,7 @@ class TestRegionBonus:
             }
 
             scores = scorer.calculate_composite_score(opp)
-            assert scores["region_bonus"] == 2.0
+            assert scores["region_bonus"] == expected_bonus
 
     def test_non_strategic_region_no_bonus(self, scorer):
         """Test non-strategic regions get no bonus."""
@@ -98,10 +100,10 @@ class TestRegionBonus:
 
 
 class TestCustomerOrgBonus:
-    """Test customer org bonus (+3%)."""
+    """Test customer org bonus (v2.1: DOD=4%, Civilian=3%, Default=2%)."""
 
     def test_org_bonus_applied(self, scorer):
-        """Test that known orgs add 3% bonus."""
+        """Test that known orgs add bonus (v2.1: DOD = 4%)."""
         opp_with_org = {
             "oems": ["HPE"],
             "amount": 750000,
@@ -117,35 +119,35 @@ class TestCustomerOrgBonus:
         scores_with = scorer.calculate_composite_score(opp_with_org)
         scores_without = scorer.calculate_composite_score(opp_without_org)
 
-        # score_scaled should be 3 points higher
-        assert scores_with["score_scaled"] >= scores_without["score_scaled"] + 2.9
+        # v2.1: DOD should be 4 points higher
+        assert scores_with["score_scaled"] >= scores_without["score_scaled"] + 3.9
 
     def test_org_bonus_in_results(self, scorer):
-        """Test org bonus is recorded in results."""
+        """Test org bonus is recorded in results (v2.1: Default tier = 2%)."""
         opp = {
             "oems": ["Cisco"],
             "amount": 500000,
-            "customer_org": "Agency X",
+            "customer_org": "Agency X",  # Not DOD/Civilian, so Default tier
         }
 
         scores = scorer.calculate_composite_score(opp)
 
         assert "customer_org_bonus" in scores
-        assert scores["customer_org_bonus"] == 3.0
+        assert scores["customer_org_bonus"] == 2.0  # v2.1 Default tier
 
 
 class TestCombinedBonuses:
-    """Test that bonuses combine correctly."""
+    """Test that bonuses combine correctly (v2.1)."""
 
     def test_all_bonuses_stack(self, scorer):
-        """Test all bonuses (CV+Region+Org) stack correctly."""
+        """Test all bonuses stack correctly (v2.1: 5+2.5+4 = 11.5%)."""
         opp_all = {
             "oems": ["Microsoft"],
             "amount": 1000000,
             "stage": "Proposal",
-            "region": "East",
-            "customer_org": "DOD",
-            "contracts_recommended": ["SEWP V"],
+            "region": "East",  # v2.1: 2.5%
+            "customer_org": "DOD",  # v2.1: 4.0%
+            "contracts_recommended": ["SEWP V"],  # Single CV: 5.0%
         }
 
         opp_none = {
@@ -157,8 +159,8 @@ class TestCombinedBonuses:
         scores_all = scorer.calculate_composite_score(opp_all)
         scores_none = scorer.calculate_composite_score(opp_none)
 
-        # Should have +10% total bonus (5+2+3)
-        expected_diff = 10.0
+        # v2.1: Should have +11.5% total bonus (5.0 + 2.5 + 4.0)
+        expected_diff = 11.5
         actual_diff = scores_all["score_scaled"] - scores_none["score_scaled"]
 
         assert abs(actual_diff - expected_diff) < 0.5  # Allow small rounding
@@ -179,14 +181,14 @@ class TestCombinedBonuses:
         assert "customer_org_bonus" in scores
         assert "cv_recommendation_bonus" in scores
 
-    def test_scoring_model_v2(self, scorer):
-        """Test scoring model version is v2_enhanced."""
+    def test_scoring_model_v2_1(self, scorer):
+        """Test scoring model version is v2.1_audited."""
         opp = {"oems": ["Microsoft"], "amount": 1000000}
 
         scores = scorer.calculate_composite_score(opp)
 
         assert "scoring_model" in scores
-        assert scores["scoring_model"] == "multi_factor_v2_enhanced"
+        assert scores["scoring_model"] == "multi_factor_v2.1_audited"
 
 
 class TestReasoningOutput:
