@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "red-river-sales-automation": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "env": {
+        "RED_RIVER_BASE_DIR": "/Users/jonolan/RedRiver",
+        "OBSIDIAN_VAULT_PATH": "/Users/jonolan/Documents/Obsidian Documents/Red River Sales",
+        "LOG_LEVEL": "info"
+      }
+    }
+  }
+}

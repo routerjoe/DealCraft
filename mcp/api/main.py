@@ -80,6 +80,11 @@ try:
 except Exception:
     cv_router = None
 
+try:
+    from mcp.api.v1.account_plans import router as account_plans_router
+except Exception:
+    account_plans_router = None
+
 
 app = FastAPI(title="Red River Sales MCP API", version="1.6.0")
 
@@ -249,3 +254,5 @@ if crm_router is not None:
     app.include_router(crm_router, tags=["crm"])
 if cv_router is not None:
     app.include_router(cv_router, tags=["contract_vehicles"])
+if account_plans_router is not None:
+    app.include_router(account_plans_router, tags=["account_plans"])
