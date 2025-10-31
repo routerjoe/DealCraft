@@ -1,1 +1,1 @@
-"""Red River Sales MCP API endpoints."""
+"""DealCraft API endpoints."""

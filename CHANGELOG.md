@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the Red River Sales MCP API will be documented in this file.
+All notable changes to DealCraft will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -446,6 +446,46 @@ Phase 4: Forecast & Govly Automation Batch - See full release notes: [docs/relea
 - **Feature store stub** - In-memory persistence (`save_features`, `get_features`, `FEATURE_SCHEMA`)
 - **Model version:** `multi_factor_v2.1_audited`
 - **New score field:** `total_bonuses_applied`
+
+## [v2.0.0] - 2025-10-31
+
+DealCraft v2.0.0 Release - MCP Rebrand
+
+### Changed
+- **Project rebranded to DealCraft** - All references to "Red River Sales MCP" updated to "DealCraft"
+- **Version bumped to 2.0.0** - Clean semantic version for major identity change
+- **API title:** "DealCraft API" (was "Red River Sales MCP API")
+- **API info endpoint:** Returns `{"name": "DealCraft", "version": "2.0.0"}`
+- **Documentation updated** - README, module docstrings, and release notes reflect DealCraft branding
+
+### Maintained
+- **All functionality preserved** - No breaking API changes, all endpoints remain the same
+- **Obsidian vault structure unchanged** - No folder renames, VAULT_ROOT configuration preserved
+- **Backward compatible** - Existing integrations and workflows continue to work
+- **Federal context preserved** - OEM, SEWP, AETC, AFCENT references unchanged
+
+### Documentation
+- **New release notes:** `docs/releases/v2.0.0.md` - Complete rebrand documentation
+- **Updated:** `README.md` - DealCraft branding throughout
+- **Updated:** `CHANGELOG.md` - This file
+
+### Files Modified
+- `mcp/api/main.py` - Updated FastAPI title and /v1/info response
+- `mcp/api/__init__.py` - Updated docstring
+- `mcp/__init__.py` - Updated docstring
+- `mcp/core/__init__.py` - Updated docstring
+- `mcp/core/config.py` - Updated docstring
+- `mcp/core/logging.py` - Updated docstring
+- `requirements.txt` - Updated header comment
+- `README.md` - Updated project title and description
+- `CHANGELOG.md` - Updated header and added v2.0.0 entry
+
+### Migration Notes
+- No migration required - this is a branding change only
+- API clients should expect `{"name": "DealCraft"}` in `/v1/info` response
+- All other functionality remains identical to v2.0.0-rc2
+
+---
 
 ## [Unreleased]
 
