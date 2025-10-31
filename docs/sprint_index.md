@@ -40,7 +40,7 @@ This document provides an index of all sprint plans for the DealCraft project. E
 ### Sprint 12: AI Account Plans
 **Branch:** `feature/sprint12-ai-account-plans`  
 **Plan:** [docs/sprint_plan.md](../feature/sprint12-ai-account-plans/docs/sprint_plan.md)  
-**Focus:** AI-generated account plans for AFCENT/AETC with OEM partners
+**Focus:** AI-generated account plans for AGENCY-ALPHA/AGENCY-BRAVO with OEM partners
 
 **Key Deliverables:**
 - POST /v1/account-plans/generate
@@ -102,7 +102,7 @@ Each sprint plan follows a consistent structure:
 2. **Scope (In/Out)** - Clear boundaries of what's included and excluded
 3. **Interfaces & Contracts** - API endpoints, MCP tools, file paths
 4. **Deliverables** - Code, tests, docs, and operational artifacts
-5. **Success Criteria / DoD** - Definition of Done with measurable criteria
+5. **Success Criteria / DEPARTMENT-ALPHA** - Definition of Done with measurable criteria
 6. **Risks & Mitigations** - Known risks and mitigation strategies
 7. **Validation Steps** - Local, API, TUI/MCP, and documentation checks
 8. **Checklist** - Sprint execution tracking

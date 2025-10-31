@@ -2,7 +2,7 @@
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/routerjoe/red-river-sales-automation/ci.yml?branch=main)](https://github.com/routerjoe/red-river-sales-automation/actions)
 [![Tests](https://img.shields.io/badge/tests-71%20passing-success)](https://github.com/routerjoe/red-river-sales-automation/actions)
-[![Latest Release](https://img.shields.io/github/v/release/routerjoe/red-river-sales-automation)](https://github.com/routerjoe/red-river-sales-automation/releases/tag/v1.3.0)
+[![Latest Release](https://img.shields.io/github/v/release/routerjoe/red-river-sales-automation)](https://github.com/routerjoe/red-river-sales-automation/releases/tag/v2.0.0)
 [![Python](https://img.shields.io/badge/python-3.11+-blue)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
@@ -98,7 +98,7 @@ The Textual-based Terminal User Interface provides interactive management of sal
 
 ### Screenshot
 ```
-┌─ Red River Sales TUI ────────────────────────────────────────┐
+┌─ DealCraft TUI ──────────────────────────────────────────────┐
 │  📊 Dashboard  │  📧 RFQs  │  🤝 OEMs  │  📋 Contracts  │    │
 ├──────────────────────────────────────────────────────────────┤
 │                                                               │

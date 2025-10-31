@@ -51,7 +51,7 @@ REGION_BONUS_AUDITED = {
 }
 
 CUSTOMER_ORG_BONUS_AUDITED = {
-    "DOD": 4.0,       # Increased from 3.0 (strategic account)
+    "DEPARTMENT-ALPHA": 4.0,       # Increased from 3.0 (strategic account)
     "Civilian": 3.0,  # Maintained
     "Default": 2.0,   # For known but not strategic
 }
@@ -123,7 +123,7 @@ FEATURE_SCHEMA = {
 - Version identifier updated
 - TODO comments for v2.1 implementation
 
-## Success Criteria / DoD
+## Success Criteria / DEPARTMENT-ALPHA
 
 - [ ] Sprint plan created (docs/sprint_plan.md)
 - [ ] Model v2.1 guide complete (docs/guides/forecast_model_v2_1.md)

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * Red River Sales Automation MCP Server
- * 
+ * DealCraft MCP Server
+ *
  * Comprehensive automation for:
  * - RFQ processing from Outlook Bid Board
  * - Sales calculations and pricing
@@ -39,121 +39,121 @@ import { forecastTools, handleForecastTool } from './tools/forecast/index.js';
 import { cvTools, handleCvTool } from './tools/cv/index.js';
 
 class RedRiverMCPServer {
-  private server: Server;
-  private tools: any[];
+    private server: Server;
+    private tools: any[];
 
-  constructor() {
-    this.server = new Server(
-      {
-        name: 'red-river-sales-automation',
-        version: '1.0.0',
-      },
-      {
-        capabilities: {
-          tools: {},
-        },
-      }
-    );
-
-    // Combine all tools
-    this.tools = [
-      ...outlookTools,
-      ...rfqTools,
-      ...salesTools,
-      ...crmTools,
-      ...analyticsTools,
-      ...exportTools,
-      ...fleetingTools,
-      ...intromailTools,
-      ...forecastTools,
-      ...cvTools,
-    ];
-
-    this.setupHandlers();
-  }
-
-  private setupHandlers() {
-    // List available tools
-    this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
-      tools: this.tools,
-    }));
-
-    // Handle tool calls
-    this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
-      const { name, arguments: args } = request.params;
-
-      logger.info('Tool called', { tool: name, args });
-
-      try {
-        // Route to appropriate handler based on tool name prefix
-        if (name.startsWith('outlook_')) {
-          return await handleOutlookTool(name, args);
-        } else if (name.startsWith('rfq_')) {
-          return await handleRfqTool(name, args);
-        } else if (name === 'create_rfq_drafts') {
-          // Special-case RFQ draft tool without rfq_ prefix
-          return await handleRfqTool(name, args);
-        } else if (name.startsWith('sales_')) {
-          return await handleSalesTool(name, args);
-        } else if (name.startsWith('crm_')) {
-          return await handleCrmTool(name, args);
-        } else if (name.startsWith('analytics_')) {
-          return await handleAnalyticsTool(name, args);
-        } else if (name.startsWith('export_')) {
-          return await handleExportTool(name, args);
-        } else if (name.startsWith('fleeting_')) {
-          return await handleFleetingTool(name, args);
-        } else if (name.startsWith('intromail')) {
-          return await handleIntromailTool(name, args);
-        } else if (name.startsWith('forecast_')) {
-          return await handleForecastTool(name, args);
-        } else if (name.startsWith('cv_')) {
-          return await handleCvTool(name, args);
-        }
-
-        throw new Error(`Unknown tool: ${name}`);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        logger.error('Tool execution failed', { tool: name, error: errorMessage });
-        
-        return {
-          content: [
+    constructor() {
+        this.server = new Server(
             {
-              type: 'text',
-              text: `Error executing ${name}: ${errorMessage}`,
+                name: 'dealcraft',
+                version: '2.0.0',
             },
-          ],
-          isError: true,
-        };
-      }
-    });
-  }
+            {
+                capabilities: {
+                    tools: {},
+                },
+            }
+        );
 
-  async start() {
-    // Validate environment
-    const envValid = validateEnv();
-    if (!envValid) {
-      logger.error('Environment validation failed');
-      process.exit(1);
+        // Combine all tools
+        this.tools = [
+            ...outlookTools,
+            ...rfqTools,
+            ...salesTools,
+            ...crmTools,
+            ...analyticsTools,
+            ...exportTools,
+            ...fleetingTools,
+            ...intromailTools,
+            ...forecastTools,
+            ...cvTools,
+        ];
+
+        this.setupHandlers();
     }
 
-    // Initialize database
-    await initializeDatabase();
+    private setupHandlers() {
+        // List available tools
+        this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
+            tools: this.tools,
+        }));
 
-    // Start MCP server
-    const transport = new StdioServerTransport();
-    await this.server.connect(transport);
+        // Handle tool calls
+        this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
+            const { name, arguments: args } = request.params;
 
-    logger.info('Red River Sales Automation MCP Server running', {
-      tools: this.tools.length,
-      version: '1.0.0',
-    });
-  }
+            logger.info('Tool called', { tool: name, args });
+
+            try {
+                // Route to appropriate handler based on tool name prefix
+                if (name.startsWith('outlook_')) {
+                    return await handleOutlookTool(name, args);
+                } else if (name.startsWith('rfq_')) {
+                    return await handleRfqTool(name, args);
+                } else if (name === 'create_rfq_drafts') {
+                    // Special-case RFQ draft tool without rfq_ prefix
+                    return await handleRfqTool(name, args);
+                } else if (name.startsWith('sales_')) {
+                    return await handleSalesTool(name, args);
+                } else if (name.startsWith('crm_')) {
+                    return await handleCrmTool(name, args);
+                } else if (name.startsWith('analytics_')) {
+                    return await handleAnalyticsTool(name, args);
+                } else if (name.startsWith('export_')) {
+                    return await handleExportTool(name, args);
+                } else if (name.startsWith('fleeting_')) {
+                    return await handleFleetingTool(name, args);
+                } else if (name.startsWith('intromail')) {
+                    return await handleIntromailTool(name, args);
+                } else if (name.startsWith('forecast_')) {
+                    return await handleForecastTool(name, args);
+                } else if (name.startsWith('cv_')) {
+                    return await handleCvTool(name, args);
+                }
+
+                throw new Error(`Unknown tool: ${name}`);
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                logger.error('Tool execution failed', { tool: name, error: errorMessage });
+
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: `Error executing ${name}: ${errorMessage}`,
+                        },
+                    ],
+                    isError: true,
+                };
+            }
+        });
+    }
+
+    async start() {
+        // Validate environment
+        const envValid = validateEnv();
+        if (!envValid) {
+            logger.error('Environment validation failed');
+            process.exit(1);
+        }
+
+        // Initialize database
+        await initializeDatabase();
+
+        // Start MCP server
+        const transport = new StdioServerTransport();
+        await this.server.connect(transport);
+
+        logger.info('DealCraft MCP Server running', {
+            tools: this.tools.length,
+            version: '1.0.0',
+        });
+    }
 }
 
 // Start server
 const server = new RedRiverMCPServer();
 server.start().catch((error) => {
-  logger.error('Failed to start server', { error });
-  process.exit(1);
+    logger.error('Failed to start server', { error });
+    process.exit(1);
 });

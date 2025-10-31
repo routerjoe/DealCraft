@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# mcp/cli.py — Extended CLI for Red River MCP
+# mcp/cli.py — Extended CLI for DealCraft MCP
 # Adds subcommands used by the TUI: bidboard get, rfq process, rfq analyze, rfq clean-declined, status --json
 
 import argparse
