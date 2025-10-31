@@ -95,8 +95,13 @@ try:
 except Exception:
     partners_router = None
 
+try:
+    from mcp.api.v1.partners_intel import router as partners_intel_router
+except Exception:
+    partners_intel_router = None
 
-app = FastAPI(title="Red River Sales MCP API", version="1.8.1")
+
+app = FastAPI(title="Red River Sales MCP API", version="1.10.0")
 
 # Add rate limiting middleware
 app.add_middleware(RateLimitMiddleware)
@@ -202,22 +207,27 @@ async def api_info(request: Request):
     return JSONResponse(
         content={
             "name": "Red River Sales MCP API",
-            "version": "1.8.1",
+            "version": "1.10.0",
             "environment": environment,
             "endpoints": [
+                "/healthz",
+                "/v1/info",
                 "/v1/oems",
                 "/v1/oems/all",
                 "/v1/oems/add",
                 "/v1/oems/{name}",
                 "/v1/oems/export/obsidian",
                 "/v1/contracts",
+                "/v1/contracts/{name}",
                 "/v1/ai/models",
+                "/v1/ai/models/detailed",
                 "/v1/ai/guidance",
                 "/v1/ai/ask",
                 "/v1/email/rfq/ingest",
                 "/v1/email/govly/ingest",
                 "/v1/email/intromail/ingest",
                 "/v1/obsidian/opportunity",
+                "/v1/obsidian/sync/summary",
                 "/v1/contacts/export.csv",
                 "/v1/contacts/export.vcf",
                 "/v1/system/recent-actions",
@@ -225,21 +235,30 @@ async def api_info(request: Request):
                 "/v1/forecast/summary",
                 "/v1/forecast/all",
                 "/v1/forecast/top",
+                "/v1/forecast/FY{fiscal_year}",
                 "/v1/forecast/export/csv",
                 "/v1/forecast/export/obsidian",
                 "/v1/crm/export",
                 "/v1/crm/attribution",
                 "/v1/crm/formats",
-                "/v1/crm/validate/{id}",
+                "/v1/crm/validate/{opportunity_id}",
                 "/v1/cv/recommend",
                 "/v1/cv/vehicles",
-                "/v1/cv/vehicles/{name}",
+                "/v1/cv/vehicles/{vehicle_name}",
                 "/v1/govly/webhook",
                 "/v1/radar/webhook",
                 "/v1/metrics",
+                "/v1/metrics/accuracy",
+                "/v1/metrics/health",
+                "/v1/account-plans/formats",
+                "/v1/account-plans/generate",
                 "/v1/partners/tiers",
                 "/v1/partners/sync",
                 "/v1/partners/export/obsidian",
+                "/v1/partners/intel/scores",
+                "/v1/partners/intel/graph",
+                "/v1/partners/intel/enrich",
+                "/v1/partners/intel/export/obsidian",
             ],
         },
         headers={"x-request-id": request.headers.get("x-request-id", "")},
@@ -277,3 +296,5 @@ if account_plans_router is not None:
     app.include_router(account_plans_router, tags=["account_plans"])
 if partners_router is not None:
     app.include_router(partners_router, tags=["partners"])
+if partners_intel_router is not None:
+    app.include_router(partners_intel_router, tags=["partners_intel"])
