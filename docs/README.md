@@ -1,6 +1,6 @@
-# Red River Sales Automation — Documentation
+# DealCraft — Documentation
 
-Welcome to the complete documentation for Red River Sales Automation MCP API.
+Welcome to the complete documentation for DealCraft MCP API.
 
 ## Quick Links
 

@@ -1,4 +1,4 @@
-# 🎯 Red River Sales Automation - Configuration Package Complete!
+# 🎯 DealCraft - Configuration Package Complete!
 
 **Created:** October 13, 2025  
 **Package Version:** 1.0  
