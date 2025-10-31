@@ -51,3 +51,14 @@ Defaults are derived from `OBSIDIAN_VAULT_PATH`. You may override any:
 - Processor uses atomic writes and honors `dry_run`
 - Idempotent via per-note content hash
 - `since-last-run` clamps end date to today
+
+## Todo List Structure
+
+The processor expects the following sections in your `To Do List.md`:
+- `## 📌 Running List (General Backlog)` - where new tasks are added
+- `## 📌 Completed (General Backlog)` - where completed tasks are moved
+
+Tasks are automatically:
+- Added to Running List with date and source note links
+- Moved from Running List to Completed when marked with `[x]`
+- Deduplicated (case-insensitive)
