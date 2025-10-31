@@ -1,6 +1,6 @@
-# Red River Sales Automation MCP Server
+# DealCraft MCP Server
 
-> 🚀 Comprehensive MCP server for automating Red River sales operations - RFQ processing, CRM, and analytics
+> 🚀 Comprehensive MCP server for automating DealCraft sales operations - RFQ processing, CRM, and analytics
 
 ## Overview
 
@@ -22,14 +22,14 @@ This MCP server provides **30+ tools** that automate your entire sales workflow 
 - **macOS** (for AppleScript Outlook integration)
 - **Node.js 18+**
 - **Microsoft Outlook** (running)
-- **Obsidian** with Red River Sales vault
+- **Obsidian** with DealCraft Sales vault
 - **Google Drive** (optional, for exports)
 
 ### Installation
 
 ```bash
 # 1. Clone/download this project
-cd red-river-sales-automation
+cd DealCraft
 
 # 2. Run setup script
 chmod +x setup.sh
@@ -43,9 +43,9 @@ nano .env
 # macOS: ~/Library/Application Support/Claude/claude_desktop_config.json
 {
   "mcpServers": {
-    "red-river-sales-automation": {
+    "dealcraft": {
       "command": "node",
-      "args": ["/absolute/path/to/red-river-sales-automation/dist/index.js"]
+      "args": ["/absolute/path/to/DealCraft/dist/index.js"]
     }
   }
 }
@@ -301,7 +301,7 @@ python3 test_applescript.py
 
 # Test MCP server
 npm run dev
-# Then ask Claude: "Do you have Red River sales tools?"
+# Then ask Claude: "Do you have DealCraft sales tools?"
 ```
 
 ### Adding New Tools

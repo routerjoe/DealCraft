@@ -1,6 +1,6 @@
-# Red River Sales MCP API - Runbook
+# DealCraft API - Runbook
 
-Operational guide for the Red River Sales Model Context Protocol API and TUI.
+Operational guide for the DealCraft Model Context Protocol API and TUI.
 
 ## Table of Contents
 
@@ -24,7 +24,7 @@ Operational guide for the Red River Sales Model Context Protocol API and TUI.
 
 1. **Clone the repository**
    ```bash
-   cd /path/to/red-river-sales-automation
+   cd /path/to/DealCraft
    ```
 
 2. **Install dependencies**
