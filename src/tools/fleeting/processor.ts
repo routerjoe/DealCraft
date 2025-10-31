@@ -474,7 +474,7 @@ function ensureSection(txt: string, heading: string): string {
 function existingBacklog(todoTxt: string): Set<string> {
   const set = new Set<string>();
   const lines = todoTxt.split(/\r?\n/);
-  let i = lines.findIndex(l => /^##\s*Backlog\s*$/.test(l));
+  let i = lines.findIndex(l => /^##\s*📌 Running List \(General Backlog\)\s*$/.test(l));
   if (i === -1) return set;
   i++;
   while (i < lines.length && !/^##\s+/.test(lines[i])) {
@@ -489,7 +489,7 @@ function existingBacklog(todoTxt: string): Set<string> {
 function appendBacklog(todoPath: string, tasks: string[], context: { date: string; source: string }, dry: boolean): number {
   if (tasks.length === 0) return 0;
   let txt = E(todoPath) ? R(todoPath) : '';
-  txt = ensureSection(txt, 'Backlog');
+  txt = ensureSection(txt, '📌 Running List (General Backlog)');
   const existing = existingBacklog(txt);
   const toAdd: string[] = [];
   for (const t of tasks) {
@@ -499,7 +499,7 @@ function appendBacklog(todoPath: string, tasks: string[], context: { date: strin
     }
   }
   if (toAdd.length === 0) { if (!dry) writeAtomic(todoPath, txt); return 0; }
-  const newTxt = txt.replace(/^##\s*Backlog\s*$/mi, m => `${m}\n${toAdd.join('\n')}\n`);
+  const newTxt = txt.replace(/^##\s*📌 Running List \(General Backlog\)\s*$/mi, m => `${m}\n${toAdd.join('\n')}\n`);
   if (!dry) writeAtomic(todoPath, newTxt);
   return toAdd.length;
 }
@@ -509,7 +509,7 @@ function sweepCompleted(todoPath: string, dry: boolean): number {
   let txt = R(todoPath);
   txt = ensureSection(txt, '📌 Completed (General Backlog)');
   const lines = txt.split(/\r?\n/);
-  const start = lines.findIndex(l => /^##\s*Backlog\s*$/.test(l));
+  const start = lines.findIndex(l => /^##\s*📌 Running List \(General Backlog\)\s*$/.test(l));
   if (start === -1) { if (!dry) writeAtomic(todoPath, txt); return 0; }
   let i = start + 1; const idxs: number[] = [];
   while (i < lines.length && !/^##\s+/.test(lines[i])) { if (/^- \[[xX]\]\s+/.test(lines[i])) idxs.push(i); i++; }
