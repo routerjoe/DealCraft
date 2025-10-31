@@ -172,7 +172,7 @@ Successfully seeded 6 sprint branches (Sprint 10-15) with comprehensive sprint p
 
 ### Key Features
 - **Region Bonus (Audited):** East 2.5%, West 2.0%, Central 1.5%
-- **Customer Org Bonus (Audited):** DEPARTMENT-ALPHA 4.0%, Civilian 3.0%, Default 2.0%
+- **Customer Org Bonus (Audited):** Federal Department A 4.0%, Civilian 3.0%, Default 2.0%
 - **CV Bonus (Audited):** Single 5.0%, Multiple 7.0%
 - **Guardrails:** MAX_TOTAL_BONUS = 15%
 - Feature store design

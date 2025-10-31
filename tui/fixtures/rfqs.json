@@ -1,7 +1,7 @@
 {
   "items": [
     { "id": "123", "subject": "SEWP Switches", "rfq_type": "SEWP", "rfq_score": 82, "rfq_recommendation": "GO" },
-    { "id": "124", "subject": "AFCENT Laptops", "rfq_type": "AFCENT", "rfq_score": 57, "rfq_recommendation": "REVIEW" },
+    { "id": "124", "subject": "Customer Alpha Laptops", "rfq_type": "Customer Alpha", "rfq_score": 57, "rfq_recommendation": "REVIEW" },
     { "id": "125", "subject": "Nutanix Cluster", "rfq_type": "Nutanix", "rfq_score": 68, "rfq_recommendation": "GO_IF_MARGINS" }
   ]
 }

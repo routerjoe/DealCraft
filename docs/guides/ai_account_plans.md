@@ -13,7 +13,7 @@ The AI Account Plans feature generates strategic account plans for federal custo
 ### Key Features
 
 - 🤖 **AI-Powered Analysis** - Leverages OpenAI/Anthropic for strategic insights
-- 🎯 **Customer Focus** - AFCENT and AETC specialization
+- 🎯 **Customer Focus** - Customer Alpha and Customer Beta specialization
 - 🤝 **OEM Strategies** - Cisco, Nutanix, NetApp, Red Hat positioning
 - 📊 **Data Integration** - Uses forecast and opportunity data
 - 📝 **Obsidian Export** - Markdown files for team collaboration
@@ -21,14 +21,14 @@ The AI Account Plans feature generates strategic account plans for federal custo
 
 ## Target Customers
 
-### AFCENT (Air Forces Central Command)
+### Customer Alpha (Customer Alpha Command)
 
 **Profile:**
 - **Mission:** Air operations in Middle East theater
 - **Budget:** $2-4B annually for IT/infrastructure
 - **Key Priorities:** Secure communications, data analytics, cloud migration
 - **Decision Cycle:** 12-18 months for major programs
-- **Buying Preferences:** SEWP, GSA MAS, Air Force Enterprise IT
+- **Buying Preferences:** SEWP, Federal Agency A MAS, Air Force Enterprise IT
 
 **Strategic Opportunities:**
 - Network modernization for distributed operations
@@ -37,14 +37,14 @@ The AI Account Plans feature generates strategic account plans for federal custo
 - Cybersecurity enhancements
 - AI/ML for intelligence analysis
 
-### AETC (Air Education and Training Command)
+### Customer Beta (Customer Beta Command)
 
 **Profile:**
 - **Mission:** Recruit, train, and educate Airmen
 - **Budget:** $1-2B annually for IT/infrastructure
 - **Key Priorities:** Training systems, simulation, virtual reality, cloud services
 - **Decision Cycle:** 9-12 months for training systems
-- **Buying Preferences:** GSA MAS, AFWERX, SBIR contracts
+- **Buying Preferences:** Federal Agency A MAS, AFWERX, SBIR contracts
 
 **Strategic Opportunities:**
 - Virtual training environments
@@ -63,13 +63,13 @@ The AI Account Plans feature generates strategic account plans for federal custo
 - Comprehensive security portfolio (SecureX, Umbrella, Duo)
 - Software-defined WAN solutions
 
-**AFCENT Strategy:**
+**Customer Alpha Strategy:**
 - Position for secure communications infrastructure
 - SD-WAN for distributed theater operations
 - Zero-trust security architecture
 - Cloud-managed networking
 
-**AETC Strategy:**
+**Customer Beta Strategy:**
 - Campus networking for training bases
 - Secure collaboration (Webex for classified)
 - Network analytics for training systems
@@ -88,13 +88,13 @@ The AI Account Plans feature generates strategic account plans for federal custo
 - Strong DoD presence
 - Software-defined data center
 
-**AFCENT Strategy:**
+**Customer Alpha Strategy:**
 - Edge computing for forward locations
 - Hybrid cloud for classified workloads
 - Disaster recovery/business continuity
 - Rapid deployment capabilities
 
-**AETC Strategy:**
+**Customer Beta Strategy:**
 - VDI for training environments
 - Private cloud for simulation systems
 - Centralized management across bases
@@ -113,13 +113,13 @@ The AI Account Plans feature generates strategic account plans for federal custo
 - Data protection and compliance
 - All-flash arrays for performance
 
-**AFCENT Strategy:**
+**Customer Alpha Strategy:**
 - High-performance storage for intelligence data
 - Data tiering (hot/warm/cold)
 - Cloud backup and archive
 - Ransomware protection
 
-**AETC Strategy:**
+**Customer Beta Strategy:**
 - Scalable storage for training content
 - Cloud integration for distributed access
 - Snapshot/backup for training systems
@@ -138,13 +138,13 @@ The AI Account Plans feature generates strategic account plans for federal custo
 - Automation (Ansible)
 - Strong open-source community
 
-**AFCENT Strategy:**
+**Customer Alpha Strategy:**
 - RHEL for secure server infrastructure
 - OpenShift for application modernization
 - Ansible for configuration management
 - Satellite for patch management
 
-**AETC Strategy:**
+**Customer Beta Strategy:**
 - RHEL for training system backends
 - OpenShift for DevSecOps training
 - Container-based training environments
@@ -161,7 +161,7 @@ The AI Account Plans feature generates strategic account plans for federal custo
 
 ```json
 {
-  "customer": "AFCENT",
+  "customer": "Customer Alpha",
   "oem_partners": ["Cisco", "Nutanix"],
   "fiscal_year": "FY26",
   "focus_areas": ["modernization", "security", "cloud"],
@@ -176,7 +176,7 @@ The AI Account Plans feature generates strategic account plans for federal custo
 ```
 
 **Parameters:**
-- `customer` (required): "AFCENT" or "AETC"
+- `customer` (required): "Customer Alpha" or "Customer Beta"
 - `oem_partners` (required): Array of ["Cisco", "Nutanix", "NetApp", "Red Hat"]
 - `fiscal_year` (required): "FY26", "FY27", etc.
 - `focus_areas` (optional): ["modernization", "security", "cloud", "networking", "storage"]
@@ -239,18 +239,18 @@ The AI provides:
 
 ```markdown
 ---
-customer: AFCENT
+customer: Customer Alpha
 fiscal_year: FY26
 generated: 2025-10-29
 oem_partners: [Cisco, Nutanix]
 confidence: 0.85
 ---
 
-# FY26 Account Plan: AFCENT
+# FY26 Account Plan: Customer Alpha
 
 ## Executive Summary
 
-AFCENT presents a $3.2M opportunity in FY26 focused on secure cloud
+Customer Alpha presents a $3.2M opportunity in FY26 focused on secure cloud
 infrastructure and network modernization...
 
 ## Customer Priorities
@@ -313,7 +313,7 @@ infrastructure and network modernization...
 **Q2 FY26 (Jan-Mar 2026)**
 - Cisco opportunity closure
 - Nutanix edge computing scoping
-- AETC cross-sell exploration
+- Customer Beta cross-sell exploration
 
 **Q3 FY26 (Apr-Jun 2026)**
 - Nutanix opportunity closure
@@ -350,12 +350,12 @@ Generated by AI Account Plans v1.0
 
 ```json
 {
-  "customer": "AFCENT",
+  "customer": "Customer Alpha",
   "fiscal_year": "FY26",
   "generated": "2025-10-29T13:00:00Z",
   "confidence": 0.85,
   "oem_partners": ["Cisco", "Nutanix"],
-  "executive_summary": "AFCENT presents a $3.2M opportunity...",
+  "executive_summary": "Customer Alpha presents a $3.2M opportunity...",
   "priorities": [
     {
       "title": "Secure Communications",
@@ -408,27 +408,27 @@ Plans are exported to structured directories:
 
 ```
 obsidian/50 Dashboards/Account Plans/
-├── AFCENT/
-│   ├── FY26_AFCENT_Account_Plan.md
-│   ├── Cisco_Strategy_AFCENT_FY26.md
-│   ├── Nutanix_Strategy_AFCENT_FY26.md
-│   └── Opportunities_AFCENT_FY26.md
-└── AETC/
-    ├── FY26_AETC_Account_Plan.md
-    ├── NetApp_Strategy_AETC_FY26.md
-    ├── Red_Hat_Strategy_AETC_FY26.md
-    └── Opportunities_AETC_FY26.md
+├── Customer Alpha/
+│   ├── FY26_CustomerAlpha_Account_Plan.md
+│   ├── Cisco_Strategy_CustomerAlpha_FY26.md
+│   ├── Nutanix_Strategy_CustomerAlpha_FY26.md
+│   └── Opportunities_CustomerAlpha_FY26.md
+└── Customer Beta/
+    ├── FY26_CustomerBeta_Account_Plan.md
+    ├── NetApp_Strategy_CustomerBeta_FY26.md
+    ├── Red_Hat_Strategy_CustomerBeta_FY26.md
+    └── Opportunities_CustomerBeta_FY26.md
 ```
 
 ## Usage Examples
 
-### Generate AFCENT Plan
+### Generate Customer Alpha Plan
 
 ```bash
 curl -X POST http://localhost:8000/v1/account-plans/generate \
   -H "Content-Type: application/json" \
   -d '{
-    "customer": "AFCENT",
+    "customer": "Customer Alpha",
     "oem_partners": ["Cisco", "Nutanix"],
     "fiscal_year": "FY26",
     "focus_areas": ["modernization", "security"],
@@ -436,13 +436,13 @@ curl -X POST http://localhost:8000/v1/account-plans/generate \
   }'
 ```
 
-### Generate Multi-OEM AETC Plan
+### Generate Multi-OEM Customer Beta Plan
 
 ```bash
 curl -X POST http://localhost:8000/v1/account-plans/generate \
   -H "Content-Type: application/json" \
   -d '{
-    "customer": "AETC",
+    "customer": "Customer Beta",
     "oem_partners": ["NetApp", "Red Hat", "Cisco"],
     "fiscal_year": "FY26",
     "focus_areas": ["cloud", "training"],
@@ -455,29 +455,29 @@ curl -X POST http://localhost:8000/v1/account-plans/generate \
 **New in Phase 12**: Generate professional PDF account plans for executive presentations and customer meetings.
 
 ```bash
-# Generate PDF for AFCENT
+# Generate PDF for Customer Alpha
 curl -s -X POST http://localhost:8000/v1/account-plans/generate \
   -H "Content-Type: application/json" \
   -d '{
-    "customer": "AFCENT",
+    "customer": "Customer Alpha",
     "oem_partners": ["Cisco", "Microsoft"],
     "fiscal_year": "FY26",
     "format": "pdf"
-  }' > AFCENT_Account_Plan.pdf
+  }' > CustomerAlpha_Account_Plan.pdf
 
-# Generate PDF for AETC
+# Generate PDF for Customer Beta
 curl -s -X POST http://localhost:8000/v1/account-plans/generate \
   -H "Content-Type: application/json" \
   -d '{
-    "customer": "AETC",
+    "customer": "Customer Beta",
     "oem_partners": ["Dell", "HPE"],
     "fiscal_year": "FY26",
     "format": "pdf"
-  }' > AETC_Account_Plan.pdf
+  }' > CustomerBeta_Account_Plan.pdf
 ```
 
 **PDF Features:**
-- Professional formatting with Red River branding
+- Professional formatting with DealCraft branding
 - Executive summary on first page
 - Multi-page layout with page breaks
 - Tables for outreach plans and risks

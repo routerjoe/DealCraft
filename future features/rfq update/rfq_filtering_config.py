@@ -15,7 +15,7 @@ from datetime import datetime
 # ============================================================================
 STRATEGIC_CUSTOMERS = {
     'CRITICAL': [
-        'AFCENT',           # Air Forces Central Command
+        'Customer Alpha',           # Customer Alpha Command
         'ARCENT',           # Army Central Command
         'US CYBERCOMMAND',  # United States Cyber Command
         'AFSOC',            # Air Force Special Operations Command
@@ -24,7 +24,7 @@ STRATEGIC_CUSTOMERS = {
         'DARPA',            # Defense Advanced Research Projects Agency
     ],
     'HIGH': [
-        'AETC',             # Air Education and Training Command
+        'Customer Beta',             # Customer Beta Command
         'Hill AFB',         # Hill Air Force Base
         'Eglin AFB',        # Eglin Air Force Base
         'Tyndall AFB',      # Tyndall Air Force Base
@@ -217,7 +217,7 @@ FILTER_RULES = [
 def apply_rule_r001(rfq_subject: str, rfq_sender: str) -> bool:
     """Rule 1: Auto-decline consolidated notices"""
     consolidated_patterns = [
-        'GSA eBuy Requests and Quotes/Bids (Consolidated Notice)',
+        'Federal Agency A eBuy Requests and Quotes/Bids (Consolidated Notice)',
         'saved search matches',
     ]
     consolidated_senders = [

@@ -42,7 +42,7 @@ Get the top forecasted opportunities from the pipeline.
 ```
 🎯 Top 5 Forecasted Opportunities
 
-1. Federal Cloud Migration - GSA
+1. Federal Cloud Migration - Federal Agency A
    Amount: $2.5M | Close: 2025-12-15 | Score: 0.87
 
 2. DoD Cybersecurity Refresh - DOD
@@ -81,7 +81,7 @@ Get contract vehicle recommendations for federal opportunities.
 ```
 /rr cv recommend           # All available CVs
 /rr cv recommend DOD       # DoD-specific CVs
-/rr cv recommend "Air Force"  # AFCENT/AETC CVs
+/rr cv recommend "Air Force"  # Customer Alpha/Customer Beta CVs
 ```
 
 **Response Format:**
@@ -94,7 +94,7 @@ Get contract vehicle recommendations for federal opportunities.
    Ceiling: $50B | Expires: 2031
    Best for: Federal IT procurement, short lead times
 
-⭐ GSA MAS (Schedule 70)
+⭐ Federal Agency A MAS (Schedule 70)
    Eligibility: ✅ Active Contract
    Categories: IT Solutions, Cloud Services
    Ceiling: No limit | Expires: 2027
@@ -137,7 +137,7 @@ Show recent system activity including webhooks, opportunities, and changes.
 📅 Recent Activity (Last 24 hours)
 
 🆕 New Opportunities (3)
-  • Federal IT Modernization - GSA ($500K)
+  • Federal IT Modernization - Federal Agency A ($500K)
   • Cloud Migration Phase 2 - DOD ($1.2M)
   • Data Center Refresh - NASA ($800K)
 
@@ -235,7 +235,7 @@ Contact your workspace admin to request access.
 **For `/rr forecast`:**
 - Command: `/rr`
 - Request URL: `https://your-domain.com/v1/slack/command`
-- Short Description: `Red River sales automation commands`
+- Short Description: `DealCraft sales automation commands`
 - Usage Hint: `forecast top [count] | cv recommend [agency] | recent [hours]`
 
 3. Click **"Save"**
@@ -369,7 +369,7 @@ Commands are parsed with the following grammar:
 ### Argument Types
 
 - **Numeric:** `10`, `20`, `168`
-- **String:** `DOD`, `"Air Force"`, `GSA`
+- **String:** `DOD`, `"Air Force"`, `Federal Agency A`
 - **Flags:** `--dry-run`, `--verbose`
 
 ### Error Handling

@@ -15,10 +15,10 @@ client = TestClient(app)
 
 
 def test_account_plan_pdf_afcent():
-    """Test PDF export for AFCENT customer."""
+    """Test PDF export for Customer Alpha customer."""
     response = client.post(
         "/v1/account-plans/generate",
-        json={"customer": "AFCENT", "oem_partners": ["Cisco", "Microsoft"], "fiscal_year": "FY26", "format": "pdf"},
+        json={"customer": "Customer Alpha", "oem_partners": ["Cisco", "Microsoft"], "fiscal_year": "FY26", "format": "pdf"},
     )
 
     assert response.status_code == 200
@@ -42,9 +42,10 @@ def test_account_plan_pdf_afcent():
 
 
 def test_account_plan_pdf_aetc():
-    """Test PDF export for AETC customer."""
+    """Test PDF export for Customer Beta customer."""
     response = client.post(
-        "/v1/account-plans/generate", json={"customer": "AETC", "oem_partners": ["Dell", "HPE"], "fiscal_year": "FY26", "format": "pdf"}
+        "/v1/account-plans/generate",
+        json={"customer": "Customer Beta", "oem_partners": ["Dell", "HPE"], "fiscal_year": "FY26", "format": "pdf"},
     )
 
     assert response.status_code == 200
@@ -74,7 +75,8 @@ def test_account_plan_pdf_unknown_customer():
 def test_account_plan_json_format_still_works():
     """Test that JSON format still works after PDF implementation."""
     response = client.post(
-        "/v1/account-plans/generate", json={"customer": "AFCENT", "oem_partners": ["Cisco"], "fiscal_year": "FY26", "format": "json"}
+        "/v1/account-plans/generate",
+        json={"customer": "Customer Alpha", "oem_partners": ["Cisco"], "fiscal_year": "FY26", "format": "json"},
     )
 
     assert response.status_code == 200
@@ -89,7 +91,8 @@ def test_account_plan_json_format_still_works():
 def test_account_plan_markdown_format_still_works():
     """Test that markdown format still works after PDF implementation."""
     response = client.post(
-        "/v1/account-plans/generate", json={"customer": "AETC", "oem_partners": ["Microsoft"], "fiscal_year": "FY26", "format": "markdown"}
+        "/v1/account-plans/generate",
+        json={"customer": "Customer Beta", "oem_partners": ["Microsoft"], "fiscal_year": "FY26", "format": "markdown"},
     )
 
     assert response.status_code == 200
@@ -102,7 +105,7 @@ def test_account_plan_pdf_with_minimal_data():
     """Test PDF generation works even with minimal opportunity data."""
     # This tests the fallback to sample data when no real opportunities exist
     response = client.post(
-        "/v1/account-plans/generate", json={"customer": "AFCENT", "oem_partners": ["Cisco"], "fiscal_year": "FY26", "format": "pdf"}
+        "/v1/account-plans/generate", json={"customer": "Customer Alpha", "oem_partners": ["Cisco"], "fiscal_year": "FY26", "format": "pdf"}
     )
 
     assert response.status_code == 200

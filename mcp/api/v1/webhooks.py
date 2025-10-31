@@ -297,7 +297,7 @@ async def govly_webhook(
       "title": "IT Services RFQ",
       "description": "Federal IT services contract",
       "estimated_amount": 500000,
-      "agency": "GSA",
+      "agency": "Federal Agency A",
       "posted_date": "2025-10-28T00:00:00Z",
       "close_date": "2025-11-15T23:59:59Z",
       "source_url": "https://govly.example.com/opp/12345"

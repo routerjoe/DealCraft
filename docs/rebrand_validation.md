@@ -68,7 +68,7 @@ tests/test_health.py::test_api_info PASSED
   - `30 Hubs/` ✓ Preserved
   - `50 Dashboards/` ✓ Preserved
 - ❌ **VAULT_ROOT configuration** - Paths unchanged
-- ❌ **Federal context** - OEM, SEWP, AETC, AFCENT preserved
+- ❌ **Federal context** - OEM, SEWP, Customer Beta, Customer Alpha preserved
 - ❌ **Slack commands** - Integration preserved
 - ❌ **Webhook endpoints** - Govly/Radar unchanged
 - ❌ **Database schemas** - No migration needed

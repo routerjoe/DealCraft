@@ -2,7 +2,7 @@
 
 ## Customer Meeting
 
-Met with **Robert Johnson**, Chief Technology Officer at AETC
+Met with **Robert Johnson**, Chief Technology Officer at Customer Beta
 Email: robert.johnson@us.af.mil
 He mentioned their Director of IT, **Sarah Williams** (sarah.williams@us.af.mil)
 Office numbers: 210-652-1234
@@ -34,6 +34,6 @@ Different phone formats that should all normalize:
 - 5712653865
 
 ## Tasks
-- [ ] Set up meeting with Robert and Sarah from AETC
+- [ ] Set up meeting with Robert and Sarah from Customer Beta
 - [ ] Request quote from Michael at Dell
 - [ ] Follow up with Lisa on pricing

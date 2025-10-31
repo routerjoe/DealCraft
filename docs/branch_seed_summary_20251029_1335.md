@@ -93,7 +93,7 @@ Successfully seeded 6 sprint branches (Sprint 10-15) with comprehensive sprint p
 
 ---
 
-## Sprint 12: AI Account Plans (AFCENT/AETC)
+## Sprint 12: AI Account Plans (Customer Alpha/Customer Beta)
 
 **Branch:** `feature/sprint12-ai-account-plans`  
 **Commit:** `6dc2369`
@@ -113,7 +113,7 @@ Successfully seeded 6 sprint branches (Sprint 10-15) with comprehensive sprint p
 ### Key Features
 - POST `/v1/account-plans/generate` (stub returning `not_implemented: true`)
 - GET `/v1/account-plans/formats` (returns markdown, pdf, json)
-- Customer profiles: AFCENT, AETC
+- Customer profiles: Customer Alpha, Customer Beta
 - OEM strategies: Cisco, Nutanix, NetApp, Red Hat
 - AI reasoning methodology documented
 
@@ -305,7 +305,7 @@ gh pr create \
 
 # Sprint 12
 gh pr create \
-  --title "Sprint 12: AI Account Plans (AFCENT/AETC) — seed (+docs)" \
+  --title "Sprint 12: AI Account Plans (Customer Alpha/Customer Beta) — seed (+docs)" \
   --base main \
   --head feature/sprint12-ai-account-plans \
   --label sprint,12,seed,draft \

@@ -111,7 +111,7 @@ Raw Score: 75.5
     "oems": ["Dell"],            # 90 points
     "amount": 500000,            # 70 points
     "region": "Central",
-    "customer_org": "GSA",       # Civilian
+    "customer_org": "Federal Agency A",       # Civilian
     "contracts_recommended": ["GSA Schedule"],  # 1 CV
     "stage": "Discovery",
     "close_date": "2026-06-30"
@@ -207,7 +207,7 @@ Raw Score: 93.0
     "amount": 8000000,
     "region": "East",
     "customer_org": "DOD Defense Contract Management Agency",
-    "contracts_recommended": ["SEWP V", "GSA 70", "CHESS"],
+    "contracts_recommended": ["SEWP V", "Federal Agency A 70", "CHESS"],
     "stage": "Proposal",
     "close_date": "2026-02-15"
 }

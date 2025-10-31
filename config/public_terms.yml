@@ -2,8 +2,8 @@
 # Adjust freely; these replacements will only affect docs/public + wiki (not internal docs).
 mask_map:
   # Air Force / MAJCOMs / Agencies (examples)
-  "AFCENT": "AGENCY-ALPHA"
-  "AETC": "AGENCY-BRAVO"
+  "Customer Alpha": "AGENCY-ALPHA"
+  "Customer Beta": "AGENCY-BRAVO"
   "USAFE": "AGENCY-CHARLIE"
   "MDA": "AGENCY-DELTA"
   "PACAF": "AGENCY-ECHO"
@@ -11,7 +11,7 @@ mask_map:
   "ANG": "AGENCY-GUARD"
   "AFRC": "AGENCY-RESERVE"
   "USAF": "SERVICE-ALPHA"
-  "DoD": "DEPARTMENT-ALPHA"
+  "DoD": "Federal Department A"
   "DISA": "AGENCY-NETOPS"
   "ARCENT": "ARMY-COMMAND-ALPHA"
   "CENTCOM": "CCMD-ALPHA"
@@ -26,7 +26,7 @@ whitelist_keep:
   - Red Hat
   - SEWP
   - CHESS
-  - GSA
+  - Federal Agency A
   - NASA
   - CIO-SP3
   - Alliant 2

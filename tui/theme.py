@@ -1,10 +1,10 @@
-"""Red River light theme for Textual TUI."""
+"""DealCraft light theme for Textual TUI."""
 
 from textual.design import ColorSystem
 
-# Red River brand colors - light theme
-RED_RIVER_LIGHT = ColorSystem(
-    primary="#CC0000",  # Red River red
+# DealCraft brand colors - light theme
+DEALCRAFT_LIGHT = ColorSystem(
+    primary="#CC0000",  # DealCraft red
     secondary="#2C5F8D",  # Professional blue
     warning="#FF9800",  # Orange for warnings
     error="#D32F2F",  # Deep red for errors

@@ -7,7 +7,7 @@
 - Parses your CSV (must include `email`; other columns become features).
 - Scores each row using configurable weights:
   - **Title seniority** (CIO, Director, Colonel, GS-14/15...)
-  - **Organization match** (AFCENT, AETC, Space Systems…)
+  - **Organization match** (Customer Alpha, Customer Beta, Space Systems…)
   - **Notes keywords** (“EBC”, “follow-up”, “requested briefing”, etc.)
 - Outputs:  
   - `priority` (High/Medium/Low)  

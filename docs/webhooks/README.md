@@ -30,7 +30,7 @@ Ingests federal opportunity events from Govly.
   "title": "IT Services RFQ",
   "description": "Federal IT services contract",
   "estimated_amount": 500000,
-  "agency": "GSA",
+  "agency": "Federal Agency A",
   "posted_date": "2025-10-28T00:00:00Z",
   "close_date": "2025-11-15T23:59:59Z",
   "source_url": "https://govly.example.com/opp/12345"
@@ -387,14 +387,14 @@ curl -X POST "http://localhost:8000/v1/govly/webhook?dry_run=true" \
   }'
 ```
 
-**AFCENT (Air Force Central Command):**
+**Customer Alpha (Air Force Central Command):**
 ```bash
 curl -X POST "http://localhost:8000/v1/govly/webhook?dry_run=true" \
   -H "Content-Type: application/json" \
   -d '{
     "event_id": "afcent_003",
     "event_type": "opportunity",
-    "title": "AFCENT Cybersecurity Services",
+    "title": "Customer Alpha Cybersecurity Services",
     "description": "Air Force Central Command cybersecurity contract",
     "estimated_amount": 2500000,
     "agency": "Air Force",

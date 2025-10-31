@@ -126,7 +126,7 @@ def get_opportunities_dir() -> Path:
 
     Example:
         >>> opps = get_opportunities_dir()
-        >>> opp_file = opps / "AFCENT-Network-Modernization.md"
+        >>> opp_file = opps / "Customer Alpha-Network-Modernization.md"
     """
     return get_projects_dir() / "Opportunities"
 

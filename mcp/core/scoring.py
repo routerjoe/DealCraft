@@ -396,7 +396,7 @@ class OpportunityScorer:
             customer_org_upper = customer_org.upper()
             if "DOD" in customer_org_upper or "DEFENSE" in customer_org_upper:
                 org_bonus = CUSTOMER_ORG_BONUS_AUDITED["DOD"]
-            elif "CIVIL" in customer_org_upper or "GSA" in customer_org_upper:
+            elif "CIVIL" in customer_org_upper or "Federal Agency A" in customer_org_upper:
                 org_bonus = CUSTOMER_ORG_BONUS_AUDITED["Civilian"]
             else:
                 org_bonus = CUSTOMER_ORG_BONUS_AUDITED["Default"]

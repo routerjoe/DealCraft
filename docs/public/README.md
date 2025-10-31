@@ -3,7 +3,7 @@
 This public documentation set has been sanitized for public distribution:
 - **PII Redacted:** Email addresses, phone numbers, API keys, and secrets removed
 - **Agency Names Masked:** Customer/agency names replaced with generic identifiers
-- **Vendor Context Preserved:** OEM names (Cisco, Nutanix, NetApp, etc.) and contract vehicles (SEWP, CHESS, GSA, etc.) retained
+- **Vendor Context Preserved:** OEM names (Cisco, Nutanix, NetApp, etc.) and contract vehicles (SEWP, CHESS, Federal Agency A, etc.) retained
 
 ## Masking Configuration
 

@@ -6,11 +6,11 @@ import { logger } from './logger.js';
 const HOME = process.env.HOME || process.env.USERPROFILE || '';
 
 const EnvSchema = z.object({
-  // Base directory for Red River files
-  RED_RIVER_BASE_DIR: z.string().min(1).default(HOME ? `${HOME}/RedRiver` : `${process.cwd()}/RedRiver`),
+  // Base directory for DealCraft files
+  DEALCRAFT_BASE_DIR: z.string().min(1).default(HOME ? `${HOME}/DealCraft` : `${process.cwd()}/DealCraft`),
 
   // Obsidian vault path
-  OBSIDIAN_VAULT_PATH: z.string().min(1).default(HOME ? `${HOME}/Documents/RedRiverSales` : `${process.cwd()}/RedRiverSales`),
+  OBSIDIAN_VAULT_PATH: z.string().min(1).default(HOME ? `${HOME}/Documents/DealCraft` : `${process.cwd()}/DealCraft`),
 
   // Google Drive credentials (optional for now)
   GOOGLE_APPLICATION_CREDENTIALS: z.string().optional(),
@@ -29,18 +29,18 @@ export function validateEnv(): boolean {
     const parsed = EnvSchema.parse(process.env);
 
     // Ensure base directory exists (create if missing)
-    if (!existsSync(parsed.RED_RIVER_BASE_DIR)) {
+    if (!existsSync(parsed.DEALCRAFT_BASE_DIR)) {
       try {
-        mkdirSync(parsed.RED_RIVER_BASE_DIR, { recursive: true });
-        logger.info('Created RED_RIVER_BASE_DIR', { path: parsed.RED_RIVER_BASE_DIR });
+        mkdirSync(parsed.DEALCRAFT_BASE_DIR, { recursive: true });
+        logger.info('Created DEALCRAFT_BASE_DIR', { path: parsed.DEALCRAFT_BASE_DIR });
       } catch (e) {
-        logger.error('Failed to create RED_RIVER_BASE_DIR', { path: parsed.RED_RIVER_BASE_DIR, error: e instanceof Error ? e.message : String(e) });
+        logger.error('Failed to create DEALCRAFT_BASE_DIR', { path: parsed.DEALCRAFT_BASE_DIR, error: e instanceof Error ? e.message : String(e) });
         return false;
       }
     }
 
     // Ensure attachments directory exists (create if missing)
-    const attachmentsDir = process.env.ATTACHMENTS_DIR || `${parsed.RED_RIVER_BASE_DIR}/attachments`;
+    const attachmentsDir = process.env.ATTACHMENTS_DIR || `${parsed.DEALCRAFT_BASE_DIR}/attachments`;
     if (!existsSync(attachmentsDir)) {
       try {
         mkdirSync(attachmentsDir, { recursive: true });
@@ -98,7 +98,7 @@ export function validateEnv(): boolean {
     }
 
     logger.info('Environment validated successfully', {
-      baseDir: parsed.RED_RIVER_BASE_DIR,
+      baseDir: parsed.DEALCRAFT_BASE_DIR,
       obsidianVault: parsed.OBSIDIAN_VAULT_PATH,
       attachmentsDir,
     });
@@ -121,7 +121,7 @@ export function getEnv(): Env {
 }
 
 export function getBaseDir(): string {
-  return getEnv().RED_RIVER_BASE_DIR;
+  return getEnv().DEALCRAFT_BASE_DIR;
 }
 
 export function getObsidianPath(): string {
@@ -130,10 +130,10 @@ export function getObsidianPath(): string {
 
 export function getDbPath(): string {
   const env = getEnv();
-  return process.env.SQLITE_DB_PATH || `${env.RED_RIVER_BASE_DIR}/data/rfq_tracking.db`;
+  return process.env.SQLITE_DB_PATH || `${env.DEALCRAFT_BASE_DIR}/data/rfq_tracking.db`;
 }
 
 export function getAttachmentsDir(): string {
   const env = getEnv();
-  return process.env.ATTACHMENTS_DIR || `${env.RED_RIVER_BASE_DIR}/attachments`;
+  return process.env.ATTACHMENTS_DIR || `${env.DEALCRAFT_BASE_DIR}/attachments`;
 }

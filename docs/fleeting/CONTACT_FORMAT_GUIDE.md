@@ -6,7 +6,7 @@
 N: Full Name
 T: Job Title
 C: Company Name
-O: Organization/Customer (e.g., AFCENT A63)
+O: Organization/Customer (e.g., Customer Alpha A63)
 E: email@domain.com
 M: 555-123-4567
 Office: 555-987-6543
@@ -47,7 +47,7 @@ If no strict format is found, the parser will automatically detect:
 | **N:** | Name | `N: John Smith` | Required to start contact block |
 | **T:** | Title | `T: IT Director` | Optional, appears in filename |
 | **C:** | Company | `C: Cisco` | Optional, creates company folder |
-| **O:** | Organization/Customer | `O: AFCENT A63` | Government/customer org (not phone) |
+| **O:** | Organization/Customer | `O: Customer Alpha A63` | Government/customer org (not phone) |
 | **Office:** | Office Phone | `Office: 803-666-6580` | Use full word for phone |
 | **E:** | Email | `E: jsmith@company.com` | Multiple: separate with commas |
 | **M:** | Mobile | `M: 571-265-3865` | Any phone format |
@@ -62,7 +62,7 @@ If no strict format is found, the parser will automatically detect:
 ```markdown
 N: Bruno Mosqueira
 T: Shipping and Receiving
-O: AFCENT A63
+O: Customer Alpha A63
 Office: 803-666-6580
 E: bruno.mosqueira.1.ctr@us.af.mil
 ```
@@ -90,7 +90,7 @@ E: jsmith@example.com
 ### Flexible Format - Auto-detected Contact
 ```markdown
 **Bruno Mosqueira**
-Shipping and Receiving at AFCENT A63
+Shipping and Receiving at Customer Alpha A63
 bruno.mosqueira.1.ctr@us.af.mil
 803-666-6580
 ```

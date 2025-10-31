@@ -29,7 +29,7 @@ All versioned release notes for DealCraft.
 - Request tracking (x-request-id, x-latency-ms headers)
 - 71 tests passing, <3ms average latency
 
-[GitHub Release →](https://github.com/routerjoe/red-river-sales-automation/releases/tag/v1.3.0) | [Overview →](../guides/phase3_overview.md)
+[GitHub Release →](https://github.com/routerjoe/DealCraft/releases/tag/v1.3.0) | [Overview →](../guides/phase3_overview.md)
 
 ---
 
@@ -48,4 +48,4 @@ All versioned release notes for DealCraft.
 
 ---
 
-For the latest release information, see [GitHub Releases](https://github.com/routerjoe/red-river-sales-automation/releases).
+For the latest release information, see [GitHub Releases](https://github.com/routerjoe/DealCraft/releases).

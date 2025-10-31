@@ -111,7 +111,7 @@ X-RateLimit-Reset: ***-***-****
 - Rate limit stubs with TODO markers
 - Log redaction helpers (documented, not enforced)
 
-## Success Criteria / DEPARTMENT-ALPHA
+## Success Criteria / Federal Department A
 
 - [ ] Sprint plan created (docs/sprint_plan.md)
 - [ ] Hardening runbook complete (docs/ops/hardening_runbook.md)

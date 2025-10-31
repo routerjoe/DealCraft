@@ -103,8 +103,8 @@ python3 test_config.py
 ## 📊 What's Configured
 
 ### Strategic Customers (15 Total)
-- **7 CRITICAL:** AFCENT, ARCENT, CYBERCOMMAND, AFSOC, USSOCOM, Space Force, DARPA
-- **8 HIGH:** AETC, Hill/Eglin/Tyndall/Patrick AFB, Andrews, Bolling, AFOSI
+- **7 CRITICAL:** Customer Alpha, ARCENT, CYBERCOMMAND, AFSOC, USSOCOM, Space Force, DARPA
+- **8 HIGH:** Customer Beta, Hill/Eglin/Tyndall/Patrick AFB, Andrews, Bolling, AFOSI
 
 ### Value Thresholds
 - **TIER 1:** $1M+ (Executive notification)

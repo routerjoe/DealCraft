@@ -19,12 +19,12 @@ async function main() {
 
   // Sample payload from the spec with explicit timezone override
   const payload: RfqPayload = {
-    customer: "AFCENT",
+    customer: "Customer Alpha",
     oem: "Cisco",
     rfq_id: "361235",
     contract_vehicle: "SEWP V",
     due_date: "2025-10-12", // ISO (Sunday)
-    opportunity_name: "AFCENT – Collab Refresh",
+    opportunity_name: "Customer Alpha – Collab Refresh",
     close_date: "2025-11-15",
     pricing_guidance: "Target 12–15% margin; confirm Cisco EA alignment",
     request_registration: "Yes",

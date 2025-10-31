@@ -35,13 +35,13 @@ CUSTOMER_ORG_BONUS_V2_0 = 3.0
 
 # v2.1: Tiered by strategic value
 CUSTOMER_ORG_BONUS_AUDITED = {
-    "DEPARTMENT-ALPHA": 4.0,       # +1% (strategic account, 70% win rate)
+    "Federal Department A": 4.0,       # +1% (strategic account, 70% win rate)
     "Civilian": 3.0,  # No change (60% win rate)
     "Default": 2.0,   # For known orgs not in top tiers
 }
 ```
 
-**Rationale:** DEPARTMENT-ALPHA opportunities close at higher rates due to established SEWP/DHS contracts and security clearances.
+**Rationale:** Federal Department A opportunities close at higher rates due to established SEWP/DHS contracts and security clearances.
 
 **CV Recommendation Bonus (Audited):**
 ```python
@@ -59,7 +59,7 @@ CV_RECOMMENDATION_BONUS_AUDITED = {
 
 ## Before/After Examples
 
-### Example 1: East Region DEPARTMENT-ALPHA Opportunity
+### Example 1: East Region Federal Department A Opportunity
 
 **Opportunity:**
 ```python
@@ -67,7 +67,7 @@ CV_RECOMMENDATION_BONUS_AUDITED = {
     "oems": ["Cisco"],           # 92 points
     "amount": 1000000,           # 80 points
     "region": "East",
-    "customer_org": "DEPARTMENT-ALPHA",
+    "customer_org": "Federal Department A",
     "contracts_recommended": ["SEWP V", "GSA Schedule"],  # 2 CVs
     "stage": "Proposal",
     "close_date": "2026-03-15"
@@ -90,7 +90,7 @@ Raw Score: 75.5
 ```
 Raw Score: 75.5
 + Region Bonus: 2.5% (East audited)
-+ Org Bonus: 4.0% (DEPARTMENT-ALPHA tier)
++ Org Bonus: 4.0% (Federal Department A tier)
 + CV Bonus: 7.0% (multiple CVs)
 = Total Bonuses: 13.5% (under 15% cap)
 = Enhanced Score: 89.0
@@ -111,7 +111,7 @@ Raw Score: 75.5
     "oems": ["Dell"],            # 90 points
     "amount": 500000,            # 70 points
     "region": "Central",
-    "customer_org": "GSA",       # Civilian
+    "customer_org": "Federal Agency A",       # Civilian
     "contracts_recommended": ["GSA Schedule"],  # 1 CV
     "stage": "Discovery",
     "close_date": "2026-06-30"
@@ -155,7 +155,7 @@ Raw Score: 68.0
     "oems": ["Microsoft"],       # 95 points
     "amount": 10000000,          # 95 points
     "region": "East",
-    "customer_org": "DEPARTMENT-ALPHA",
+    "customer_org": "Federal Department A",
     "contracts_recommended": ["SEWP V", "GSA Schedule", "DHS FirstSource"],  # 3 CVs
     "stage": "Negotiation",
     "close_date": "2025-12-01"
@@ -178,7 +178,7 @@ Raw Score: 93.0
 ```
 Raw Score: 93.0
 + Region Bonus: 2.5% (East)
-+ Org Bonus: 4.0% (DEPARTMENT-ALPHA)
++ Org Bonus: 4.0% (Federal Department A)
 + CV Bonus: 7.0% (multiple)
 = Total Bonuses: 13.5% would apply
 ```
@@ -206,8 +206,8 @@ Raw Score: 93.0
     "oems": ["Microsoft"],
     "amount": 8000000,
     "region": "East",
-    "customer_org": "DEPARTMENT-ALPHA Defense Contract Management Agency",
-    "contracts_recommended": ["SEWP V", "GSA 70", "CHESS"],
+    "customer_org": "Federal Department A Defense Contract Management Agency",
+    "contracts_recommended": ["SEWP V", "Federal Agency A 70", "CHESS"],
     "stage": "Proposal",
     "close_date": "2026-02-15"
 }
@@ -217,7 +217,7 @@ Raw Score: 93.0
 ```
 Raw Score: 91.0
 + Region Bonus: 2.5% (East)
-+ Org Bonus: 4.0% (DEPARTMENT-ALPHA)
++ Org Bonus: 4.0% (Federal Department A)
 + CV Bonus: 7.0% (multiple)
 = Total Bonuses Before Cap: 13.5%
 ```
@@ -289,7 +289,7 @@ Track all scoring inputs and outputs for:
     "amount_score": 80.0,
     "region": "East",
     "region_bonus": 2.5,
-    "customer_org": "DEPARTMENT-ALPHA",
+    "customer_org": "Federal Department A",
     "org_bonus": 4.0,
     "cv_count": 2,
     "cv_bonus": 7.0

@@ -137,9 +137,9 @@ See [Release Notes](releases/) for complete version history.
 - **Tests:** `/tests/`
 
 ### External Links
-- [GitHub Repository](https://github.com/routerjoe/red-river-sales-automation)
-- [GitHub Releases](https://github.com/routerjoe/red-river-sales-automation/releases)
-- [Issue Tracker](https://github.com/routerjoe/red-river-sales-automation/issues)
+- [GitHub Repository](https://github.com/routerjoe/DealCraft)
+- [GitHub Releases](https://github.com/routerjoe/DealCraft/releases)
+- [Issue Tracker](https://github.com/routerjoe/DealCraft/issues)
 
 ## Documentation Updates
 

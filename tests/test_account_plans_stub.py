@@ -2,7 +2,7 @@
 Tests for AI Account Plans API implementation.
 
 Sprint 12: AI Account Plans
-Tests real account plan generation for AFCENT and AETC with forecast integration.
+Tests real account plan generation for Customer Alpha and Customer Beta with forecast integration.
 """
 
 import pytest
@@ -21,7 +21,7 @@ class TestAccountPlansEndpoints:
         response = client.post(
             "/v1/account-plans/generate",
             json={
-                "customer": "AFCENT",
+                "customer": "Customer Alpha",
                 "oem_partners": ["Cisco"],
                 "fiscal_year": "FY26",
                 "format": "json",
@@ -43,7 +43,7 @@ class TestAccountPlansRealImplementation:
         response = client.post(
             "/v1/account-plans/generate",
             json={
-                "customer": "AFCENT",
+                "customer": "Customer Alpha",
                 "oem_partners": ["Cisco", "Nutanix"],
                 "fiscal_year": "FY26",
                 "format": "json",
@@ -53,7 +53,7 @@ class TestAccountPlansRealImplementation:
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "success"
-        assert "Air Forces Central Command" in data["message"]
+        assert "Customer Alpha Command" in data["message"]
         assert data["plan_id"] is not None
         assert data["preview"] is not None
 
@@ -62,7 +62,7 @@ class TestAccountPlansRealImplementation:
         response = client.post(
             "/v1/account-plans/generate",
             json={
-                "customer": "AFCENT",
+                "customer": "Customer Alpha",
                 "oem_partners": ["Cisco"],
                 "fiscal_year": "FY26",
                 "format": "json",
@@ -87,11 +87,11 @@ class TestAccountPlansRealImplementation:
         assert "reasoning" in preview
 
     def test_aetc_plan_contains_customer_data(self):
-        """Test that AETC plan includes customer-specific data."""
+        """Test that Customer Beta plan includes customer-specific data."""
         response = client.post(
             "/v1/account-plans/generate",
             json={
-                "customer": "AETC",
+                "customer": "Customer Beta",
                 "oem_partners": ["NetApp", "Red Hat"],
                 "fiscal_year": "FY26",
                 "format": "json",
@@ -101,8 +101,8 @@ class TestAccountPlansRealImplementation:
         assert response.status_code == 200
         data = response.json()
         preview = data["preview"]
-        assert preview["customer"] == "AETC"
-        assert "Air Education and Training Command" in preview["customer_full_name"]
+        assert preview["customer"] == "Customer Beta"
+        assert "Customer Beta Command" in preview["customer_full_name"]
 
     def test_formats_returns_format_list(self):
         """Test that formats endpoint returns list of formats."""
@@ -140,7 +140,7 @@ class TestAccountPlansValidation:
         response = client.post(
             "/v1/account-plans/generate",
             json={
-                "customer": "AFCENT",
+                "customer": "Customer Alpha",
                 "fiscal_year": "FY26",
                 "format": "markdown",
             },
@@ -152,7 +152,7 @@ class TestAccountPlansValidation:
         response = client.post(
             "/v1/account-plans/generate",
             json={
-                "customer": "AFCENT",
+                "customer": "Customer Alpha",
                 "oem_partners": ["Cisco"],
                 "format": "markdown",
             },
@@ -164,7 +164,7 @@ class TestAccountPlansValidation:
         response = client.post(
             "/v1/account-plans/generate",
             json={
-                "customer": "AFCENT",
+                "customer": "Customer Alpha",
                 "oem_partners": ["Cisco"],
                 "fiscal_year": "FY26",
                 "format": "markdown",
@@ -186,7 +186,7 @@ class TestAccountPlansValidation:
         )
         assert response.status_code == 400
         assert "Unsupported customer" in response.json()["detail"]
-        assert "AFCENT" in response.json()["detail"] or "AETC" in response.json()["detail"]
+        assert "Customer Alpha" in response.json()["detail"] or "Customer Beta" in response.json()["detail"]
 
 
 class TestAccountPlansHeaders:
@@ -197,7 +197,7 @@ class TestAccountPlansHeaders:
         response = client.post(
             "/v1/account-plans/generate",
             json={
-                "customer": "AFCENT",
+                "customer": "Customer Alpha",
                 "oem_partners": ["Cisco"],
                 "fiscal_year": "FY26",
                 "format": "markdown",
@@ -220,11 +220,11 @@ class TestAccountPlansCustomers:
     """Test customer-specific functionality."""
 
     def test_afcent_plan_generation(self):
-        """Test AFCENT account plan generation."""
+        """Test Customer Alpha account plan generation."""
         response = client.post(
             "/v1/account-plans/generate",
             json={
-                "customer": "AFCENT",
+                "customer": "Customer Alpha",
                 "oem_partners": ["Cisco", "Nutanix"],
                 "fiscal_year": "FY26",
                 "format": "markdown",
@@ -232,14 +232,14 @@ class TestAccountPlansCustomers:
         )
         assert response.status_code == 200
         data = response.json()
-        assert data["preview"]["customer"] == "AFCENT"
+        assert data["preview"]["customer"] == "Customer Alpha"
 
     def test_aetc_plan_generation(self):
-        """Test AETC account plan generation."""
+        """Test Customer Beta account plan generation."""
         response = client.post(
             "/v1/account-plans/generate",
             json={
-                "customer": "AETC",
+                "customer": "Customer Beta",
                 "oem_partners": ["NetApp", "Red Hat"],
                 "fiscal_year": "FY26",
                 "format": "markdown",
@@ -247,7 +247,7 @@ class TestAccountPlansCustomers:
         )
         assert response.status_code == 200
         data = response.json()
-        assert data["preview"]["customer"] == "AETC"
+        assert data["preview"]["customer"] == "Customer Beta"
 
 
 class TestAccountPlansOEMPartners:
@@ -258,7 +258,7 @@ class TestAccountPlansOEMPartners:
         response = client.post(
             "/v1/account-plans/generate",
             json={
-                "customer": "AFCENT",
+                "customer": "Customer Alpha",
                 "oem_partners": ["Cisco"],
                 "fiscal_year": "FY26",
                 "format": "json",
@@ -276,7 +276,7 @@ class TestAccountPlansOEMPartners:
         response = client.post(
             "/v1/account-plans/generate",
             json={
-                "customer": "AFCENT",
+                "customer": "Customer Alpha",
                 "oem_partners": partners,
                 "fiscal_year": "FY26",
                 "format": "json",
@@ -297,7 +297,7 @@ class TestAccountPlansFormats:
         response = client.post(
             "/v1/account-plans/generate",
             json={
-                "customer": "AFCENT",
+                "customer": "Customer Alpha",
                 "oem_partners": ["Cisco"],
                 "fiscal_year": "FY26",
                 "format": "markdown",
@@ -314,7 +314,7 @@ class TestAccountPlansFormats:
         response = client.post(
             "/v1/account-plans/generate",
             json={
-                "customer": "AFCENT",
+                "customer": "Customer Alpha",
                 "oem_partners": ["Cisco"],
                 "fiscal_year": "FY26",
                 "format": "pdf",
@@ -331,7 +331,7 @@ class TestAccountPlansFormats:
         response = client.post(
             "/v1/account-plans/generate",
             json={
-                "customer": "AFCENT",
+                "customer": "Customer Alpha",
                 "oem_partners": ["Cisco"],
                 "fiscal_year": "FY26",
                 "format": "json",

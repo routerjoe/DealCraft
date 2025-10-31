@@ -1,4 +1,4 @@
-"""Red River Sales MCP TUI - Main application."""
+"""DealCraft MCP TUI - Main application."""
 
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal
@@ -9,11 +9,11 @@ from tui.panels.contracts import ContractsPanel
 from tui.panels.forecast import ForecastPanel
 from tui.panels.metrics import MetricsPanel
 from tui.panels.oems import OEMPanel
-from tui.theme import RED_RIVER_LIGHT
+from tui.theme import DEALCRAFT_LIGHT
 
 
-class RedRiverTUI(App):
-    """Red River Sales MCP Terminal UI."""
+class DealCraftTUI(App):
+    """DealCraft MCP Terminal UI."""
 
     # Shared state for request tracking
     last_request_id: str = "N/A"
@@ -99,7 +99,7 @@ class RedRiverTUI(App):
         """Initialize the TUI app."""
         super().__init__()
         self.api_base = api_base
-        self.design = RED_RIVER_LIGHT
+        self.design = DEALCRAFT_LIGHT
 
     def compose(self) -> ComposeResult:
         """Compose the main UI layout."""
@@ -145,8 +145,8 @@ class RedRiverTUI(App):
 
 def main() -> None:
     """Run the TUI application."""
-    app = RedRiverTUI()
-    app.title = "Red River Sales MCP"
+    app = DealCraftTUI()
+    app.title = "DealCraft MCP"
     app.sub_title = "Sales Automation Terminal UI"
     app.run()
 

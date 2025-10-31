@@ -55,7 +55,7 @@ cp rfq_filtering_config.py /path/to/your/mcp/server/
 ### Strategic Customers (15 Total)
 
 **CRITICAL Priority (7):**
-- AFCENT - Air Forces Central Command
+- Customer Alpha - Customer Alpha Command
 - ARCENT - Army Central Command  
 - US CYBERCOMMAND
 - AFSOC - Air Force Special Operations Command
@@ -64,7 +64,7 @@ cp rfq_filtering_config.py /path/to/your/mcp/server/
 - DARPA
 
 **HIGH Priority (8):**
-- AETC - Air Education and Training Command
+- Customer Beta - Customer Beta Command
 - Hill AFB, Eglin AFB, Tyndall AFB, Patrick AFB
 - Andrews AFB, Bolling AFB
 - AFOSI
@@ -251,7 +251,7 @@ TOTAL: 10 pts = "NO-GO - Auto-Decline" ❌
 ```python
 from rfq_filtering_config import is_strategic_customer
 
-is_strategic_customer("AFCENT")  # True - CRITICAL
+is_strategic_customer("Customer Alpha")  # True - CRITICAL
 is_strategic_customer("Hill AFB")  # True - HIGH
 is_strategic_customer("Random Base")  # False
 ```
@@ -426,8 +426,8 @@ WHERE oem_name = 'Atlassian';
 ### For Sales Team
 
 **Know Your Priorities:**
-- CRITICAL customers: AFCENT, ARCENT, CYBERCOMMAND, AFSOC, USSOCOM, Space Force, DARPA
-- HIGH customers: AETC, Hill/Eglin/Tyndall/Patrick AFB, Andrews, Bolling, AFOSI
+- CRITICAL customers: Customer Alpha, ARCENT, CYBERCOMMAND, AFSOC, USSOCOM, Space Force, DARPA
+- HIGH customers: Customer Beta, Hill/Eglin/Tyndall/Patrick AFB, Andrews, Bolling, AFOSI
 - Value tiers: $20K, $200K, $1M breakpoints
 - Tech focus: Zero Trust, Data Center, Enterprise Networking
 

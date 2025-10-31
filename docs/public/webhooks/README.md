@@ -30,7 +30,7 @@ Ingests federal opportunity events from Govly.
   "title": "IT Services RFQ",
   "description": "Federal IT services contract",
   "estimated_amount": 500000,
-  "agency": "GSA",
+  "agency": "Federal Agency A",
   "posted_date": "2025-10-28T00:00:00Z",
   "close_date": "2025-11-15T23:59:59Z",
   "source_url": "https://govly.example.com/opp/12345"
@@ -429,7 +429,7 @@ curl -X POST http://localhost:8000/v1/govly/webhook \
     "event_type": "opportunity",
     "title": "Test Federal RFQ",
     "estimated_amount": 250000,
-    "agency": "DEPARTMENT-ALPHA",
+    "agency": "Federal Department A",
     "close_date": "2025-12-31T23:59:59Z"
   }'
 

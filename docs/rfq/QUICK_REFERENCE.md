@@ -29,8 +29,8 @@ Safety defaults
 - Existing customer renewals.
 
 3) Strategic Customers (15)
-- CRITICAL: AFCENT, ARCENT, US CYBERCOMMAND, AFSOC, USSOCOM, Space Force, DARPA
-- HIGH: AETC, Hill AFB, Eglin AFB, Tyndall AFB, Patrick AFB, Andrews AFB, Bolling AFB, AFOSI
+- CRITICAL: Customer Alpha, ARCENT, US CYBERCOMMAND, AFSOC, USSOCOM, Space Force, DARPA
+- HIGH: Customer Beta, Hill AFB, Eglin AFB, Tyndall AFB, Patrick AFB, Andrews AFB, Bolling AFB, AFOSI
 
 4) Value Tiers
 - TIER 1: $1M+ → Immediate executive notification

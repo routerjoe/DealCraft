@@ -213,7 +213,7 @@ Enable Obsidian Dataview queries to work with multiple field naming conventions 
 ---
 id: OPP-2025-001
 title: "Federal IT Modernization"
-customer: DEPARTMENT-ALPHA Agency X
+customer: Federal Department A Agency X
 oem: Dell Technologies
 amount: 250000.0
 stage: Qualification

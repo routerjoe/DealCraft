@@ -9,7 +9,7 @@ Ship a robust, **color** TUI using **Textual/Rich** that replaces prior curses a
 1) **Dashboard** with four panels:
    - **System** (MCP running/queue/uptime, Watchers: Outlook RFQ, Fleeting Notes, Radar, Govly)
    - **Providers** (Claude, ChatGPT‑5, Gemini statuses with p95 ms)
-   - **RFQ Pipeline** (counts + list, filter chips for SEWP/AFCENT/Cisco/Nutanix; selection cursor)
+   - **RFQ Pipeline** (counts + list, filter chips for SEWP/Customer Alpha/Cisco/Nutanix; selection cursor)
    - **Actions** (key hints + toast: last action result)
 
 2) **Polling & Refresh**

@@ -26,12 +26,12 @@ function logFail(name: string, err: any) {
 
 async function testFullPayload() {
   const payload: RfqPayload = {
-    customer: "AFCENT",
+    customer: "Customer Alpha",
     oem: "Cisco",
     rfq_id: "361235",
     contract_vehicle: "SEWP V",
     due_date: "2025-10-12", // Sunday
-    opportunity_name: "AFCENT – Collab Refresh",
+    opportunity_name: "Customer Alpha – Collab Refresh",
     close_date: "2025-11-15",
     pricing_guidance: "Target 12–15% margin; confirm Cisco EA alignment",
     request_registration: "Yes",
@@ -44,7 +44,7 @@ async function testFullPayload() {
 
   // Subject spec
   assert(
-    subject === "New RFQ – AFCENT | Cisco | SEWP V | Due 2025-10-12",
+    subject === "New RFQ – Customer Alpha | Cisco | SEWP V | Due 2025-10-12",
     `Unexpected subject: ${subject}`
   );
 
@@ -53,7 +53,7 @@ async function testFullPayload() {
   assert(notContains(html.toLowerCase(), "logged"), "Body must not include 'logged'");
 
   // Summary fields
-  assert(contains(html, "Customer: <strong>AFCENT</strong>"), "Customer not rendered correctly");
+  assert(contains(html, "Customer: <strong>Customer Alpha</strong>"), "Customer not rendered correctly");
   assert(contains(html, "OEM: <strong>Cisco</strong>"), "OEM not rendered correctly");
   assert(contains(html, "RFQ ID: <strong>361235</strong>"), "RFQ ID not rendered correctly");
   assert(contains(html, "Contract Vehicle: <strong>SEWP V</strong>"), "Contract vehicle incorrect");

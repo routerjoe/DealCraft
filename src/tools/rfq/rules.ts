@@ -40,7 +40,7 @@ function lc(s?: string) {
 // ----- Default constants as fallback if DB seed not present -----
 const DEFAULT_STRATEGIC = {
   CRITICAL: [
-    'AFCENT',
+    'Customer Alpha',
     'ARCENT',
     'US CYBERCOMMAND',
     'AFSOC',
@@ -49,7 +49,7 @@ const DEFAULT_STRATEGIC = {
     'DARPA',
   ],
   HIGH: [
-    'AETC',
+    'Customer Beta',
     'Hill AFB',
     'Eglin AFB',
     'Tyndall AFB',
@@ -406,7 +406,7 @@ export function evaluateNewOemBusinessCase(args: {
 // ----- Rule implementations (R001 - R009) -----
 export function applyRuleR001(rfqSubject: string, rfqSender: string): RuleOutcome {
   const patterns = [
-    'GSA eBuy Requests and Quotes/Bids (Consolidated Notice)',
+    'Federal Agency A eBuy Requests and Quotes/Bids (Consolidated Notice)',
     'saved search matches',
   ];
   const senders = [

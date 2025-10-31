@@ -30,7 +30,7 @@ QUICK START:
 ═══════════════════════════════════════════════════════════════
 CONFIGURATION HIGHLIGHTS:
 
-✓ 15 Strategic Customers (AFCENT, USSOCOM, Space Force, etc.)
+✓ 15 Strategic Customers (Customer Alpha, USSOCOM, Space Force, etc.)
 ✓ 4 Value Tiers ($20K, $200K, $1M+)
 ✓ 9 Technology Verticals (Zero Trust, Data Center, etc.)
 ✓ 5 OEM Tracking (Atlassian, Graylog, LogRhythm, Sparx, Quest/Toad)

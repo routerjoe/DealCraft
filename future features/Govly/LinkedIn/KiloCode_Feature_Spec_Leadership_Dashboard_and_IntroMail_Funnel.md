@@ -1,7 +1,7 @@
 # Kilo Code Feature Spec — Leadership Dashboard & IntroMail Funnel (MCP Analytics Tab)
 Date: Saturday, October 18 2025 EDT  
 Owner: Joe Nolan (Red River)  
-Context: Red River Sales MCP — Federal (AFCENT, AETC, MDA, ARCENT, AFTAC, AFSOC, USCYBERCOM); Vehicles (SEWP, CHESS, 2GIT, ITES‑3H/4H); OEMs (Cisco, Nutanix, NetApp, Dell, VMware)
+Context: Red River Sales MCP — Federal (Customer Alpha, Customer Beta, MDA, ARCENT, AFTAC, AFSOC, USCYBERCOM); Vehicles (SEWP, CHESS, 2GIT, ITES‑3H/4H); OEMs (Cisco, Nutanix, NetApp, Dell, VMware)
 
 ---
 
@@ -81,7 +81,7 @@ timestamp,linkedin_url,status,notes
 2. OEM Leaderboard (mentions): Cisco, Nutanix, NetApp, Dell, VMware, etc.
 3. OEM Win Signals (keywords): UCS, Catalyst, SD‑WAN, ISE, UCS M7 (Cisco); HCI, AHV, AOS (Nutanix); ONTAP, AFF, FSxN (NetApp); etc.
 4. Contract Vehicle Mix: SEWP, CHESS, 2GIT, ITES‑3H/4H.
-5. Agency Engagement: AFCENT, AETC, MDA, ARCENT, AFTAC, AFSOC, USCYBERCOM, Eglin/Tyndall/Patrick.
+5. Agency Engagement: Customer Alpha, Customer Beta, MDA, ARCENT, AFTAC, AFSOC, USCYBERCOM, Eglin/Tyndall/Patrick.
 6. IntroMail Funnel: counts for Queued, Sent, Replied, Meeting (from `intromail_events.csv`).
 7. Trends (8 weeks): Week | Leads | Ready | Avg Net % | Top Vehicle.
 8. Top Contacts (by score).
@@ -155,6 +155,6 @@ python3 analytics_dashboard.py
 ---
 
 ## 14) Contacts
-- AE/Owner: Joe Nolan — Red River (AFCENT / AETC / MDA focus)
+- AE/Owner: Joe Nolan — Red River (Customer Alpha / Customer Beta / MDA focus)
 - Engineering: Kilo Code (TUI + command integration)
 

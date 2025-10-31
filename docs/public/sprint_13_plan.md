@@ -106,7 +106,7 @@ TRIAGE_PATH = "40 Projects/Opportunities/Triage"
 - Document environment variables
 - Provide `.env.example` updates
 
-## Success Criteria / DEPARTMENT-ALPHA
+## Success Criteria / Federal Department A
 
 - [ ] Sprint plan created (docs/sprint_plan.md)
 - [ ] Sync policies documented (docs/obsidian/sync_policies.md)

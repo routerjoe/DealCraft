@@ -1,6 +1,6 @@
 """
 AI Account Plans Generation Engine - Sprint 12
-Generates strategic account plans for federal customers (AFCENT, AETC)
+Generates strategic account plans for federal customers (Customer Alpha, Customer Beta)
 
 Features:
 - Pulls forecast data (scores, win_prob, FY projections)
@@ -38,20 +38,20 @@ class AccountPlanGenerator:
     """
 
     # Supported customers
-    SUPPORTED_CUSTOMERS = ["AFCENT", "AETC"]
+    SUPPORTED_CUSTOMERS = ["Customer Alpha", "Customer Beta"]
 
     # Customer profiles with strategic context
     CUSTOMER_PROFILES = {
-        "AFCENT": {
-            "full_name": "Air Forces Central Command",
+        "Customer Alpha": {
+            "full_name": "Customer Alpha Command",
             "region": "CENTCOM AOR",
             "focus_areas": ["Cybersecurity", "Cloud Migration", "Network Modernization", "AI/ML"],
             "priority_oems": ["Cisco", "Palo Alto Networks", "Microsoft", "Dell"],
             "strategic_vehicles": ["SEWP V", "GSA Schedule", "DHS FirstSource II"],
             "budget_profile": "high",
         },
-        "AETC": {
-            "full_name": "Air Education and Training Command",
+        "Customer Beta": {
+            "full_name": "Customer Beta Command",
             "region": "CONUS Training Bases",
             "focus_areas": ["Training Infrastructure", "Collaboration Tools", "Data Center Modernization", "Storage"],
             "priority_oems": ["Microsoft", "Dell", "HPE", "NetApp"],
@@ -446,7 +446,7 @@ This plan outlines our strategic approach to maximize capture and delivery succe
 
         Args:
             input_data: Dictionary containing:
-                - customer: Customer name (AFCENT, AETC)
+                - customer: Customer name (Customer Alpha, Customer Beta)
                 - oem_partners: List of OEM partners (optional, for filtering)
                 - fiscal_year: Fiscal year (optional)
                 - focus_areas: Focus areas (optional)
@@ -461,7 +461,7 @@ This plan outlines our strategic approach to maximize capture and delivery succe
             raise ValueError(
                 f"Unsupported customer: {customer}. "
                 f"Supported customers: {', '.join(self.SUPPORTED_CUSTOMERS)}. "
-                f"Hint: This feature currently supports AFCENT and AETC."
+                f"Hint: This feature currently supports Customer Alpha and Customer Beta."
             )
 
         # Load data

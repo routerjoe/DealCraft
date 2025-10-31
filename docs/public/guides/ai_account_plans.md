@@ -21,14 +21,14 @@ The AI Account Plans feature generates strategic account plans for federal custo
 
 ## Target Customers
 
-### AGENCY-ALPHA (Air Forces Central Command)
+### AGENCY-ALPHA (Customer Alpha Command)
 
 **Profile:**
 - **Mission:** Air operations in Middle East theater
 - **Budget:** $2-4B annually for IT/infrastructure
 - **Key Priorities:** Secure communications, data analytics, cloud migration
 - **Decision Cycle:** 12-18 months for major programs
-- **Buying Preferences:** SEWP, GSA MAS, Air Force Enterprise IT
+- **Buying Preferences:** SEWP, Federal Agency A MAS, Air Force Enterprise IT
 
 **Strategic Opportunities:**
 - Network modernization for distributed operations
@@ -37,14 +37,14 @@ The AI Account Plans feature generates strategic account plans for federal custo
 - Cybersecurity enhancements
 - AI/ML for intelligence analysis
 
-### AGENCY-BRAVO (Air Education and Training Command)
+### AGENCY-BRAVO (Customer Beta Command)
 
 **Profile:**
 - **Mission:** Recruit, train, and educate Airmen
 - **Budget:** $1-2B annually for IT/infrastructure
 - **Key Priorities:** Training systems, simulation, virtual reality, cloud services
 - **Decision Cycle:** 9-12 months for training systems
-- **Buying Preferences:** GSA MAS, AFWERX, SBIR contracts
+- **Buying Preferences:** Federal Agency A MAS, AFWERX, SBIR contracts
 
 **Strategic Opportunities:**
 - Virtual training environments
@@ -85,7 +85,7 @@ The AI Account Plans feature generates strategic account plans for federal custo
 **Strengths:**
 - Simplified HCI platform
 - Multi-cloud management
-- Strong DEPARTMENT-ALPHA presence
+- Strong Federal Department A presence
 - Software-defined data center
 
 **AGENCY-ALPHA Strategy:**
@@ -103,7 +103,7 @@ The AI Account Plans feature generates strategic account plans for federal custo
 **Competitive Position:**
 - vs. VMware: Simpler licensing, lower TCO
 - vs. Dell VxRail: Pure software approach
-- vs. HPE SimpliVity: Better DEPARTMENT-ALPHA traction
+- vs. HPE SimpliVity: Better Federal Department A traction
 
 ### NetApp - Storage & Data Management
 
@@ -133,7 +133,7 @@ The AI Account Plans feature generates strategic account plans for federal custo
 ### Red Hat - Enterprise Linux & OpenShift
 
 **Strengths:**
-- DEPARTMENT-ALPHA's standardized Linux platform
+- Federal Department A's standardized Linux platform
 - Kubernetes and containers (OpenShift)
 - Automation (Ansible)
 - Strong open-source community
@@ -151,7 +151,7 @@ The AI Account Plans feature generates strategic account plans for federal custo
 - Automation for lab provisioning
 
 **Competitive Position:**
-- vs. SUSE: Better DEPARTMENT-ALPHA adoption
+- vs. SUSE: Better Federal Department A adoption
 - vs. Ubuntu: Enterprise support, certified
 - vs. Windows: Lower licensing costs
 
@@ -293,7 +293,7 @@ infrastructure and network modernization...
 - [ ] Site survey for edge locations
 - [ ] Provide TCO analysis vs VMware
 - [ ] Demo rapid deployment capabilities
-- [ ] Arrange DEPARTMENT-ALPHA reference calls
+- [ ] Arrange Federal Department A reference calls
 
 ## Opportunity Prioritization
 
@@ -409,15 +409,15 @@ Plans are exported to structured directories:
 ```
 obsidian/50 Dashboards/Account Plans/
 ├── AGENCY-ALPHA/
-│   ├── FY26_AFCENT_Account_Plan.md
-│   ├── Cisco_Strategy_AFCENT_FY26.md
-│   ├── Nutanix_Strategy_AFCENT_FY26.md
-│   └── Opportunities_AFCENT_FY26.md
+│   ├── FY26_CustomerAlpha_Account_Plan.md
+│   ├── Cisco_Strategy_CustomerAlpha_FY26.md
+│   ├── Nutanix_Strategy_CustomerAlpha_FY26.md
+│   └── Opportunities_CustomerAlpha_FY26.md
 └── AGENCY-BRAVO/
-    ├── FY26_AETC_Account_Plan.md
-    ├── NetApp_Strategy_AETC_FY26.md
-    ├── Red_Hat_Strategy_AETC_FY26.md
-    └── Opportunities_AETC_FY26.md
+    ├── FY26_CustomerBeta_Account_Plan.md
+    ├── NetApp_Strategy_CustomerBeta_FY26.md
+    ├── Red_Hat_Strategy_CustomerBeta_FY26.md
+    └── Opportunities_CustomerBeta_FY26.md
 ```
 
 ## Usage Examples
@@ -463,7 +463,7 @@ curl -s -X POST http://localhost:8000/v1/account-plans/generate \
     "oem_partners": ["Cisco", "Microsoft"],
     "fiscal_year": "FY26",
     "format": "pdf"
-  }' > AFCENT_Account_Plan.pdf
+  }' > CustomerAlpha_Account_Plan.pdf
 
 # Generate PDF for AGENCY-BRAVO
 curl -s -X POST http://localhost:8000/v1/account-plans/generate \
@@ -473,7 +473,7 @@ curl -s -X POST http://localhost:8000/v1/account-plans/generate \
     "oem_partners": ["Dell", "HPE"],
     "fiscal_year": "FY26",
     "format": "pdf"
-  }' > AETC_Account_Plan.pdf
+  }' > CustomerBeta_Account_Plan.pdf
 ```
 
 **PDF Features:**
@@ -517,7 +517,7 @@ curl http://localhost:8000/v1/account-plans/formats
 
 1. **Lead with Strength** - Position OEM's core capability
 2. **Address Competitors** - Acknowledge and differentiate
-3. **Provide References** - DEPARTMENT-ALPHA success stories
+3. **Provide References** - Federal Department A success stories
 4. **Show ROI** - TCO analysis and business case
 5. **Timeline Realistic** - Account for federal procurement
 

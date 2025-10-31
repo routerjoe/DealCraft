@@ -31,7 +31,7 @@ function logFail(name: string, err: any) {
 // ----- Unit tests for helpers -----
 
 async function testStrategicCustomer() {
-  assert(isStrategicCustomer('AFCENT') === true, 'AFCENT should be strategic');
+  assert(isStrategicCustomer('Customer Alpha') === true, 'Customer Alpha should be strategic');
   assert(isStrategicCustomer('Hill AFB') === true, 'Hill AFB should be strategic');
   assert(isStrategicCustomer('Random Base') === false, 'Random Base should not be strategic');
   assert(isStrategicCustomer('afcent') === true, 'Case insensitive strategic match failed');

@@ -157,7 +157,7 @@ type ParsedContact = {
   mobile: string[];
   office: string[];
   company?: string;
-  customer_org?: string;  // Organization/Customer field (e.g., "AFCENT A63", "AETC")
+  customer_org?: string;  // Organization/Customer field (e.g., "Customer Alpha A63", "Customer Beta")
   address?: string;
   website?: string;       // Website URL
   linkedin?: string;      // LinkedIn URL
@@ -446,8 +446,8 @@ function parseContactsFlexible(md: string, relNote: string): ParsedContact[] {
 
           // Government/military org patterns
           const orgPatterns = [
-            /\b(AFCENT|AETC|AFMC|USAF|DoD|DHS|GSA)\b/,
-            /\b([A-Z]{2,}\s+[A-Z]\d{2,})\b/, // e.g., "AFCENT A63"
+            /\b(Customer Alpha|Customer Beta|AFMC|USAF|DoD|DHS|Federal Agency A)\b/,
+            /\b([A-Z]{2,}\s+[A-Z]\d{2,})\b/, // e.g., "Customer Alpha A63"
           ];
           for (const pattern of orgPatterns) {
             const match = stripped.match(pattern);

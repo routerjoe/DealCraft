@@ -28,11 +28,11 @@ function logFail(name: string, err: any) {
 
 async function testFullPayload() {
   const payload: OemPayload = {
-    customer: "AFCENT",
+    customer: "Customer Alpha",
     oem: "Cisco",
     rfq_id: "361235",
     contract_vehicle: "SEWP V",
-    opportunity_name: "AFCENT Collaboration Refresh",
+    opportunity_name: "Customer Alpha Collaboration Refresh",
     close_date: "2025-11-15",
     account_executive: "Joe Nolan",
     isam: "Kristen Bateman",
@@ -46,7 +46,7 @@ async function testFullPayload() {
 
   // Subject spec
   assert(
-    subject === "Request for Registration / Partnering – AFCENT | Cisco | SEWP V | RFQ 361235",
+    subject === "Request for Registration / Partnering – Customer Alpha | Cisco | SEWP V | RFQ 361235",
     `Unexpected subject: ${subject}`
   );
 
@@ -62,10 +62,10 @@ async function testFullPayload() {
 
   // Opportunity Summary fields
   for (const pair of [
-    "- Customer: <strong>AFCENT</strong>",
+    "- Customer: <strong>Customer Alpha</strong>",
     "- RFQ ID: <strong>361235</strong>",
     "- Contract Vehicle: <strong>SEWP V</strong>",
-    "- Opportunity Name: <strong>AFCENT Collaboration Refresh</strong>",
+    "- Opportunity Name: <strong>Customer Alpha Collaboration Refresh</strong>",
     "- Estimated Close Date: <strong>November 15, 2025</strong>",
     "- Account Executive: <strong>Joe Nolan</strong>",
     "- Inside Sales (iSAM): <strong>Kristen Bateman</strong>",

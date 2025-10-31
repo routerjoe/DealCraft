@@ -20,9 +20,9 @@
 └────────────────────────────────────────────────────────────────────────────┘
 
 ┌─ STRATEGIC CUSTOMERS (15) ─────────────────────────────────────────────────┐
-│ CRITICAL (7): AFCENT, ARCENT, US CYBERCOMMAND, AFSOC, USSOCOM,           │
+│ CRITICAL (7): Customer Alpha, ARCENT, US CYBERCOMMAND, AFSOC, USSOCOM,           │
 │               Space Force, DARPA                                           │
-│ HIGH (8):     AETC, Hill AFB, Eglin AFB, Tyndall AFB, Patrick AFB,       │
+│ HIGH (8):     Customer Beta, Hill AFB, Eglin AFB, Tyndall AFB, Patrick AFB,       │
 │               Andrews AFB, Bolling AFB, AFOSI                              │
 └────────────────────────────────────────────────────────────────────────────┘
 

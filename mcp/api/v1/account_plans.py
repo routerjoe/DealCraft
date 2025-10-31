@@ -1,6 +1,6 @@
 """
 AI Account Plans API - Implementation
-Sprint 12: AI Account Plans (AFCENT/AETC Focus)
+Sprint 12: AI Account Plans (Customer Alpha/Customer Beta Focus)
 
 Generates strategic account plans for federal customers using AI analysis.
 Integrates forecast data, CV recommendations, and OEM strategies.
@@ -29,7 +29,7 @@ router = APIRouter(prefix="/v1/account-plans", tags=["account-plans"])
 class AccountPlanRequest(BaseModel):
     """Request model for generating an account plan."""
 
-    customer: str = Field(..., description="Customer name (e.g., AFCENT, AETC)")
+    customer: str = Field(..., description="Customer name (e.g., Customer Alpha, Customer Beta)")
     oem_partners: List[str] = Field(..., description="OEM partners (e.g., Cisco, Nutanix, NetApp, Red Hat)")
     fiscal_year: str = Field(..., description="Fiscal year (e.g., FY26)")
     focus_areas: Optional[List[str]] = Field(None, description="Focus areas (e.g., modernization, security, cloud)")
@@ -82,7 +82,7 @@ async def generate_account_plan(
     **Example Request:**
     ```json
     {
-      "customer": "AFCENT",
+      "customer": "Customer Alpha",
       "oem_partners": ["Cisco", "Nutanix"],
       "fiscal_year": "FY26",
       "focus_areas": ["modernization", "security"],
@@ -90,7 +90,7 @@ async def generate_account_plan(
     }
     ```
 
-    **Supported Customers:** AFCENT, AETC
+    **Supported Customers:** Customer Alpha, Customer Beta
 
     **OEM Partners:** Cisco, Nutanix, NetApp, Red Hat, Microsoft, Dell, HPE, Palo Alto Networks
 

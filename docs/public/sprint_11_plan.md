@@ -5,7 +5,7 @@
 
 ## Objectives
 
-- Implement Slack bot integration for Red River Sales automation
+- Implement Slack bot integration for DealCraft sales automation
 - Bridge MCP tools to Slack slash commands
 - Enable real-time sales team notifications and queries
 - Support key workflows: forecast queries, CV recommendations, recent activity
@@ -150,7 +150,7 @@ SLACK_DEFAULT_CHANNEL=#sales-automation
 - Permission management guide
 - Monitoring and alerting setup
 
-## Success Criteria / DEPARTMENT-ALPHA
+## Success Criteria / Federal Department A
 
 - [ ] Sprint plan created (docs/sprint_plan.md)
 - [ ] Slack bot documentation complete (docs/integrations/slack_bot.md)

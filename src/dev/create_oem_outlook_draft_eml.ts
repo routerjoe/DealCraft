@@ -28,11 +28,11 @@ async function main() {
     : "joe.nolan@redriver.com";
 
   const payload: OemPayload = {
-    customer: "AFCENT",
+    customer: "Customer Alpha",
     oem: "Cisco",
     rfq_id: "361235",
     contract_vehicle: "SEWP V",
-    opportunity_name: "AFCENT Collaboration Refresh",
+    opportunity_name: "Customer Alpha Collaboration Refresh",
     close_date: "2025-11-15",
     account_executive: "Joe Nolan",
     isam: "Kristen Bateman",

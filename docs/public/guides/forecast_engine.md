@@ -132,7 +132,7 @@ Measures federal/government opportunity relevance.
 - Base: 50
 - Source = "Govly": 85
 - +10 per federal tag (max +30)
-- Tags checked: "federal", "government", "agency", "DEPARTMENT-ALPHA", "civilian", "govly"
+- Tags checked: "federal", "government", "agency", "Federal Department A", "civilian", "govly"
 
 #### 5. Deal Size Score (Weight: 30%)
 

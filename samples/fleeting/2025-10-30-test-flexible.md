@@ -2,7 +2,7 @@
 
 ## Meeting Notes
 
-Met with **Bruno Mosqueira** from AFCENT A63 today.
+Met with **Bruno Mosqueira** from Customer Alpha A63 today.
 He's the Shipping and Receiving manager.
 Contact: bruno.mosqueira.1.ctr@us.af.mil
 Office: 803-666-6580

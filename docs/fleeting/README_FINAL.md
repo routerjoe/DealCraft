@@ -29,7 +29,7 @@ This MCP tool processes your Daily Notes to:
    - `` `code` `` → `code`
 
 3. **New Fields**:
-   - **O:** Organization/Customer (e.g., "AFCENT A63", "AETC")
+   - **O:** Organization/Customer (e.g., "Customer Alpha A63", "Customer Beta")
    - **C:** Company (employer, e.g., "Cisco", "Palo Alto Networks")
    - **W:** Website URL
    - **L:** LinkedIn profile URL

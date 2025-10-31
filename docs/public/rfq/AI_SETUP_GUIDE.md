@@ -142,7 +142,7 @@ When `use_ai=true`, the response includes additional fields:
   "ai_confidence": 0.85,
   "strategic_fit": "HIGH",
   "ai_insights": [
-    "Strong alignment with DEPARTMENT-ALPHA transportation vertical",
+    "Strong alignment with Federal Department A transportation vertical",
     "Excellent relationship with customer",
     "Competitive advantage in logistics solutions"
   ],
@@ -152,7 +152,7 @@ When `use_ai=true`, the response includes additional fields:
   ],
   "ai_opportunities": [
     "Potential for follow-on contracts",
-    "Strategic foothold in DEPARTMENT-ALPHA logistics"
+    "Strategic foothold in Federal Department A logistics"
   ],
   "ai_rationale": "Detailed explanation of recommendation..."
 }
@@ -227,7 +227,7 @@ Recent RFQs Analyzed:
 ┌────┬────────────────────────────┬───────┬──────┬──────────┐
 │ ID │ Subject                    │ Score │ Reco │ AI Fit   │
 ├────┼────────────────────────────┼───────┼──────┼──────────┤
-│ 98 │ DEPARTMENT-ALPHA Transportation         │ 75    │ GO   │ HIGH     │
+│ 98 │ Federal Department A Transportation         │ 75    │ GO   │ HIGH     │
 │ 97 │ Air Force Units            │ 68    │ GO   │ MEDIUM   │
 │ 95 │ Air Force Education        │ 45    │ NO-GO│ LOW      │
 └────┴────────────────────────────┴───────┴──────┴──────────┘

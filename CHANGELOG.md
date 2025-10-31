@@ -27,7 +27,7 @@ Phase 6-9 Bundle: CRM Sync + Attribution + CV Routing + Enhanced Scoring
 
 #### Phase 8: Contract Vehicle Recommender
 - **New module:** `mcp/core/cv_recommender.py` - Intelligent CV recommendation (160 lines)
-- **7 Contract Vehicles** - SEWP V, NASA SOLUTIONS, GSA, DHS FirstSource II, CIO-SP3, Alliant 2, 8(a) STARS II
+- **7 Contract Vehicles** - SEWP V, NASA SOLUTIONS, Federal Agency A, DHS FirstSource II, CIO-SP3, Alliant 2, 8(a) STARS II
 - **Scoring Factors** - OEM alignment, BPA availability, ceiling validation
 - **New endpoints:**
   - `POST /v1/cv/recommend` - Get CV recommendations for opportunity
@@ -143,7 +143,7 @@ Phase 5: Forecast Hub Intelligence & Auto-Scoring - Intelligent multi-factor sco
 - **New module:** `mcp/core/scoring.py` - Multi-factor opportunity scoring system
 - **OEM Alignment Score (25% weight)** - Strategic partnership scoring (Microsoft: 95, Cisco: 92, Dell: 90, etc.)
 - **Partner Fit Score (15% weight)** - Ecosystem strength and OEM alignment
-- **Contract Vehicle Score (20% weight)** - Vehicle priority ranking (SEWP V: 95, NASA SOLUTIONS: 92, GSA: 90, etc.)
+- **Contract Vehicle Score (20% weight)** - Vehicle priority ranking (SEWP V: 95, NASA SOLUTIONS: 92, Federal Agency A: 90, etc.)
 - **Govly Relevance Score (10% weight)** - Federal opportunity relevance
 - **Deal Size Score (30% weight)** - Logarithmic scoring based on deal value
 - **Win Probability Modeling** - Composite score × stage probability × time decay
@@ -259,7 +259,7 @@ Phase 5: Forecast Hub Intelligence & Auto-Scoring - Intelligent multi-factor sco
 ### Related Documentation
 - [Forecast Engine Technical Guide](docs/guides/forecast_engine.md)
 - [Forecast API Endpoints](docs/api/forecast_endpoints.md)
-- [GitHub Release Tag](https://github.com/routerjoe/red-river-sales-automation/releases/tag/v1.5.0)
+- [GitHub Release Tag](https://github.com/routerjoe/DealCraft/releases/tag/v1.5.0)
 
 ---
 
@@ -312,7 +312,7 @@ Phase 4: Forecast & Govly Automation Batch - See full release notes: [docs/relea
 
 ### Links
 - [Full Release Notes](docs/releases/v1.4.0.md)
-- [Tag v1.4.0](https://github.com/routerjoe/red-river-sales-automation/releases/tag/v1.4.0)
+- [Tag v1.4.0](https://github.com/routerjoe/DealCraft/releases/tag/v1.4.0)
 
 ---
 
@@ -402,7 +402,7 @@ Phase 4: Forecast & Govly Automation Batch - See full release notes: [docs/relea
 - Build time: <6s total
 
 ### Related Documentation
-- [GitHub Release Tag](https://github.com/routerjoe/red-river-sales-automation/releases/tag/v1.3.0)
+- [GitHub Release Tag](https://github.com/routerjoe/DealCraft/releases/tag/v1.3.0)
 - [Phase 3 Overview](docs/guides/phase3_overview.md)
 - [Architecture Documentation](docs/architecture/phase3.md)
 
@@ -419,7 +419,7 @@ Phase 4: Forecast & Govly Automation Batch - See full release notes: [docs/relea
   - Valid dates → `obsidian/40 Projects/Opportunities/FY{26|27}/`
   - Invalid/missing dates → `obsidian/40 Projects/Opportunities/Triage/`
 - **Dry-run mode** - Query param `?dry_run=true` previews actions without writes
-- **Updated documentation** with SEWP/CHESS/AFCENT examples and secret rotation guide
+- **Updated documentation** with SEWP/CHESS/Customer Alpha examples and secret rotation guide
 - **Environment variables:** `GOVLY_WEBHOOK_SECRET`, `GOVLY_SECRET_V2`, `RADAR_WEBHOOK_SECRET`
 
 ### Sprint 11: Slack Bot + MCP Bridge (feature/sprint11-slack-bot)
@@ -462,7 +462,7 @@ DealCraft v2.0.0 Release - MCP Rebrand
 - **All functionality preserved** - No breaking API changes, all endpoints remain the same
 - **Obsidian vault structure unchanged** - No folder renames, VAULT_ROOT configuration preserved
 - **Backward compatible** - Existing integrations and workflows continue to work
-- **Federal context preserved** - OEM, SEWP, AETC, AFCENT references unchanged
+- **Federal context preserved** - OEM, SEWP, Customer Beta, Customer Alpha references unchanged
 
 ### Documentation
 - **New release notes:** `docs/releases/v2.0.0.md` - Complete rebrand documentation
@@ -536,7 +536,7 @@ Last Call RC2: Account Plan PDF Export + CRM Write-Safety Gate + Obsidian Paths
 
 ### Tests
 - **New test suite:** `tests/test_account_plans_pdf.py` (10 tests)
-  - PDF generation for AFCENT and AETC
+  - PDF generation for Customer Alpha and Customer Beta
   - Content-Type and header validation
   - PDF magic bytes verification
   - Error handling for unknown customers
@@ -701,14 +701,14 @@ Mega-Pint Phase (S18-20): Partner Intelligence v2 + Sales Ops + Obsidian Improve
 
 ### Related Documentation
 - [Mega-Pint Phase Report](docs/mega_pint_phase.md)
-- [GitHub Release Tag](https://github.com/routerjoe/red-river-sales-automation/releases/tag/v1.10.0)
+- [GitHub Release Tag](https://github.com/routerjoe/DealCraft/releases/tag/v1.10.0)
 
 ---
 
 ---
 
-[v1.6.0]: https://github.com/routerjoe/red-river-sales-automation/compare/v1.5.0...v1.6.0
-[v1.5.0]: https://github.com/routerjoe/red-river-sales-automation/compare/v1.4.0...v1.5.0
-[v1.4.0]: https://github.com/routerjoe/red-river-sales-automation/compare/v1.3.0...v1.4.0
-[v1.3.0]: https://github.com/routerjoe/red-river-sales-automation/compare/v1.2.0...v1.3.0
-[Unreleased]: https://github.com/routerjoe/red-river-sales-automation/compare/v1.6.0...HEAD
+[v1.6.0]: https://github.com/routerjoe/DealCraft/compare/v1.5.0...v1.6.0
+[v1.5.0]: https://github.com/routerjoe/DealCraft/compare/v1.4.0...v1.5.0
+[v1.4.0]: https://github.com/routerjoe/DealCraft/compare/v1.3.0...v1.4.0
+[v1.3.0]: https://github.com/routerjoe/DealCraft/compare/v1.2.0...v1.3.0
+[Unreleased]: https://github.com/routerjoe/DealCraft/compare/v1.6.0...HEAD

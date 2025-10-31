@@ -18,7 +18,7 @@
 ### Contact 1: Government Contact
 N: Bruno Mosqueira
 T: Shipping and Receiving
-O: AFCENT A63
+O: Customer Alpha A63
 Office: 803-666-6580
 E: bruno.mosqueira.1.ctr@us.af.mil
 

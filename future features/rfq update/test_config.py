@@ -35,7 +35,7 @@ def main():
     print_header("Test 1: Strategic Customer Detection")
     tests_total += 1
     test1 = (
-        print_test("AFCENT is strategic (CRITICAL)", is_strategic_customer("AFCENT"), True) and
+        print_test("Customer Alpha is strategic (CRITICAL)", is_strategic_customer("Customer Alpha"), True) and
         print_test("Hill AFB is strategic (HIGH)", is_strategic_customer("Hill AFB"), True) and
         print_test("Random Base is not strategic", is_strategic_customer("Random Base"), False) and
         print_test("Case insensitive: afcent", is_strategic_customer("afcent"), True)

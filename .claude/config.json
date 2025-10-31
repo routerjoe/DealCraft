@@ -1,11 +1,12 @@
 {
   "mcpServers": {
-    "red-river-sales-automation": {
+    "dealcraft": {
       "command": "node",
       "args": ["dist/index.js"],
       "env": {
-        "RED_RIVER_BASE_DIR": "/Users/jonolan/RedRiver",
-        "OBSIDIAN_VAULT_PATH": "/Users/jonolan/Documents/Obsidian Documents/Red River Sales",
+        "DEALCRAFT_BASE_DIR": "/Users/jonolan/DealCraft",
+        "VAULT_ROOT": "/Users/jonolan/Documents/Obsidian Documents/DealCraft",
+        "OBSIDIAN_VAULT_PATH": "/Users/jonolan/Documents/Obsidian Documents/DealCraft",
         "LOG_LEVEL": "info"
       }
     }

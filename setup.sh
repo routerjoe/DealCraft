@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Red River Sales Automation MCP Server Setup"
+echo "🚀 DealCraft MCP Server Setup"
 echo "=============================================="
 echo ""
 
@@ -27,7 +27,7 @@ echo ""
 
 # Create directory structure
 echo "📁 Creating directory structure..."
-BASE_DIR="${RED_RIVER_BASE_DIR:-$HOME/RedRiver}"
+BASE_DIR="${DEALCRAFT_BASE_DIR:-$HOME/DealCraft}"
 
 mkdir -p "$BASE_DIR/data"
 mkdir -p "$BASE_DIR/attachments"
@@ -45,18 +45,19 @@ echo ""
 if [ ! -f .env ]; then
     echo "📝 Creating .env file..."
     cat > .env << EOF
-# Red River Sales Automation Configuration
+# DealCraft Configuration
 
-# Base directory for all Red River files
-RED_RIVER_BASE_DIR=$BASE_DIR
+# Base directory for all DealCraft files
+DEALCRAFT_BASE_DIR=$BASE_DIR
 
 # Attachments directory (set to Google Drive to sync)
 # Example (Google Drive for Desktop):
-# ATTACHMENTS_DIR="$HOME/Library/CloudStorage/GoogleDrive-your_email@domain.com/My Drive/RedRiver/attachments"
+# ATTACHMENTS_DIR="$HOME/Library/CloudStorage/GoogleDrive-your_email@domain.com/My Drive/DealCraft/attachments"
 ATTACHMENTS_DIR=$BASE_DIR/attachments
 
 # Obsidian vault path (update this!)
-OBSIDIAN_VAULT_PATH=$HOME/Documents/RedRiverSales
+VAULT_ROOT=$HOME/Documents/DealCraft
+OBSIDIAN_VAULT_PATH=$HOME/Documents/DealCraft
 
 # Google Drive credentials (optional)
 # GOOGLE_APPLICATION_CREDENTIALS=/path/to/credentials.json
@@ -91,12 +92,13 @@ echo ""
 cat << EOF
 {
   "mcpServers": {
-    "red-river-sales-automation": {
+    "dealcraft": {
       "command": "node",
       "args": ["$(pwd)/dist/index.js"],
       "env": {
-        "RED_RIVER_BASE_DIR": "$BASE_DIR",
-        "OBSIDIAN_VAULT_PATH": "$HOME/Documents/RedRiverSales",
+        "DEALCRAFT_BASE_DIR": "$BASE_DIR",
+        "VAULT_ROOT": "$HOME/Documents/DealCraft",
+        "OBSIDIAN_VAULT_PATH": "$HOME/Documents/DealCraft",
         "ATTACHMENTS_DIR": "$BASE_DIR/attachments"
       }
     }
@@ -120,9 +122,9 @@ echo ""
 echo "✅ Setup complete!"
 echo ""
 echo "Next steps:"
-echo "1. Edit .env and update OBSIDIAN_VAULT_PATH"
+echo "1. Edit .env and update VAULT_ROOT/OBSIDIAN_VAULT_PATH"
 echo "2. Add the config to Claude Desktop (see above)"
 echo "3. Restart Claude Desktop"
-echo "4. Test with: 'Do you have Red River sales tools?'"
+echo "4. Test with: 'Do you have DealCraft sales tools?'"
 echo ""
 echo "For testing locally, run: npm run dev"

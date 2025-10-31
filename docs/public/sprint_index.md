@@ -102,7 +102,7 @@ Each sprint plan follows a consistent structure:
 2. **Scope (In/Out)** - Clear boundaries of what's included and excluded
 3. **Interfaces & Contracts** - API endpoints, MCP tools, file paths
 4. **Deliverables** - Code, tests, docs, and operational artifacts
-5. **Success Criteria / DEPARTMENT-ALPHA** - Definition of Done with measurable criteria
+5. **Success Criteria / Federal Department A** - Definition of Done with measurable criteria
 6. **Risks & Mitigations** - Known risks and mitigation strategies
 7. **Validation Steps** - Local, API, TUI/MCP, and documentation checks
 8. **Checklist** - Sprint execution tracking
