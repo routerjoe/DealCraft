@@ -1,6 +1,6 @@
 # Obsidian Sync Policies
 
-This document defines the synchronization rules and best practices for integrating the Red River Sales Automation system with the Obsidian vault.
+This document defines the synchronization rules and best practices for integrating the DealCraft system with the Obsidian vault.
 
 ## Table of Contents
 

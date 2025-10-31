@@ -529,7 +529,7 @@ Copy `obsidian/50 Dashboards/Opportunities Dashboard.md` to your Obsidian vault 
 - **Sprint Summary:** Detailed Phase 3 notes
 
 ### Contact
-For questions or issues, contact the Red River Sales Automation team.
+For questions or issues, contact the DealCraft team.
 
 ---
 

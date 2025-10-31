@@ -1,0 +1,50 @@
+{
+  "id": "process_fleeting_notes",
+  "name": "Process Fleeting Notes",
+  "description": "Run the unified v6 Fleeting Note processor for meetings, contacts, tasks, and audit logging.",
+  "actions": [
+    {
+      "id": "process_fleeting_notes",
+      "name": "process fleeting notes",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "type": "string",
+            "enum": [
+              "today",
+              "this-week",
+              "this-month",
+              "since-last-run",
+              "range"
+            ],
+            "description": "Which time range to process."
+          },
+          "dry_run": {
+            "type": "boolean",
+            "default": false
+          },
+          "force": {
+            "type": "boolean",
+            "default": false
+          },
+          "range": {
+            "type": "string",
+            "description": "YYYY-MM-DD..YYYY-MM-DD (if using range)"
+          }
+        },
+        "required": [
+          "scope"
+        ]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}
