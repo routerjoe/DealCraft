@@ -1,6 +1,6 @@
 # Release Notes Index
 
-All versioned release notes for Red River Sales Automation.
+All versioned release notes for DealCraft.
 
 ## Releases
 

@@ -299,7 +299,7 @@ Release notes are maintained in [`docs/releases/`](docs/releases/) with full cha
 
 ## Contributing
 
-This is a proprietary project for Red River Sales Automation. For internal contributions:
+This is a proprietary project for DealCraft. For internal contributions:
 
 1. Create a feature branch: `git checkout -b feature/your-feature`
 2. Make changes and add tests
@@ -309,7 +309,7 @@ This is a proprietary project for Red River Sales Automation. For internal contr
 
 ## License
 
-Proprietary - Red River Sales Automation
+Proprietary - DealCraft
 
 ---
 

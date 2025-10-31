@@ -6,7 +6,7 @@
 
 ## Overview
 
-The Red River Sales Automation system supports webhook ingestion from two primary sources:
+The DealCraft system supports webhook ingestion from two primary sources:
 - **Govly** - Federal opportunity tracking platform
 - **Radar** - Contract modification and award monitoring
 

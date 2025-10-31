@@ -1,6 +1,6 @@
 # Guides & Overviews
 
-User guides and feature overviews for Red River Sales Automation.
+User guides and feature overviews for DealCraft.
 
 ## Available Guides
 

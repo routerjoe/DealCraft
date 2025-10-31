@@ -6,7 +6,7 @@
 
 ## Overview
 
-The Red River Sales Automation Slack bot provides real-time access to sales intelligence through slash commands. Team members can query forecasts, get CV recommendations, and view recent activity directly from Slack channels.
+The DealCraft Slack bot provides real-time access to sales intelligence through slash commands. Team members can query forecasts, get CV recommendations, and view recent activity directly from Slack channels.
 
 ## Features
 

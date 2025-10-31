@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Mega-Pint Phase represents a significant enhancement to the Red River Sales Automation MCP API, implementing three focused sprints that build upon the existing infrastructure to deliver advanced partner intelligence, sales operations automation, and improved Obsidian vault integration.
+The Mega-Pint Phase represents a significant enhancement to the DealCraft MCP API, implementing three focused sprints that build upon the existing infrastructure to deliver advanced partner intelligence, sales operations automation, and improved Obsidian vault integration.
 
 **Version:** 1.10.0  
 **Release Date:** 2025-10-30  

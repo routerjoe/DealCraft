@@ -1,6 +1,6 @@
 # Architecture Documentation
 
-System architecture and design documentation for Red River Sales Automation.
+System architecture and design documentation for DealCraft.
 
 ## Available Documentation
 
