@@ -1,4 +1,4 @@
-"""Configuration loader for Red River Sales MCP API."""
+"""Configuration loader for DealCraft API."""
 
 import os
 from pathlib import Path

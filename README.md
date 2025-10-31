@@ -1,4 +1,4 @@
-# Red River Sales MCP API
+# DealCraft API
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/routerjoe/red-river-sales-automation/ci.yml?branch=main)](https://github.com/routerjoe/red-river-sales-automation/actions)
 [![Tests](https://img.shields.io/badge/tests-71%20passing-success)](https://github.com/routerjoe/red-river-sales-automation/actions)
@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/python-3.11+-blue)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
-FastAPI-based Model Context Protocol API for Red River Sales Automation with integrated TUI management interface and Obsidian dashboard generation.
+FastAPI-based Model Context Protocol API for DealCraft with integrated TUI management interface and Obsidian dashboard generation.
 
 ## Features
 

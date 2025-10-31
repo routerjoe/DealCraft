@@ -29,8 +29,8 @@ def test_api_info():
     assert "name" in data
     assert "version" in data
     assert "environment" in data
-    assert data["name"] == "Red River Sales MCP API"
-    assert data["version"] == "1.10.0"
+    assert data["name"] == "DealCraft"
+    assert data["version"] == "2.0.0"
 
 
 def test_api_info_has_request_id():
