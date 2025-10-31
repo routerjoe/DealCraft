@@ -1,1 +1,1 @@
-"""Red River Sales MCP core modules."""
+"""DealCraft core modules."""
