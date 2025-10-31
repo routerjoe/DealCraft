@@ -157,16 +157,83 @@ type ParsedContact = {
   mobile: string[];
   office: string[];
   company?: string;
+  customer_org?: string;  // Organization/Customer field (e.g., "AFCENT A63", "AETC")
   address?: string;
+  website?: string;       // Website URL
+  linkedin?: string;      // LinkedIn URL
+  twitter?: string;       // Twitter/X handle
+  phone_normalized?: string; // Normalized phone number (digits only)
   sourceNote?: string;
 };
 
 function canonicalCompany(s?: string): string {
   if (!s) return '';
   return s.replace(/\b(inc\.?|llc|corp\.?|co\.?|ltd)\b/gi, '')
-    .replace(/[“”"]/g, '')
+    .replace(/["""]/g, '')
     .replace(/\s{2,}/g, ' ')
     .trim();
+}
+
+/**
+ * Strip markdown formatting from text:
+ * - Removes bold: **text** → text
+ * - Removes italics: *text* or _text_ → text
+ * - Extracts link text: [text](url) → text
+ * - Removes inline code: `text` → text
+ */
+function stripMarkdown(text: string): string {
+  if (!text) return text;
+  let cleaned = text;
+
+  // Remove links [text](url) → text
+  cleaned = cleaned.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+
+  // Remove bold **text** → text
+  cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, '$1');
+
+  // Remove italics *text* → text (but not * at start of line for bullets)
+  cleaned = cleaned.replace(/(?<!^|\s)\*([^*]+)\*(?!\*)/g, '$1');
+
+  // Remove italics _text_ → text
+  cleaned = cleaned.replace(/_([^_]+)_/g, '$1');
+
+  // Remove inline code `text` → text
+  cleaned = cleaned.replace(/`([^`]+)`/g, '$1');
+
+  return cleaned.trim();
+}
+
+/**
+ * Normalize phone number to digits only for consistent storage.
+ * Strips formatting: (571) 265-3865 → 5712653865
+ * Returns undefined if input is empty or invalid
+ */
+function normalizePhone(phone: string): string | undefined {
+  if (!phone) return undefined;
+  const digits = phone.replace(/\D/g, '');
+  return digits.length >= 10 ? digits : undefined;
+}
+
+/**
+ * Detect if a string looks like an email address
+ */
+function isEmail(text: string): boolean {
+  return /\S+@\S+\.\S+/.test(text);
+}
+
+/**
+ * Detect if a string looks like a phone number
+ * Matches: xxx-xxx-xxxx, (xxx) xxx-xxxx, xxx.xxx.xxxx, xxxxxxxxxx
+ */
+function isPhoneNumber(text: string): boolean {
+  return /^[\d\s().-]{10,}$/.test(text) && /\d{3}/.test(text);
+}
+
+/**
+ * Detect if a string looks like a URL
+ */
+function isURL(text: string): boolean {
+  return /^https?:\/\/\S+/.test(text) || /^www\.\S+/.test(text);
 }
 
 function parseContacts(md: string, relNote: string): ParsedContact[] {
@@ -175,11 +242,19 @@ function parseContacts(md: string, relNote: string): ParsedContact[] {
   let cur: ParsedContact | null = null;
   let inAddress = false;
 
-  const keyed = /^(?:N|Name|T|Title|E|Email|M|Mobile|C|Company|O|Office(?:\s+Number)?|A|Address)\s*[:\-—|]/i;
+  // Updated regex to include new field prefixes: O: (Org), W: (Website), L: (LinkedIn), X: (Twitter)
+  const keyed = /^(?:N|Name|T|Title|E|Email|M|Mobile|C|Company|O|Org(?:anization)?|Office(?:\s+Number)?|A|Address|W|Website|L|LinkedIn|X|Twitter)\s*[:\-—|]/i;
 
   function push() {
     if (!cur) return;
     if (cur.company) cur.company = canonicalCompany(cur.company);
+
+    // Normalize phone numbers - pick first mobile or office and normalize
+    const primaryPhone = (cur.mobile && cur.mobile[0]) ? cur.mobile[0] : ((cur.office && cur.office[0]) ? cur.office[0] : '');
+    if (primaryPhone) {
+      cur.phone_normalized = normalizePhone(primaryPhone);
+    }
+
     out.push(cur); cur = null; inAddress = false;
   }
 
@@ -203,19 +278,220 @@ function parseContacts(md: string, relNote: string): ParsedContact[] {
     }
 
     let m: RegExpMatchArray | null;
-    if (m = line.match(/^(?:N|Name)\s*[:\-—|]\s*(.+)$/i)) cur.full_name = m[1].trim();
-    else if (m = line.match(/^(?:T|Title)\s*[:\-—|]\s*(.+)$/i)) cur.title = m[1].trim();
+
+    // Apply markdown stripping to all field values
+    if (m = line.match(/^(?:N|Name)\s*[:\-—|]\s*(.+)$/i)) {
+      cur.full_name = stripMarkdown(m[1].trim());
+    }
+    else if (m = line.match(/^(?:T|Title)\s*[:\-—|]\s*(.+)$/i)) {
+      cur.title = stripMarkdown(m[1].trim());
+    }
     else if (m = line.match(/^(?:E|Email)\s*[:\-—|]\s*(.+)$/i)) {
-      const emails = m[1].split(/[,;\s]+/).map(s => s.trim().toLowerCase()).filter(Boolean);
+      const emails = m[1].split(/[,;\s]+/).map(s => stripMarkdown(s.trim()).toLowerCase()).filter(Boolean);
       cur.emails.push(...emails);
     }
-    else if (m = line.match(/^(?:M|Mobile)\s*[:\-—|]\s*(.+)$/i)) cur.mobile.push(m[1].trim());
-    else if (m = line.match(/^(?:O|Office(?:\s+Number)?)\s*[:\-—|]\s*(.+)$/i)) cur.office.push(m[1].trim());
-    else if (m = line.match(/^(?:C|Company)\s*[:\-—|]\s*(.+)$/i)) cur.company = (m[1] || '').trim();
-    else if (m = line.match(/^(?:A|Address)\s*[:\-—|]\s*(.+)$/i)) { cur.address = (cur.address ? cur.address + '\n' : '') + m[1].trim(); inAddress = true; }
+    else if (m = line.match(/^(?:M|Mobile)\s*[:\-—|]\s*(.+)$/i)) {
+      cur.mobile.push(stripMarkdown(m[1].trim()));
+    }
+    // O: can be either Office Number OR Organization/Customer - detect by context
+    else if (m = line.match(/^(?:O|Office(?:\s+Number)?)\s*[:\-—|]\s*(.+)$/i)) {
+      const value = stripMarkdown(m[1].trim());
+      // If it looks like a phone number, treat as office phone
+      if (isPhoneNumber(value)) {
+        cur.office.push(value);
+      } else {
+        // Otherwise treat as Organization/Customer
+        cur.customer_org = value;
+      }
+    }
+    // Explicit Org/Organization field
+    else if (m = line.match(/^(?:Org(?:anization)?)\s*[:\-—|]\s*(.+)$/i)) {
+      cur.customer_org = stripMarkdown(m[1].trim());
+    }
+    else if (m = line.match(/^(?:C|Company)\s*[:\-—|]\s*(.+)$/i)) {
+      cur.company = stripMarkdown((m[1] || '').trim());
+    }
+    else if (m = line.match(/^(?:W|Website)\s*[:\-—|]\s*(.+)$/i)) {
+      cur.website = stripMarkdown(m[1].trim());
+    }
+    else if (m = line.match(/^(?:L|LinkedIn)\s*[:\-—|]\s*(.+)$/i)) {
+      cur.linkedin = stripMarkdown(m[1].trim());
+    }
+    else if (m = line.match(/^(?:X|Twitter)\s*[:\-—|]\s*(.+)$/i)) {
+      cur.twitter = stripMarkdown(m[1].trim());
+    }
+    else if (m = line.match(/^(?:A|Address)\s*[:\-—|]\s*(.+)$/i)) {
+      cur.address = (cur.address ? cur.address + '\n' : '') + stripMarkdown(m[1].trim());
+      inAddress = true;
+    }
   }
   if (cur) push();
   return out;
+}
+
+/**
+ * Flexible/smart parser that detects contacts even without strict prefix format.
+ * Falls back to strict mode if ambiguous.
+ *
+ * Strategy:
+ * 1. Look for email addresses (@ pattern) to identify potential contact blocks
+ * 2. Look for phone numbers (various formats)
+ * 3. Detect names by capitalization patterns (Title Case words)
+ * 4. Detect common job titles
+ * 5. Detect company/org names
+ * 6. Extract URLs for websites, LinkedIn, Twitter
+ */
+function parseContactsFlexible(md: string, relNote: string): ParsedContact[] {
+  // First try strict parsing
+  const strictResults = parseContacts(md, relNote);
+
+  // If we got results from strict parsing, use those
+  if (strictResults.length > 0) {
+    return strictResults;
+  }
+
+  // Otherwise, try flexible parsing
+  const lines = md.split(/\r?\n/);
+  const out: ParsedContact[] = [];
+  const contacts: Map<number, ParsedContact> = new Map();
+
+  // Common job title patterns
+  const titlePatterns = [
+    /\b(director|manager|engineer|specialist|analyst|coordinator|administrator|chief|president|vp|vice president|ceo|cto|cfo|cio)\b/i,
+    /\b(senior|junior|lead|principal|staff|associate)\s+(director|manager|engineer|specialist|analyst)/i,
+  ];
+
+  // Pass 1: Find emails and phones as anchors for contact blocks
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    // Check if line contains email
+    const emailMatch = line.match(/\b([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,})\b/);
+    if (emailMatch) {
+      // Look backwards and forwards for name, title, company
+      const contact: ParsedContact = {
+        kind: 'person',
+        emails: [emailMatch[1].toLowerCase()],
+        mobile: [],
+        office: [],
+        sourceNote: relNote
+      };
+
+      // Search context (up to 5 lines before and after)
+      const contextStart = Math.max(0, i - 5);
+      const contextEnd = Math.min(lines.length, i + 5);
+      const context = lines.slice(contextStart, contextEnd);
+
+      for (const ctx of context) {
+        const stripped = stripMarkdown(ctx.trim());
+
+        // Look for phone numbers
+        const phoneMatch = stripped.match(/(?:^|\s)([\d\s().-]{10,})/);
+        if (phoneMatch && isPhoneNumber(phoneMatch[1])) {
+          const phone = phoneMatch[1].trim();
+          // Try to determine if mobile or office based on context
+          if (ctx.toLowerCase().includes('mobile') || ctx.toLowerCase().includes('cell')) {
+            contact.mobile.push(phone);
+          } else {
+            contact.office.push(phone);
+          }
+        }
+
+        // Look for URLs
+        const urlMatch = stripped.match(/https?:\/\/([^\s]+)/);
+        if (urlMatch) {
+          const url = urlMatch[0];
+          if (url.includes('linkedin.com')) {
+            contact.linkedin = url;
+          } else if (url.includes('twitter.com') || url.includes('x.com')) {
+            contact.twitter = url;
+          } else if (!contact.website) {
+            contact.website = url;
+          }
+        }
+
+        // Look for title
+        if (!contact.title) {
+          for (const pattern of titlePatterns) {
+            if (pattern.test(stripped)) {
+              contact.title = stripped;
+              break;
+            }
+          }
+        }
+
+        // Look for name (capitalized words, 2-4 words typically)
+        if (!contact.full_name) {
+          const nameMatch = stripped.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})$/);
+          if (nameMatch && !isEmail(nameMatch[1]) && !titlePatterns.some(p => p.test(nameMatch[1]))) {
+            contact.full_name = nameMatch[1];
+          }
+        }
+
+        // Look for company/organization
+        // Companies often have Inc, LLC, Corp, Networks, Systems, etc.
+        if (!contact.company && !contact.customer_org) {
+          const companyPatterns = [
+            /\b([A-Z][A-Za-z0-9\s&]+(?:Inc\.?|LLC|Corp\.?|Corporation|Networks|Systems|Solutions|Technologies|Ltd\.?))\b/,
+            /\b(Palo Alto Networks|Cisco|Dell|HP|IBM|Microsoft|Oracle|VMware|RedHat)\b/i,
+          ];
+          for (const pattern of companyPatterns) {
+            const match = stripped.match(pattern);
+            if (match) {
+              contact.company = match[1].trim();
+              break;
+            }
+          }
+
+          // Government/military org patterns
+          const orgPatterns = [
+            /\b(AFCENT|AETC|AFMC|USAF|DoD|DHS|GSA)\b/,
+            /\b([A-Z]{2,}\s+[A-Z]\d{2,})\b/, // e.g., "AFCENT A63"
+          ];
+          for (const pattern of orgPatterns) {
+            const match = stripped.match(pattern);
+            if (match) {
+              contact.customer_org = match[1].trim();
+              break;
+            }
+          }
+        }
+      }
+
+      // Normalize phone if found
+      const primaryPhone = (contact.mobile[0]) || (contact.office[0]) || '';
+      if (primaryPhone) {
+        contact.phone_normalized = normalizePhone(primaryPhone);
+      }
+
+      // Only add if we have at least a name or email
+      if (contact.full_name || contact.emails.length > 0) {
+        contacts.set(i, contact);
+      }
+    }
+  }
+
+  // Deduplicate contacts (same email = same person)
+  const emailMap = new Map<string, ParsedContact>();
+  const contactsList = Array.from(contacts.values());
+  for (const contact of contactsList) {
+    const email = contact.emails[0];
+    if (emailMap.has(email)) {
+      // Merge information
+      const existing = emailMap.get(email)!;
+      if (!existing.full_name && contact.full_name) existing.full_name = contact.full_name;
+      if (!existing.title && contact.title) existing.title = contact.title;
+      if (!existing.company && contact.company) existing.company = contact.company;
+      if (!existing.customer_org && contact.customer_org) existing.customer_org = contact.customer_org;
+      existing.mobile.push(...contact.mobile);
+      existing.office.push(...contact.office);
+    } else {
+      emailMap.set(email, contact);
+    }
+  }
+
+  return Array.from(emailMap.values());
 }
 
 function personFileName(c: ParsedContact): string {
@@ -253,8 +529,13 @@ function savePerson(c: ParsedContact, PEOPLE: string, dry: boolean): { path: str
     tags: ['person'],
     role: c.title || '',
     orgs: c.company ? [`[[${c.company}]]`] : [],
+    customer_org: c.customer_org || '',     // Organization/Customer field
     email: primaryEmail || '',
     phone: primaryPhone || '',
+    phone_normalized: c.phone_normalized || '',  // Normalized phone (digits only)
+    website: c.website || '',                // Website URL
+    linkedin: c.linkedin || '',              // LinkedIn URL
+    twitter: c.twitter || '',                // Twitter/X handle
     accounts: [],
     oems: [],
     contracts: [],
@@ -267,8 +548,15 @@ function savePerson(c: ParsedContact, PEOPLE: string, dry: boolean): { path: str
 ## Overview
 - Role: \`= default(this.role, "—")\`
 - Orgs: \`= default(join(this.orgs, ", "), "—")\`
+- Customer/Org: \`= default(this.customer_org, "—")\`
 - Email: \`= default(this.email, "—")\`
 - Phone: \`= default(this.phone, "—")\`
+- Phone (normalized): \`= default(this.phone_normalized, "—")\`
+
+## Online Presence
+- Website: \`= default(this.website, "—")\`
+- LinkedIn: \`= default(this.linkedin, "—")\`
+- Twitter/X: \`= default(this.twitter, "—")\`
 
 ## Affiliations
 - Accounts: \`= default(join(this.accounts, ", "), "—")\`
@@ -327,6 +615,13 @@ SORT est_close ASC
     if ((!out.email || out.email === '') && primaryEmail) out.email = primaryEmail;
     if ((!out.phone || out.phone === '') && primaryPhone) out.phone = primaryPhone;
 
+    // Merge new fields
+    if ((!out.customer_org || out.customer_org === '') && c.customer_org) out.customer_org = c.customer_org;
+    if ((!out.phone_normalized || out.phone_normalized === '') && c.phone_normalized) out.phone_normalized = c.phone_normalized;
+    if ((!out.website || out.website === '') && c.website) out.website = c.website;
+    if ((!out.linkedin || out.linkedin === '') && c.linkedin) out.linkedin = c.linkedin;
+    if ((!out.twitter || out.twitter === '') && c.twitter) out.twitter = c.twitter;
+
     // Preserve created if present; bump updated timestamp
     out.created = out.created || baseFm.created;
     out.updated = nowISO();
@@ -341,8 +636,13 @@ SORT est_close ASC
       tags: out.tags || ['person'],
       role: out.role || '',
       orgs: out.orgs || [],
+      customer_org: out.customer_org || '',
       email: out.email || '',
       phone: out.phone || '',
+      phone_normalized: out.phone_normalized || '',
+      website: out.website || '',
+      linkedin: out.linkedin || '',
+      twitter: out.twitter || '',
       accounts: out.accounts || [],
       oems: out.oems || [],
       contracts: out.contracts || [],
@@ -474,7 +774,7 @@ function ensureSection(txt: string, heading: string): string {
 function existingBacklog(todoTxt: string): Set<string> {
   const set = new Set<string>();
   const lines = todoTxt.split(/\r?\n/);
-  let i = lines.findIndex(l => /^##\s*Backlog\s*$/.test(l));
+  let i = lines.findIndex(l => /^##\s*📌 Running List \(General Backlog\)\s*$/.test(l));
   if (i === -1) return set;
   i++;
   while (i < lines.length && !/^##\s+/.test(lines[i])) {
@@ -489,7 +789,7 @@ function existingBacklog(todoTxt: string): Set<string> {
 function appendBacklog(todoPath: string, tasks: string[], context: { date: string; source: string }, dry: boolean): number {
   if (tasks.length === 0) return 0;
   let txt = E(todoPath) ? R(todoPath) : '';
-  txt = ensureSection(txt, 'Backlog');
+  txt = ensureSection(txt, '📌 Running List (General Backlog)');
   const existing = existingBacklog(txt);
   const toAdd: string[] = [];
   for (const t of tasks) {
@@ -499,7 +799,7 @@ function appendBacklog(todoPath: string, tasks: string[], context: { date: strin
     }
   }
   if (toAdd.length === 0) { if (!dry) writeAtomic(todoPath, txt); return 0; }
-  const newTxt = txt.replace(/^##\s*Backlog\s*$/mi, m => `${m}\n${toAdd.join('\n')}\n`);
+  const newTxt = txt.replace(/^##\s*📌 Running List \(General Backlog\)\s*$/mi, m => `${m}\n${toAdd.join('\n')}\n`);
   if (!dry) writeAtomic(todoPath, newTxt);
   return toAdd.length;
 }
@@ -509,7 +809,7 @@ function sweepCompleted(todoPath: string, dry: boolean): number {
   let txt = R(todoPath);
   txt = ensureSection(txt, '📌 Completed (General Backlog)');
   const lines = txt.split(/\r?\n/);
-  const start = lines.findIndex(l => /^##\s*Backlog\s*$/.test(l));
+  const start = lines.findIndex(l => /^##\s*📌 Running List \(General Backlog\)\s*$/.test(l));
   if (start === -1) { if (!dry) writeAtomic(todoPath, txt); return 0; }
   let i = start + 1; const idxs: number[] = [];
   while (i < lines.length && !/^##\s+/.test(lines[i])) { if (/^- \[[xX]\]\s+/.test(lines[i])) idxs.push(i); i++; }
@@ -592,8 +892,8 @@ function processNote(
   const tasks_added = appendBacklog(TODO, allTasks, { date, source: title }, dry);
   const tasks_moved_to_completed = sweepCompleted(TODO, dry);
 
-  // contacts
-  const parsed = parseContacts(md, title);
+  // contacts - use flexible parser that falls back to strict mode
+  const parsed = parseContactsFlexible(md, title);
   let contacts_created = 0, contacts_updated = 0, contacts_triaged = 0, company_hubs_created = 0;
   for (const c of parsed) {
     if (c.kind === 'person') {
@@ -720,8 +1020,15 @@ function peopleBodyTemplateForUpgrade(): string {
     '## Overview',
     '- Role: `= default(this.role, "—")`',
     '- Orgs: `= default(join(this.orgs, ", "), "—")`',
+    '- Customer/Org: `= default(this.customer_org, "—")`',
     '- Email: `= default(this.email, "—")`',
     '- Phone: `= default(this.phone, "—")`',
+    '- Phone (normalized): `= default(this.phone_normalized, "—")`',
+    '',
+    '## Online Presence',
+    '- Website: `= default(this.website, "—")`',
+    '- LinkedIn: `= default(this.linkedin, "—")`',
+    '- Twitter/X: `= default(this.twitter, "—")`',
     '',
     '## Affiliations',
     '- Accounts: `= default(join(this.accounts, ", "), "—")`',
@@ -787,8 +1094,13 @@ function normalizePeopleFile(p: string, dry: boolean): boolean {
     tags: Array.isArray(fm?.tags) ? Array.from(new Set([...fm.tags, 'person'])) : ['person'],
     role: fm?.role || fm?.title || '',
     orgs,
+    customer_org: fm?.customer_org || '',
     email: primaryEmail || '',
     phone: primaryPhone || '',
+    phone_normalized: fm?.phone_normalized || (primaryPhone ? normalizePhone(primaryPhone) : ''),
+    website: fm?.website || '',
+    linkedin: fm?.linkedin || '',
+    twitter: fm?.twitter || '',
     accounts: Array.isArray(fm?.accounts) ? fm.accounts : [],
     oems: Array.isArray(fm?.oems) ? fm.oems : [],
     contracts: Array.isArray(fm?.contracts) ? fm.contracts : [],
