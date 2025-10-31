@@ -11,9 +11,10 @@ from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Header, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from mcp.core.account_plans import account_plan_generator
+from mcp.core.account_plans import account_plan_generator, render_plan_to_pdf
 
 logger = logging.getLogger(__name__)
 
@@ -116,7 +117,28 @@ async def generate_account_plan(
         plan_id = f"plan-{request.customer.lower()}-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}"
 
         # Format response based on requested format
-        if request.format == "json":
+        if request.format == "pdf":
+            # Generate PDF and return as streaming response
+            pdf_bytes = render_plan_to_pdf(plan)
+
+            latency_ms = (datetime.utcnow() - start_time).total_seconds() * 1000
+            logger.info(f"Account plan PDF generated successfully: {plan_id} (latency: {latency_ms:.2f}ms)")
+
+            # Generate filename
+            customer_slug = request.customer.lower().replace(" ", "_")
+            date_str = datetime.utcnow().strftime("%Y%m%d")
+            filename = f"account_plan_{customer_slug}_{date_str}.pdf"
+
+            return StreamingResponse(
+                iter([pdf_bytes]),
+                media_type="application/pdf",
+                headers={
+                    "Content-Disposition": f'attachment; filename="{filename}"',
+                    "X-Request-Id": x_request_id or "unknown",
+                    "X-Latency-Ms": str(int(latency_ms)),
+                },
+            )
+        elif request.format == "json":
             preview = plan
         elif request.format == "markdown":
             # Return JSON with note about markdown export
@@ -124,14 +146,6 @@ async def generate_account_plan(
                 **plan,
                 "note": "Markdown export available. Full plan returned as JSON structure.",
             }
-        elif request.format == "pdf":
-            # PDF not yet implemented
-            return AccountPlanResponse(
-                status="error",
-                message="PDF format not yet implemented. Use 'json' or 'markdown' format.",
-                plan_id=None,
-                preview={"not_implemented": True},
-            )
         else:
             preview = plan
 

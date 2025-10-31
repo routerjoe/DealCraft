@@ -446,9 +446,56 @@ curl -X POST http://localhost:8000/v1/account-plans/generate \
     "oem_partners": ["NetApp", "Red Hat", "Cisco"],
     "fiscal_year": "FY26",
     "focus_areas": ["cloud", "training"],
-    "format": "pdf"
+    "format": "json"
   }'
 ```
+
+### PDF Export
+
+**New in Phase 12**: Generate professional PDF account plans for executive presentations and customer meetings.
+
+```bash
+# Generate PDF for AFCENT
+curl -s -X POST http://localhost:8000/v1/account-plans/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer": "AFCENT",
+    "oem_partners": ["Cisco", "Microsoft"],
+    "fiscal_year": "FY26",
+    "format": "pdf"
+  }' > AFCENT_Account_Plan.pdf
+
+# Generate PDF for AETC
+curl -s -X POST http://localhost:8000/v1/account-plans/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer": "AETC",
+    "oem_partners": ["Dell", "HPE"],
+    "fiscal_year": "FY26",
+    "format": "pdf"
+  }' > AETC_Account_Plan.pdf
+```
+
+**PDF Features:**
+- Professional formatting with Red River branding
+- Executive summary on first page
+- Multi-page layout with page breaks
+- Tables for outreach plans and risks
+- Section headings and hierarchical structure
+- Automatic filename generation: `account_plan_<customer>_<YYYYMMDD>.pdf`
+
+**Response Headers:**
+- `Content-Type: application/pdf`
+- `Content-Disposition: attachment; filename="account_plan_afcent_20251031.pdf"`
+- `X-Request-Id: <uuid>` (for tracing)
+- `X-Latency-Ms: <milliseconds>` (performance tracking)
+
+**Use Cases:**
+- Executive briefings with customer leadership
+- Printed materials for customer meetings
+- Email attachments for stakeholder review
+- Archive for compliance and recordkeeping
+- Partner collaboration and co-selling
 
 ### List Available Formats
 

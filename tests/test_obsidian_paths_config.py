@@ -18,6 +18,8 @@ from config.obsidian_paths import (
     get_backups_dir,
     get_dashboards_dir,
     get_oems_dir,
+    get_opportunities_dir,
+    get_projects_dir,
     get_reference_dir,
     get_vault_root,
 )
@@ -92,6 +94,39 @@ def test_backups_dir_correct_path(monkeypatch, tmp_path):
     assert result == test_vault / "80 Reference" / "backups"
 
 
+def test_projects_dir_correct_path(monkeypatch, tmp_path):
+    """Test that get_projects_dir returns correct subdirectory."""
+    test_vault = tmp_path / "test_vault"
+    monkeypatch.setenv("VAULT_ROOT", str(test_vault))
+
+    result = get_projects_dir()
+    assert isinstance(result, Path)
+    assert result == test_vault / "40 Projects"
+
+
+def test_opportunities_dir_correct_path(monkeypatch, tmp_path):
+    """Test that get_opportunities_dir returns correct subdirectory."""
+    test_vault = tmp_path / "test_vault"
+    monkeypatch.setenv("VAULT_ROOT", str(test_vault))
+
+    result = get_opportunities_dir()
+    assert isinstance(result, Path)
+    assert result == test_vault / "40 Projects" / "Opportunities"
+
+
+def test_opportunities_dir_nested_under_projects(monkeypatch, tmp_path):
+    """Test that opportunities dir is correctly nested under projects."""
+    test_vault = tmp_path / "test_vault"
+    monkeypatch.setenv("VAULT_ROOT", str(test_vault))
+
+    projects = get_projects_dir()
+    opportunities = get_opportunities_dir()
+
+    # Opportunities should be a subdirectory of Projects
+    assert str(opportunities).startswith(str(projects))
+    assert opportunities.parent == projects
+
+
 def test_ensure_dir_creates_directory(monkeypatch, tmp_path):
     """Test that ensure_dir creates the directory."""
     test_vault = tmp_path / "test_vault"
@@ -160,3 +195,5 @@ def test_all_helpers_use_relative_paths(monkeypatch, tmp_path):
     assert str(get_dashboards_dir()).startswith(str(test_vault))
     assert str(get_reference_dir()).startswith(str(test_vault))
     assert str(get_backups_dir()).startswith(str(test_vault))
+    assert str(get_projects_dir()).startswith(str(test_vault))
+    assert str(get_opportunities_dir()).startswith(str(test_vault))
