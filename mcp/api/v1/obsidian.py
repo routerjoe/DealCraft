@@ -243,3 +243,61 @@ def create_opportunity_note(payload: OpportunityIn):
     path.write_text(content, encoding="utf-8")
 
     return {"path": str(path), "created": True}
+
+
+# Sprint 20: Sync summary endpoint
+@router.get("/obsidian/sync/summary")
+def get_sync_summary():
+    """
+    Preview what files would be updated during vault sync.
+
+    Returns summary of files that would be created, updated, or remain unchanged
+    without actually writing any files.
+
+    Returns:
+        Dictionary with sync preview information
+    """
+    import os
+
+    from mcp.core.vault_export import preview_sync_operations
+
+    vault_root = os.getenv("VAULT_ROOT", "")
+    if not vault_root:
+        return {
+            "error": "VAULT_ROOT not configured",
+            "dry_run": True,
+            "files_to_create": [],
+            "files_to_update": [],
+            "files_unchanged": [],
+            "total_operations": 0,
+        }
+
+    # Preview partners
+    partners_preview = preview_sync_operations(vault_root, "partners")
+
+    # Preview opportunities
+    opps_preview = preview_sync_operations(vault_root, "opportunities")
+
+    # Preview forecasts/dashboards
+    forecasts_preview = preview_sync_operations(vault_root, "forecasts")
+
+    return {
+        "dry_run": True,
+        "vault_root": vault_root,
+        "previews": {
+            "partners": partners_preview,
+            "opportunities": opps_preview,
+            "forecasts": forecasts_preview,
+        },
+        "summary": {
+            "total_files_to_create": len(partners_preview["files_to_create"])
+            + len(opps_preview["files_to_create"])
+            + len(forecasts_preview["files_to_create"]),
+            "total_files_to_update": len(partners_preview["files_to_update"])
+            + len(opps_preview["files_to_update"])
+            + len(forecasts_preview["files_to_update"]),
+            "total_files_unchanged": len(partners_preview["files_unchanged"])
+            + len(opps_preview["files_unchanged"])
+            + len(forecasts_preview["files_unchanged"]),
+        },
+    }

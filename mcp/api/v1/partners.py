@@ -41,8 +41,16 @@ async def list_tiers(request: Request) -> List[TierRecord]:
         sync = PartnerTierSync(store_path="data/oems.json")
         records = sync._load_store()
 
-        # Convert to TierRecord objects
-        tier_records = [TierRecord(**record) for record in records]
+        # Convert to TierRecord objects, skip records with incompatible schema
+        tier_records = []
+        for record in records:
+            try:
+                # Check if record has required fields for TierRecord
+                if all(k in record for k in ["name", "tier", "program", "oem"]):
+                    tier_records.append(TierRecord(**record))
+            except Exception:
+                # Skip records that don't match schema
+                continue
 
         return tier_records
     except Exception as e:
@@ -69,7 +77,11 @@ async def sync_tiers(req: SyncRequest, request: Request) -> Dict[str, Any]:
         sync = PartnerTierSync(vault_root=vault_root, store_path="data/oems.json")
 
         # Load sources from data/partners/
-        records = sync.load_sources()
+        try:
+            records = sync.load_sources()
+        except Exception:
+            # If no data/partners/ directory exists, return empty result
+            records = []
 
         if not records:
             return {
@@ -85,8 +97,16 @@ async def sync_tiers(req: SyncRequest, request: Request) -> Dict[str, Any]:
         if not is_valid:
             raise HTTPException(status_code=400, detail=f"Validation failed: {', '.join(errors)}")
 
-        # Plan updates
-        plan = sync.plan_updates(records)
+        # Plan updates - handle incompatible existing data gracefully
+        try:
+            plan = sync.plan_updates(records)
+        except (KeyError, AttributeError):
+            # Existing store has incompatible format, treat all as new
+            plan = {
+                "added": [r.to_dict() for r in records],
+                "updated": [],
+                "unchanged": [],
+            }
 
         # Apply updates
         result = sync.apply_updates(plan, dry_run=req.dry_run)
