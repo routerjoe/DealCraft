@@ -1,12 +1,12 @@
 # Sprint Plans Index
 
-**Project:** Red River Sales Automation  
+**Project:** DealCraft  
 **Sprint Cycle:** Sprints 10-15  
 **Date Range:** October 29 - November 10, 2025 EDT
 
 ## Overview
 
-This document provides an index of all sprint plans for the Red River Sales Automation project. Each sprint has a dedicated plan document containing objectives, scope, deliverables, success criteria, risks, and validation steps.
+This document provides an index of all sprint plans for the DealCraft project. Each sprint has a dedicated plan document containing objectives, scope, deliverables, success criteria, risks, and validation steps.
 
 ## Active Sprints
 

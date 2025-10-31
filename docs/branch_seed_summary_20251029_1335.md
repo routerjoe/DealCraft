@@ -2,7 +2,7 @@
 
 **Date:** October 29, 2025 EDT (Wednesday)  
 **Time:** 13:35 EDT  
-**Project:** Red River Sales Automation  
+**Project:** DealCraft  
 **Repository:** `/Users/jonolan/projects/red-river-sales-automation`
 
 ## Executive Summary

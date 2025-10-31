@@ -1,4 +1,4 @@
-# Red River Sales Automation - Configuration Setup Guide
+# DealCraft - Configuration Setup Guide
 
 ## 📋 Overview
 

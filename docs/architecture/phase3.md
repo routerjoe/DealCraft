@@ -363,7 +363,7 @@ obsidian/
 ├── 50 Dashboards/
 │   └── Opportunities Dashboard.md
 └── 60 Projects/
-    └── MCP (Red River Sales Automation)/
+    └── MCP (DealCraft)/
         └── 90_KiloCode_Sprint/
             └── summaries/
                 └── 2025-10-26-phase3-integration-summary.md

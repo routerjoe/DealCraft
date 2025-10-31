@@ -1,4 +1,4 @@
-# Red River Sales Automation MCP Server
+# DealCraft MCP Server
 
 > 🚀 Comprehensive MCP server for automating Red River sales operations - RFQ processing, CRM, and analytics
 
