@@ -1,0 +1,48 @@
+# Terms to mask in PUBLIC docs/wiki.
+# Adjust freely; these replacements will only affect docs/public + wiki (not internal docs).
+mask_map:
+  # Air Force / MAJCOMs / Agencies (examples)
+  "AFCENT": "AGENCY-ALPHA"
+  "AETC": "AGENCY-BRAVO"
+  "USAFE": "AGENCY-CHARLIE"
+  "MDA": "AGENCY-DELTA"
+  "PACAF": "AGENCY-ECHO"
+  "AFGSC": "AGENCY-FOXTROT"
+  "ANG": "AGENCY-GUARD"
+  "AFRC": "AGENCY-RESERVE"
+  "USAF": "SERVICE-ALPHA"
+  "DoD": "DEPARTMENT-ALPHA"
+  "DISA": "AGENCY-NETOPS"
+  "ARCENT": "ARMY-COMMAND-ALPHA"
+  "CENTCOM": "CCMD-ALPHA"
+  "EUCOM": "CCMD-BRAVO"
+  "NORTHCOM": "CCMD-CHARLIE"
+
+# Words we explicitly DO keep in public docs (vendor/vehicle context)
+whitelist_keep:
+  - Cisco
+  - Nutanix
+  - NetApp
+  - Red Hat
+  - SEWP
+  - CHESS
+  - GSA
+  - NASA
+  - CIO-SP3
+  - Alliant 2
+
+# File patterns to include in publicization
+include_globs:
+  - "docs/**/*.md"
+  - "docs/**/*.txt"
+  - "docs/**/*.json"
+  - "docs/**/*.yaml"
+  - "docs/**/*.yml"
+
+# Binary assets (images) are copied without content changes
+binary_globs:
+  - "docs/**/*.png"
+  - "docs/**/*.jpg"
+  - "docs/**/*.jpeg"
+  - "docs/**/*.gif"
+  - "docs/**/*.pdf"
