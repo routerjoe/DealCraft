@@ -7,12 +7,20 @@ Features:
 - Integrates CV recommender for contract vehicle strategies
 - Leverages OEM alignment scores from scoring engine
 - Produces structured plans with executive summaries, strategies, and timelines
+- PDF export with ReportLab (Phase 12)
 """
 
+import io
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List
+
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import inch
+from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from mcp.core.cv_recommender import cv_recommender
 from mcp.core.scoring import scorer
@@ -525,6 +533,231 @@ to maximize capture probability and delivery success for {self.CUSTOMER_PROFILES
         }
 
         return plan
+
+
+def render_plan_to_pdf(plan: Dict[str, Any]) -> bytes:
+    """
+    Convert account plan dictionary to PDF bytes.
+
+    Args:
+        plan: Account plan dictionary from generate_account_plan()
+
+    Returns:
+        bytes: PDF file content
+    """
+    # Create in-memory buffer
+    buffer = io.BytesIO()
+
+    # Create PDF document
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        rightMargin=0.75 * inch,
+        leftMargin=0.75 * inch,
+        topMargin=0.75 * inch,
+        bottomMargin=0.75 * inch,
+    )
+
+    # Build story (content elements)
+    story = []
+    styles = getSampleStyleSheet()
+
+    # Custom styles
+    title_style = ParagraphStyle(
+        "CustomTitle",
+        parent=styles["Heading1"],
+        fontSize=24,
+        textColor=colors.HexColor("#1a1a1a"),
+        spaceAfter=12,
+        alignment=1,  # Center
+    )
+
+    heading1_style = ParagraphStyle(
+        "CustomHeading1",
+        parent=styles["Heading1"],
+        fontSize=16,
+        textColor=colors.HexColor("#2c3e50"),
+        spaceAfter=10,
+        spaceBefore=12,
+    )
+
+    heading2_style = ParagraphStyle(
+        "CustomHeading2",
+        parent=styles["Heading2"],
+        fontSize=14,
+        textColor=colors.HexColor("#34495e"),
+        spaceAfter=8,
+        spaceBefore=10,
+    )
+
+    body_style = ParagraphStyle(
+        "CustomBody",
+        parent=styles["BodyText"],
+        fontSize=10,
+        leading=14,
+        spaceAfter=6,
+    )
+
+    # Title
+    story.append(Paragraph(f"Account Plan: {plan.get('customer_full_name', plan.get('customer', 'Unknown'))}", title_style))
+    story.append(Spacer(1, 0.2 * inch))
+
+    # Metadata
+    generated_at = plan.get("generated_at", datetime.utcnow().isoformat())
+    story.append(Paragraph(f"<i>Generated: {generated_at[:10]}</i>", body_style))
+    story.append(Paragraph(f"<i>Opportunities Analyzed: {plan.get('opportunities_analyzed', 0)}</i>", body_style))
+    story.append(Spacer(1, 0.3 * inch))
+
+    # Executive Summary
+    story.append(Paragraph("Executive Summary", heading1_style))
+    exec_summary = plan.get("executive_summary", "")
+    for para in exec_summary.split("\n\n"):
+        if para.strip():
+            story.append(Paragraph(para.strip(), body_style))
+    story.append(Spacer(1, 0.2 * inch))
+
+    # Goals & KPIs
+    story.append(Paragraph("Goals & KPIs", heading1_style))
+    goals = plan.get("goals_kpis", [])
+    for i, goal in enumerate(goals, 1):
+        story.append(Paragraph(f"<b>{i}. {goal.get('goal', 'N/A')}</b>", body_style))
+        story.append(Paragraph(f"KPI: {goal.get('kpi', 'N/A')}", body_style))
+        story.append(Paragraph(f"Target: {goal.get('target_date', 'TBD')}", body_style))
+        story.append(Spacer(1, 0.1 * inch))
+    story.append(Spacer(1, 0.2 * inch))
+
+    # OEM Strategy
+    story.append(Paragraph("OEM Partner Strategy", heading1_style))
+    oem_strategies = plan.get("oem_strategy", [])
+    for oem in oem_strategies:
+        story.append(Paragraph(f"<b>{oem.get('oem', 'Unknown OEM')}</b>", heading2_style))
+        story.append(Paragraph(f"Alignment Score: {oem.get('alignment_score', 0):.1f}", body_style))
+        story.append(Paragraph(f"Opportunities: {oem.get('opportunities_count', 0)}", body_style))
+        story.append(Paragraph(f"Positioning: {oem.get('positioning', 'N/A')}", body_style))
+
+        action_items = oem.get("action_items", [])
+        if action_items:
+            story.append(Paragraph("<b>Action Items:</b>", body_style))
+            for action in action_items:
+                story.append(Paragraph(f"• {action}", body_style))
+        story.append(Spacer(1, 0.15 * inch))
+
+    # Page break before next major section
+    story.append(PageBreak())
+
+    # Contract Vehicle Strategy
+    story.append(Paragraph("Contract Vehicle Strategy", heading1_style))
+    cv_strategies = plan.get("contract_vehicle_strategy", [])
+    for cv in cv_strategies:
+        story.append(Paragraph(f"<b>{cv.get('vehicle', 'Unknown')}</b>", heading2_style))
+        story.append(Paragraph(f"Priority Score: {cv.get('priority_score', 0):.1f}", body_style))
+        story.append(Paragraph(f"Applicable Opportunities: {cv.get('applicable_opportunities', 0)}", body_style))
+        story.append(Paragraph(f"Rationale: {cv.get('rationale', 'N/A')}", body_style))
+
+        action_items = cv.get("action_items", [])
+        if action_items:
+            story.append(Paragraph("<b>Action Items:</b>", body_style))
+            for action in action_items:
+                story.append(Paragraph(f"• {action}", body_style))
+        story.append(Spacer(1, 0.15 * inch))
+    story.append(Spacer(1, 0.2 * inch))
+
+    # Partner Ecosystem
+    story.append(Paragraph("Partner Ecosystem", heading1_style))
+    partners = plan.get("partner_stack", [])
+    for partner in partners:
+        story.append(Paragraph(f"<b>{partner.get('partner', 'Unknown')}</b>", heading2_style))
+        story.append(Paragraph(f"Role: {partner.get('role', 'N/A')}", body_style))
+        story.append(Paragraph(f"Opportunities: {partner.get('opportunities_count', 0)}", body_style))
+
+        capabilities = partner.get("capabilities", [])
+        if capabilities:
+            story.append(Paragraph(f"Capabilities: {', '.join(capabilities)}", body_style))
+        story.append(Spacer(1, 0.15 * inch))
+
+    # Page break
+    story.append(PageBreak())
+
+    # Outreach Plan
+    story.append(Paragraph("Customer Outreach Plan", heading1_style))
+    outreach = plan.get("outreach_plan", [])
+
+    if outreach:
+        # Create table for outreach plan
+        table_data = [["Step", "Activity", "Owner", "Due Date"]]
+        for step in outreach:
+            table_data.append(
+                [
+                    str(step.get("step", "")),
+                    step.get("activity", "N/A")[:40] + "..." if len(step.get("activity", "")) > 40 else step.get("activity", "N/A"),
+                    step.get("owner", "N/A"),
+                    step.get("due_date", "TBD"),
+                ]
+            )
+
+        table = Table(table_data, colWidths=[0.6 * inch, 3 * inch, 1.5 * inch, 1.2 * inch])
+        table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#3498db")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                    ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, 0), 10),
+                    ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+                    ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                    ("FONTSIZE", (0, 1), (-1, -1), 9),
+                ]
+            )
+        )
+        story.append(table)
+    story.append(Spacer(1, 0.2 * inch))
+
+    # Risks & Mitigations
+    story.append(Paragraph("Risk Assessment & Mitigation", heading1_style))
+    risks = plan.get("risks_mitigations", [])
+    for risk in risks:
+        story.append(Paragraph(f"<b>Risk:</b> {risk.get('risk', 'N/A')}", body_style))
+        impact_likelihood = f"<b>Impact:</b> {risk.get('impact', 'N/A')} | " f"<b>Likelihood:</b> {risk.get('likelihood', 'N/A')}"
+        story.append(Paragraph(impact_likelihood, body_style))
+        story.append(Paragraph(f"<b>Mitigation:</b> {risk.get('mitigation', 'N/A')}", body_style))
+        story.append(Spacer(1, 0.1 * inch))
+
+    # Page break
+    story.append(PageBreak())
+
+    # 30/60/90 Day Checkpoints
+    story.append(Paragraph("30/60/90 Day Checkpoints", heading1_style))
+    checkpoints = plan.get("checkpoints_30_60_90", {})
+
+    for period, items in [("30 Days", "30_days"), ("60 Days", "60_days"), ("90 Days", "90_days")]:
+        story.append(Paragraph(f"<b>{period}</b>", heading2_style))
+        checkpoint_items = checkpoints.get(items, [])
+        for item in checkpoint_items:
+            story.append(Paragraph(f"• {item}", body_style))
+        story.append(Spacer(1, 0.15 * inch))
+
+    # Reasoning & Sources
+    story.append(Spacer(1, 0.2 * inch))
+    story.append(Paragraph("Analysis Methodology", heading1_style))
+    reasoning = plan.get("reasoning", "AI-generated account plan.")
+    story.append(Paragraph(reasoning, body_style))
+
+    story.append(Spacer(1, 0.1 * inch))
+    story.append(Paragraph("<b>Data Sources:</b>", body_style))
+    sources = plan.get("sources_used", [])
+    for source in sources:
+        story.append(Paragraph(f"• {source}", body_style))
+
+    # Build PDF
+    doc.build(story)
+
+    # Get PDF bytes
+    pdf_bytes = buffer.getvalue()
+    buffer.close()
+
+    return pdf_bytes
 
 
 # Global generator instance

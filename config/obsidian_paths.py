@@ -103,6 +103,34 @@ def get_backups_dir() -> Path:
     return get_reference_dir() / "backups"
 
 
+def get_projects_dir() -> Path:
+    """
+    Get the Projects directory within the vault.
+
+    Returns:
+        Path: <VAULT_ROOT>/40 Projects
+
+    Example:
+        >>> projects = get_projects_dir()
+        >>> project_file = projects / "Q4 Initiative.md"
+    """
+    return get_vault_root() / "40 Projects"
+
+
+def get_opportunities_dir() -> Path:
+    """
+    Get the Opportunities directory within the vault.
+
+    Returns:
+        Path: <VAULT_ROOT>/40 Projects/Opportunities
+
+    Example:
+        >>> opps = get_opportunities_dir()
+        >>> opp_file = opps / "AFCENT-Network-Modernization.md"
+    """
+    return get_projects_dir() / "Opportunities"
+
+
 def ensure_dir(path: Path) -> Path:
     """
     Ensure a directory exists, creating it if necessary.

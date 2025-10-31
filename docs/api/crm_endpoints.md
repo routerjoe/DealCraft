@@ -1,7 +1,68 @@
 # CRM API Endpoints Reference
 
-**Version:** 1.6.0 (Phase 6)  
+**Version:** 2.0.0-rc2 (Phase 12)  
 **Base URL:** `http://localhost:8000`
+
+---
+
+## Write-Safety Gate (Phase 12)
+
+**IMPORTANT:** By default, all CRM write operations run in **dry-run mode** to prevent accidental data modifications. This is a safety feature to protect against unintended external changes.
+
+### Key Principles
+
+1. **Default Behavior:** Safe (dry-run mode, no external changes)
+2. **Explicit Opt-In Required:** Clients MUST set `"dry_run": false` to perform actual writes
+3. **No Ambiguity:** Missing or `null` `dry_run` field defaults to `true` (safe)
+4. **Clear Responses:** Response includes `dry_run` field indicating actual mode used
+
+### Usage
+
+**Safe Mode (Default):**
+```json
+{
+  "format": "salesforce"
+  // No dry_run field = defaults to true (safe)
+}
+```
+
+**Explicit Safe Mode:**
+```json
+{
+  "format": "salesforce",
+  "dry_run": true
+}
+```
+
+**Write Mode (Explicit):**
+```json
+{
+  "format": "salesforce",
+  "dry_run": false  // REQUIRED for actual writes
+}
+```
+
+### Response Indicators
+
+**Dry-Run Response:**
+```json
+{
+  "status": "ok",
+  "dry_run": true,
+  "note": "no external changes applied",
+  "total": 10
+}
+```
+
+**Write-Enabled Response:**
+```json
+{
+  "status": "accepted",
+  "dry_run": false,
+  "note": "write path allowed but integration target not configured",
+  "total": 10
+}
+```
 
 ---
 
@@ -11,31 +72,56 @@
 
 Export opportunities to CRM system with attribution data.
 
-**Request:**
+**Write-Safety:** This endpoint is protected by the write-safety gate. See section above for details.
+
+**Request (Dry-Run, Default):**
+```json
+{
+  "opportunity_ids": ["opp-123"],
+  "format": "salesforce"
+  // dry_run omitted = defaults to true (safe)
+}
+```
+
+**Request (Write Mode):**
 ```json
 {
   "opportunity_ids": ["opp-123"],
   "format": "salesforce",
-  "dry_run": true
+  "dry_run": false  // Explicit false required for writes
 }
 ```
 
-**Response:**
+**Response (Dry-Run):**
 ```json
 {
   "request_id": "uuid",
-  "total": 1,
-  "success_count": 1,
-  "error_count": 0,
+  "status": "ok",
   "dry_run": true,
-  "results": [{
-    "success": true,
-    "opportunity_id": "opp-123",
-    "format": "salesforce",
-    "formatted_data": {...}
-  }]
+  "note": "no external changes applied",
+  "total": 1,
+  "opportunities_validated": 1,
+  "format": "salesforce"
 }
 ```
+
+**Response (Write Mode):**
+```json
+{
+  "request_id": "uuid",
+  "status": "accepted",
+  "dry_run": false,
+  "note": "write path allowed but integration target not configured",
+  "total": 1,
+  "format": "salesforce",
+  "would_export": 1
+}
+```
+
+**Parameters:**
+- `opportunity_ids` (optional): Array of opportunity IDs to export. If omitted, exports all.
+- `format` (required): CRM format - see GET /v1/crm/formats for options
+- `dry_run` (optional): Boolean. Defaults to `true` (safe). Must explicitly set to `false` for writes.
 
 ### POST /v1/crm/attribution
 

@@ -101,7 +101,7 @@ except Exception:
     partners_intel_router = None
 
 
-app = FastAPI(title="Red River Sales MCP API", version="1.10.0")
+app = FastAPI(title="Red River Sales MCP API", version="2.0.0-rc2")
 
 # Add rate limiting middleware
 app.add_middleware(RateLimitMiddleware)
@@ -207,7 +207,7 @@ async def api_info(request: Request):
     return JSONResponse(
         content={
             "name": "Red River Sales MCP API",
-            "version": "1.10.0",
+            "version": "2.0.0-rc2",
             "environment": environment,
             "endpoints": [
                 "/healthz",
