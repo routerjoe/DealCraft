@@ -95,8 +95,13 @@ try:
 except Exception:
     partners_router = None
 
+try:
+    from mcp.api.v1.partners_intel import router as partners_intel_router
+except Exception:
+    partners_intel_router = None
 
-app = FastAPI(title="Red River Sales MCP API", version="1.8.1")
+
+app = FastAPI(title="Red River Sales MCP API", version="1.10.0")
 
 # Add rate limiting middleware
 app.add_middleware(RateLimitMiddleware)
@@ -202,7 +207,7 @@ async def api_info(request: Request):
     return JSONResponse(
         content={
             "name": "Red River Sales MCP API",
-            "version": "1.8.1",
+            "version": "1.10.0",
             "environment": environment,
             "endpoints": [
                 "/v1/oems",
@@ -218,6 +223,7 @@ async def api_info(request: Request):
                 "/v1/email/govly/ingest",
                 "/v1/email/intromail/ingest",
                 "/v1/obsidian/opportunity",
+                "/v1/obsidian/sync/summary",
                 "/v1/contacts/export.csv",
                 "/v1/contacts/export.vcf",
                 "/v1/system/recent-actions",
@@ -240,6 +246,10 @@ async def api_info(request: Request):
                 "/v1/partners/tiers",
                 "/v1/partners/sync",
                 "/v1/partners/export/obsidian",
+                "/v1/partners/intel/scores",
+                "/v1/partners/intel/graph",
+                "/v1/partners/intel/enrich",
+                "/v1/partners/intel/export/obsidian",
             ],
         },
         headers={"x-request-id": request.headers.get("x-request-id", "")},
@@ -277,3 +287,5 @@ if account_plans_router is not None:
     app.include_router(account_plans_router, tags=["account_plans"])
 if partners_router is not None:
     app.include_router(partners_router, tags=["partners"])
+if partners_intel_router is not None:
+    app.include_router(partners_intel_router, tags=["partners_intel"])

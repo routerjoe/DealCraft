@@ -3,7 +3,7 @@ id: govly_happy_001
 title: Happy Path Test
 source: Govly
 triage: true
-created_at: 2025-10-30T22:14:28.428885
+created_at: 2025-10-31T02:53:19.816412
 status: triage
 ---
 
@@ -11,7 +11,7 @@ status: triage
 
 **Source:** Govly
 **Status:** Triage
-**Created:** 2025-10-30T22:14:28.428885
+**Created:** 2025-10-31T02:53:19.816412
 
 ## Summary
 

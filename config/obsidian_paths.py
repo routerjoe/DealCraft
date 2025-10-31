@@ -119,3 +119,57 @@ def ensure_dir(path: Path) -> Path:
     """
     path.mkdir(parents=True, exist_ok=True)
     return path
+
+
+# Sprint 20 additions: Unified path mapping
+VAULT_PATHS = {
+    "partners": "30 Hubs/OEMs",
+    "oems": "30 Hubs/OEMs",
+    "opportunities": "40 Projects/Opportunities",
+    "forecasts": "50 Dashboards",
+    "contacts": "20 People",
+    "dashboards": "50 Dashboards",
+    "reference": "80 Reference",
+    "backups": "80 Reference/backups",
+}
+
+
+def get_vault_path(entity_type: str, vault_root: str) -> Path:
+    """
+    Get vault path for a specific entity type.
+
+    Args:
+        entity_type: Type of entity (partners, opportunities, forecasts, etc.)
+        vault_root: Root path of the vault
+
+    Returns:
+        Path: Full path to entity directory
+
+    Raises:
+        ValueError: If entity_type is not recognized
+
+    Example:
+        >>> path = get_vault_path("partners", "/path/to/vault")
+        >>> print(path)
+        PosixPath('/path/to/vault/30 Hubs/OEMs')
+    """
+    if entity_type not in VAULT_PATHS:
+        raise ValueError(f"Unknown entity type: {entity_type}. " f"Valid types: {', '.join(VAULT_PATHS.keys())}")
+
+    return Path(vault_root) / VAULT_PATHS[entity_type]
+
+
+def ensure_vault_structure(vault_root: str) -> None:
+    """
+    Ensure all required vault directories exist.
+
+    Args:
+        vault_root: Root path of the vault
+
+    Example:
+        >>> ensure_vault_structure("/path/to/vault")
+        >>> # All required directories now exist
+    """
+    for entity_type in VAULT_PATHS.keys():
+        path = get_vault_path(entity_type, vault_root)
+        ensure_dir(path)
