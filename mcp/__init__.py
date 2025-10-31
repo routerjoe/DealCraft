@@ -1,1 +1,1 @@
-"""Red River Sales MCP API package."""
+"""DealCraft API package."""

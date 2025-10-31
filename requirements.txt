@@ -1,4 +1,4 @@
-# Red River Sales MCP API Requirements
+# DealCraft API Requirements
 
 # Web Framework
 fastapi==0.109.0

@@ -1,4 +1,4 @@
-"""JSON logging configuration for Red River Sales MCP API."""
+"""JSON logging configuration for DealCraft API."""
 
 import json
 import logging
