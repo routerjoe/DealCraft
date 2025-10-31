@@ -63,7 +63,7 @@ RATE_LIMIT_POLICIES = {
 ```
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 95
-X-RateLimit-Reset: 1698609600
+X-RateLimit-Reset: ***-***-****
 ```
 
 ### SLOs (Service Level Objectives)
@@ -111,7 +111,7 @@ X-RateLimit-Reset: 1698609600
 - Rate limit stubs with TODO markers
 - Log redaction helpers (documented, not enforced)
 
-## Success Criteria / DoD
+## Success Criteria / DEPARTMENT-ALPHA
 
 - [ ] Sprint plan created (docs/sprint_plan.md)
 - [ ] Hardening runbook complete (docs/ops/hardening_runbook.md)

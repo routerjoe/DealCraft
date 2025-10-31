@@ -108,7 +108,7 @@ export function parseCommandArgs(text: string): Record<string, any>;
 
 Required configuration in `.env`:
 ```bash
-SLACK_BOT_TOKEN=xoxb-your-bot-token
+SLACK_BOT_TOKEN=xox*-***
 SLACK_SIGNING_SECRET=your-signing-secret
 SLACK_ENABLED=true
 SLACK_DEFAULT_CHANNEL=#sales-automation
@@ -150,7 +150,7 @@ SLACK_DEFAULT_CHANNEL=#sales-automation
 - Permission management guide
 - Monitoring and alerting setup
 
-## Success Criteria / DoD
+## Success Criteria / DEPARTMENT-ALPHA
 
 - [ ] Sprint plan created (docs/sprint_plan.md)
 - [ ] Slack bot documentation complete (docs/integrations/slack_bot.md)
