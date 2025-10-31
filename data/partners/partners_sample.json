@@ -1,0 +1,20 @@
+{
+    "partners": [
+        {
+            "name": "Enterprise Solutions Group",
+            "tier": "Platinum",
+            "program": "Dell Technologies Partner Program",
+            "oem": "Dell",
+            "poc": "Sarah Williams",
+            "notes": "Enterprise infrastructure specialist"
+        },
+        {
+            "name": "Digital Transform Partners",
+            "tier": "Gold",
+            "program": "Microsoft Partner Network",
+            "oem": "Microsoft",
+            "poc": "Michael Chen",
+            "notes": "Cloud and digital transformation focus"
+        }
+    ]
+}

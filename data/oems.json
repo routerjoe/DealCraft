@@ -1,0 +1,51 @@
+[
+  {
+    "oem_name": "Oracle",
+    "tier": "Gold",
+    "partner_poc": "Sarah Connor",
+    "notes": "Database solutions",
+    "updated_at": "2025-10-31T00:47:19.473053+00:00"
+  },
+  {
+    "oem_name": "IBM",
+    "tier": "Silver",
+    "partner_poc": null,
+    "notes": null,
+    "updated_at": "2025-10-31T00:47:19.522793+00:00"
+  },
+  {
+    "oem_name": "VMware",
+    "tier": "Platinum",
+    "partner_poc": "Tom Anderson",
+    "notes": "Virtualization expert",
+    "updated_at": "2025-10-31T00:47:19.573788+00:00"
+  },
+  {
+    "oem_name": "NetApp",
+    "tier": "Gold",
+    "partner_poc": "Lisa Simpson",
+    "notes": "Storage solutions provider",
+    "updated_at": "2025-10-31T00:47:19.729788+00:00"
+  },
+  {
+    "oem_name": "Integration Test Red Hat",
+    "tier": "Platinum",
+    "partner_poc": "Alice",
+    "notes": "Open source",
+    "updated_at": "2025-10-31T00:47:19.936847+00:00"
+  },
+  {
+    "oem_name": "Integration Test AWS",
+    "tier": "Diamond",
+    "partner_poc": "Bob",
+    "notes": "Cloud services",
+    "updated_at": "2025-10-31T00:47:20.003526+00:00"
+  },
+  {
+    "oem_name": "Integration Test Google",
+    "tier": "Platinum",
+    "partner_poc": "Charlie",
+    "notes": "Cloud platform",
+    "updated_at": "2025-10-31T00:47:20.052819+00:00"
+  }
+]
