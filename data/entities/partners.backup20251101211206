@@ -1,0 +1,32 @@
+{
+  "entities": [
+    {
+      "id": "partner-alpha",
+      "name": "TechPartner Alpha",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.652433+00:00",
+      "updated_at": "2025-11-01T21:12:06.652438+00:00",
+      "metadata": {},
+      "tier": "Platinum",
+      "oem_affiliations": [
+        "microsoft",
+        "cisco",
+        "vmware"
+      ],
+      "program": "Microsoft Gold Partner",
+      "contact_name": null,
+      "contact_email": null,
+      "contact_phone": null,
+      "specializations": [
+        "Cloud Migration",
+        "Cybersecurity",
+        "Data Center"
+      ],
+      "regions_served": [
+        "East",
+        "Central"
+      ],
+      "notes": null
+    }
+  ]
+}

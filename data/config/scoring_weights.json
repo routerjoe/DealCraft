@@ -1,0 +1,61 @@
+{
+  "version": "2.1",
+  "description": "Scoring weights and bonuses for DealCraft opportunity scoring engine",
+  "last_updated": "2025-11-01",
+  "oem_alignment_scores": {
+    "Microsoft": 95,
+    "Cisco": 92,
+    "Dell": 90,
+    "HPE": 88,
+    "VMware": 85,
+    "NetApp": 83,
+    "Palo Alto Networks": 88,
+    "Fortinet": 85,
+    "AWS": 80,
+    "Google": 75,
+    "Oracle": 70,
+    "IBM": 68,
+    "Default": 50
+  },
+  "contract_vehicle_scores": {
+    "GSA Schedule": 90,
+    "SEWP V": 95,
+    "NASA SOLUTIONS": 92,
+    "DHS FirstSource II": 88,
+    "CIO-SP3": 85,
+    "Alliant 2": 83,
+    "8(a) STARS II": 80,
+    "Direct": 60,
+    "Default": 50
+  },
+  "region_bonuses": {
+    "East": 2.5,
+    "West": 2.0,
+    "Central": 1.5
+  },
+  "customer_org_bonuses": {
+    "DOD": 4.0,
+    "Civilian": 3.0,
+    "Default": 2.0
+  },
+  "cv_recommendation_bonuses": {
+    "single": 5.0,
+    "multiple": 7.0
+  },
+  "stage_multipliers": {
+    "Qualification": 0.15,
+    "Discovery": 0.25,
+    "Proposal": 0.45,
+    "Negotiation": 0.75,
+    "Closed Won": 1.0,
+    "Closed Lost": 0.0,
+    "Default": 0.2
+  },
+  "guardrails": {
+    "max_total_bonus": 15.0,
+    "min_score": 0.0,
+    "max_score": 100.0,
+    "min_win_prob": 0.0,
+    "max_win_prob": 1.0
+  }
+}

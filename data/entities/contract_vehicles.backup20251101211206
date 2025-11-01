@@ -1,0 +1,180 @@
+{
+  "entities": [
+    {
+      "id": "sewp-v",
+      "name": "SEWP V",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.647766+00:00",
+      "updated_at": "2025-11-01T21:12:06.647772+00:00",
+      "metadata": {},
+      "priority_score": 95.0,
+      "oems_supported": [
+        "microsoft",
+        "cisco",
+        "dell",
+        "hpe",
+        "vmware",
+        "netapp"
+      ],
+      "categories": [
+        "IT Hardware",
+        "Software",
+        "Cloud Services"
+      ],
+      "active_bpas": 3,
+      "ceiling_amount": 50000000000.0,
+      "contracting_office": "NASA SEWP",
+      "scope": "IT Products and Services for Federal Agencies",
+      "url": null,
+      "notes": null
+    },
+    {
+      "id": "nasa-solutions",
+      "name": "NASA SOLUTIONS",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.648213+00:00",
+      "updated_at": "2025-11-01T21:12:06.648228+00:00",
+      "metadata": {},
+      "priority_score": 92.0,
+      "oems_supported": [
+        "dell",
+        "hpe",
+        "cisco",
+        "microsoft"
+      ],
+      "categories": [
+        "IT Hardware",
+        "Professional Services"
+      ],
+      "active_bpas": 2,
+      "ceiling_amount": 20000000000.0,
+      "contracting_office": "NASA SEWP",
+      "scope": "IT Solutions and Professional Services",
+      "url": null,
+      "notes": null
+    },
+    {
+      "id": "gsa-schedule",
+      "name": "GSA Schedule",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.649263+00:00",
+      "updated_at": "2025-11-01T21:12:06.649275+00:00",
+      "metadata": {},
+      "priority_score": 90.0,
+      "oems_supported": [
+        "microsoft",
+        "cisco",
+        "dell",
+        "hpe",
+        "vmware",
+        "netapp",
+        "palo-alto",
+        "fortinet",
+        "aws",
+        "google",
+        "oracle",
+        "ibm"
+      ],
+      "categories": [
+        "All Categories"
+      ],
+      "active_bpas": 5,
+      "ceiling_amount": null,
+      "contracting_office": "GSA",
+      "scope": "Multiple Award Schedule for IT Products and Services",
+      "url": null,
+      "notes": null
+    },
+    {
+      "id": "dhs-firstsource-ii",
+      "name": "DHS FirstSource II",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.650424+00:00",
+      "updated_at": "2025-11-01T21:12:06.650433+00:00",
+      "metadata": {},
+      "priority_score": 88.0,
+      "oems_supported": [
+        "cisco",
+        "palo-alto",
+        "fortinet"
+      ],
+      "categories": [
+        "Cybersecurity",
+        "Networking"
+      ],
+      "active_bpas": 1,
+      "ceiling_amount": 22000000000.0,
+      "contracting_office": "DHS",
+      "scope": "Cybersecurity and Network Solutions",
+      "url": null,
+      "notes": null
+    },
+    {
+      "id": "cio-sp3",
+      "name": "CIO-SP3",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.650949+00:00",
+      "updated_at": "2025-11-01T21:12:06.650955+00:00",
+      "metadata": {},
+      "priority_score": 85.0,
+      "oems_supported": [
+        "microsoft",
+        "cisco",
+        "dell",
+        "hpe",
+        "vmware",
+        "netapp",
+        "palo-alto",
+        "fortinet",
+        "aws",
+        "google",
+        "oracle",
+        "ibm"
+      ],
+      "categories": [
+        "IT Services",
+        "Cloud",
+        "Cybersecurity"
+      ],
+      "active_bpas": 0,
+      "ceiling_amount": 20000000000.0,
+      "contracting_office": "NIH",
+      "scope": "IT Services for Health and Human Services",
+      "url": null,
+      "notes": null
+    },
+    {
+      "id": "alliant-2",
+      "name": "Alliant 2",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.651428+00:00",
+      "updated_at": "2025-11-01T21:12:06.651432+00:00",
+      "metadata": {},
+      "priority_score": 83.0,
+      "oems_supported": [
+        "microsoft",
+        "cisco",
+        "dell",
+        "hpe",
+        "vmware",
+        "netapp",
+        "palo-alto",
+        "fortinet",
+        "aws",
+        "google",
+        "oracle",
+        "ibm"
+      ],
+      "categories": [
+        "IT Services",
+        "Professional Services"
+      ],
+      "active_bpas": 0,
+      "ceiling_amount": 65000000000.0,
+      "contracting_office": "GSA",
+      "scope": "Integrated IT Solutions for Federal Agencies",
+      "url": null,
+      "notes": null
+    }
+  ]
+}

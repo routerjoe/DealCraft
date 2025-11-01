@@ -1,0 +1,26 @@
+{
+  "entities": [
+    {
+      "id": "east",
+      "name": "East",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.646247+00:00",
+      "updated_at": "2025-11-01T21:12:06.646256+00:00",
+      "metadata": {},
+      "bonus": 2.5,
+      "description": "East Coast region (65% win rate)",
+      "notes": null
+    },
+    {
+      "id": "west",
+      "name": "West",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.646845+00:00",
+      "updated_at": "2025-11-01T21:12:06.646853+00:00",
+      "metadata": {},
+      "bonus": 2.0,
+      "description": "West Coast region (60% win rate)",
+      "notes": null
+    }
+  ]
+}

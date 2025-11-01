@@ -1,0 +1,69 @@
+{
+  "entities": [
+    {
+      "id": "distributor-alpha",
+      "name": "Tech Distribution Alpha",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.654238+00:00",
+      "updated_at": "2025-11-01T21:12:06.654244+00:00",
+      "metadata": {},
+      "tier": "Premier",
+      "oem_authorizations": [
+        "microsoft",
+        "cisco",
+        "dell",
+        "hpe"
+      ],
+      "regions_served": [
+        "East",
+        "West",
+        "Central"
+      ],
+      "product_categories": [
+        "Hardware",
+        "Software",
+        "Cloud Services"
+      ],
+      "contact_name": null,
+      "contact_email": null,
+      "contact_phone": null,
+      "payment_terms": "Net 30",
+      "delivery_options": [
+        "Direct Ship",
+        "Warehouse",
+        "Drop Ship"
+      ],
+      "notes": null
+    },
+    {
+      "id": "distributor-beta",
+      "name": "Solutions Distributor Beta",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.654542+00:00",
+      "updated_at": "2025-11-01T21:12:06.654545+00:00",
+      "metadata": {},
+      "tier": "Standard",
+      "oem_authorizations": [
+        "vmware",
+        "netapp",
+        "palo-alto"
+      ],
+      "regions_served": [
+        "West"
+      ],
+      "product_categories": [
+        "Software",
+        "Storage",
+        "Security"
+      ],
+      "contact_name": null,
+      "contact_email": null,
+      "contact_phone": null,
+      "payment_terms": "Net 45",
+      "delivery_options": [
+        "Direct Ship"
+      ],
+      "notes": null
+    }
+  ]
+}

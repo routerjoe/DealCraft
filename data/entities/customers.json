@@ -1,0 +1,69 @@
+{
+  "entities": [
+    {
+      "id": "customer-alpha",
+      "name": "CustomerAlpha",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.653097+00:00",
+      "updated_at": "2025-11-01T21:12:06.653101+00:00",
+      "metadata": {},
+      "category": "DOD",
+      "region": "East",
+      "tier": "Strategic",
+      "preferred_partners": [],
+      "preferred_vehicles": [
+        "sewp-v",
+        "nasa-solutions"
+      ],
+      "contact_name": null,
+      "contact_email": null,
+      "contact_phone": null,
+      "annual_spend": 5000000.0,
+      "contract_count": 12,
+      "notes": null
+    },
+    {
+      "id": "customer-beta",
+      "name": "CustomerBeta",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.653501+00:00",
+      "updated_at": "2025-11-01T21:12:06.653504+00:00",
+      "metadata": {},
+      "category": "DOD",
+      "region": "Central",
+      "tier": "Strategic",
+      "preferred_partners": [],
+      "preferred_vehicles": [
+        "gsa-schedule",
+        "dhs-firstsource-ii"
+      ],
+      "contact_name": null,
+      "contact_email": null,
+      "contact_phone": null,
+      "annual_spend": 3500000.0,
+      "contract_count": 8,
+      "notes": null
+    },
+    {
+      "id": "customer-gamma",
+      "name": "Agency Gamma",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.653871+00:00",
+      "updated_at": "2025-11-01T21:12:06.653874+00:00",
+      "metadata": {},
+      "category": "Civilian",
+      "region": "West",
+      "tier": "Standard",
+      "preferred_partners": [],
+      "preferred_vehicles": [
+        "gsa-schedule"
+      ],
+      "contact_name": null,
+      "contact_email": null,
+      "contact_phone": null,
+      "annual_spend": 1200000.0,
+      "contract_count": 4,
+      "notes": null
+    }
+  ]
+}

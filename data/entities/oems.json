@@ -1,0 +1,232 @@
+{
+  "entities": [
+    {
+      "id": "microsoft",
+      "name": "Microsoft",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.636070+00:00",
+      "updated_at": "2025-11-01T21:12:06.636089+00:00",
+      "metadata": {},
+      "tier": "Strategic",
+      "contact_name": null,
+      "contact_email": null,
+      "contact_phone": null,
+      "programs": [
+        "Azure",
+        "M365",
+        "Dynamics"
+      ],
+      "certifications": [],
+      "notes": null
+    },
+    {
+      "id": "cisco",
+      "name": "Cisco",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.636617+00:00",
+      "updated_at": "2025-11-01T21:12:06.636626+00:00",
+      "metadata": {},
+      "tier": "Strategic",
+      "contact_name": null,
+      "contact_email": null,
+      "contact_phone": null,
+      "programs": [
+        "Networking",
+        "Security",
+        "Collaboration"
+      ],
+      "certifications": [],
+      "notes": null
+    },
+    {
+      "id": "dell",
+      "name": "Dell",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.637153+00:00",
+      "updated_at": "2025-11-01T21:12:06.637159+00:00",
+      "metadata": {},
+      "tier": "Gold",
+      "contact_name": null,
+      "contact_email": null,
+      "contact_phone": null,
+      "programs": [
+        "PowerEdge",
+        "VxRail",
+        "Latitude"
+      ],
+      "certifications": [],
+      "notes": null
+    },
+    {
+      "id": "hpe",
+      "name": "HPE",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.637586+00:00",
+      "updated_at": "2025-11-01T21:12:06.637591+00:00",
+      "metadata": {},
+      "tier": "Gold",
+      "contact_name": null,
+      "contact_email": null,
+      "contact_phone": null,
+      "programs": [
+        "ProLiant",
+        "Synergy",
+        "GreenLake"
+      ],
+      "certifications": [],
+      "notes": null
+    },
+    {
+      "id": "vmware",
+      "name": "VMware",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.639495+00:00",
+      "updated_at": "2025-11-01T21:12:06.639511+00:00",
+      "metadata": {},
+      "tier": "Gold",
+      "contact_name": null,
+      "contact_email": null,
+      "contact_phone": null,
+      "programs": [
+        "vSphere",
+        "NSX",
+        "vSAN"
+      ],
+      "certifications": [],
+      "notes": null
+    },
+    {
+      "id": "netapp",
+      "name": "NetApp",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.640736+00:00",
+      "updated_at": "2025-11-01T21:12:06.640744+00:00",
+      "metadata": {},
+      "tier": "Gold",
+      "contact_name": null,
+      "contact_email": null,
+      "contact_phone": null,
+      "programs": [
+        "ONTAP",
+        "Cloud Volumes",
+        "SnapCenter"
+      ],
+      "certifications": [],
+      "notes": null
+    },
+    {
+      "id": "palo-alto",
+      "name": "Palo Alto Networks",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.641247+00:00",
+      "updated_at": "2025-11-01T21:12:06.641251+00:00",
+      "metadata": {},
+      "tier": "Gold",
+      "contact_name": null,
+      "contact_email": null,
+      "contact_phone": null,
+      "programs": [
+        "Firewalls",
+        "Prisma",
+        "Cortex"
+      ],
+      "certifications": [],
+      "notes": null
+    },
+    {
+      "id": "fortinet",
+      "name": "Fortinet",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.641734+00:00",
+      "updated_at": "2025-11-01T21:12:06.641738+00:00",
+      "metadata": {},
+      "tier": "Silver",
+      "contact_name": null,
+      "contact_email": null,
+      "contact_phone": null,
+      "programs": [
+        "FortiGate",
+        "FortiAnalyzer",
+        "FortiManager"
+      ],
+      "certifications": [],
+      "notes": null
+    },
+    {
+      "id": "aws",
+      "name": "AWS",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.642172+00:00",
+      "updated_at": "2025-11-01T21:12:06.642175+00:00",
+      "metadata": {},
+      "tier": "Silver",
+      "contact_name": null,
+      "contact_email": null,
+      "contact_phone": null,
+      "programs": [
+        "EC2",
+        "S3",
+        "RDS"
+      ],
+      "certifications": [],
+      "notes": null
+    },
+    {
+      "id": "google",
+      "name": "Google",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.642846+00:00",
+      "updated_at": "2025-11-01T21:12:06.642863+00:00",
+      "metadata": {},
+      "tier": "Silver",
+      "contact_name": null,
+      "contact_email": null,
+      "contact_phone": null,
+      "programs": [
+        "GCP",
+        "Workspace",
+        "Cloud AI"
+      ],
+      "certifications": [],
+      "notes": null
+    },
+    {
+      "id": "oracle",
+      "name": "Oracle",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.643923+00:00",
+      "updated_at": "2025-11-01T21:12:06.643935+00:00",
+      "metadata": {},
+      "tier": "Silver",
+      "contact_name": null,
+      "contact_email": null,
+      "contact_phone": null,
+      "programs": [
+        "Database",
+        "Cloud",
+        "Applications"
+      ],
+      "certifications": [],
+      "notes": null
+    },
+    {
+      "id": "ibm",
+      "name": "IBM",
+      "active": true,
+      "created_at": "2025-11-01T21:12:06.645266+00:00",
+      "updated_at": "2025-11-01T21:12:06.645275+00:00",
+      "metadata": {},
+      "tier": "Silver",
+      "contact_name": null,
+      "contact_email": null,
+      "contact_phone": null,
+      "programs": [
+        "Cloud",
+        "Watson",
+        "Security"
+      ],
+      "certifications": [],
+      "notes": null
+    }
+  ]
+}
