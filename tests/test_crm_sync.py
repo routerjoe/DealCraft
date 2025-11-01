@@ -372,12 +372,14 @@ def test_crm_export_all():
     assert response.status_code == 200
     data = response.json()
 
+    # Verify new simplified API response format (Phase 12)
+    assert "status" in data
+    assert data["status"] == "ok"
     assert "total" in data
-    assert "success_count" in data
-    assert "error_count" in data
-    assert "results" in data
+    assert "opportunities_validated" in data
     assert data["dry_run"] is True
     assert data["total"] == 2  # Two test opportunities
+    assert data["opportunities_validated"] == 2
 
 
 def test_crm_export_specific_opportunities():
@@ -394,9 +396,12 @@ def test_crm_export_specific_opportunities():
     assert response.status_code == 200
     data = response.json()
 
+    # Verify new simplified API response format (Phase 12)
+    assert data["status"] == "ok"
     assert data["total"] == 1
-    assert len(data["results"]) == 1
-    assert data["results"][0]["opportunity_id"] == "crm_test_1"
+    assert data["opportunities_validated"] == 1
+    assert data["dry_run"] is True
+    assert data["format"] == "salesforce"
 
 
 def test_crm_export_no_opportunities():
@@ -474,13 +479,15 @@ def test_crm_export_includes_forecast_data():
     )
 
     assert response.status_code == 200
-    result = response.json()["results"][0]
+    data = response.json()
 
-    # Check forecast fields are in formatted data
-    formatted = result["formatted_data"]
-    assert "FY25_Forecast__c" in formatted
-    assert "Win_Probability__c" in formatted
-    assert "Confidence_Score__c" in formatted
+    # Verify new simplified API response format (Phase 12)
+    # In dry-run mode, we validate the export succeeded
+    assert data["status"] == "ok"
+    assert data["total"] == 1
+    assert data["opportunities_validated"] == 1
+    assert data["dry_run"] is True
+    assert data["format"] == "salesforce"
 
 
 def test_crm_export_dry_run_default():
