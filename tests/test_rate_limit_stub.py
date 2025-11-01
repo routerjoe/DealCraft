@@ -5,7 +5,9 @@ Sprint 15: Production Hardening
 Tests for rate limiting middleware functionality.
 """
 
+import json
 import time
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -14,6 +16,32 @@ from mcp.api.main import app
 from mcp.api.middleware import rate_limit
 
 client = TestClient(app)
+
+# Test data directory
+TEST_DATA_DIR = Path("data")
+TEST_STATE_FILE = TEST_DATA_DIR / "state.json"
+
+
+@pytest.fixture(autouse=True)
+def setup_and_teardown():
+    """Setup and teardown for each test."""
+    # Save original state if exists
+    original_state = None
+    if TEST_STATE_FILE.exists():
+        with open(TEST_STATE_FILE, "r") as f:
+            original_state = f.read()
+
+    # Initialize clean state
+    TEST_DATA_DIR.mkdir(exist_ok=True)
+    with open(TEST_STATE_FILE, "w") as f:
+        json.dump({"opportunities": [], "recent_actions": []}, f)
+
+    yield
+
+    # Restore original state
+    if original_state:
+        with open(TEST_STATE_FILE, "w") as f:
+            f.write(original_state)
 
 
 class TestRateLimitingGeneral:

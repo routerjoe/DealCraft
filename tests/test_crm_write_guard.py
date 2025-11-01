@@ -8,11 +8,62 @@ Validates:
 - No accidental destructive operations
 """
 
+import json
+from pathlib import Path
+
+import pytest
 from fastapi.testclient import TestClient
 
 from mcp.api.main import app
 
 client = TestClient(app)
+
+# Test data directory
+TEST_DATA_DIR = Path("data")
+TEST_STATE_FILE = TEST_DATA_DIR / "state.json"
+
+
+@pytest.fixture(autouse=True)
+def setup_and_teardown():
+    """Setup and teardown for each test."""
+    # Save original state if exists
+    original_state = None
+    if TEST_STATE_FILE.exists():
+        with open(TEST_STATE_FILE, "r") as f:
+            original_state = f.read()
+
+    # Initialize clean state with test opportunities
+    TEST_DATA_DIR.mkdir(exist_ok=True)
+    test_state = {
+        "opportunities": [
+            {
+                "id": "test-opp-1",
+                "title": "Test Opportunity 1",
+                "customer": "Test Agency",
+                "amount": 100000,
+                "stage": "Proposal",
+                "close_date": "2025-12-31T00:00:00Z",
+            },
+            {
+                "id": "test-opp-2",
+                "title": "Test Opportunity 2",
+                "customer": "Test Agency 2",
+                "amount": 200000,
+                "stage": "Negotiation",
+                "close_date": "2026-03-31T00:00:00Z",
+            },
+        ],
+        "recent_actions": [],
+    }
+    with open(TEST_STATE_FILE, "w") as f:
+        json.dump(test_state, f)
+
+    yield
+
+    # Restore original state
+    if original_state:
+        with open(TEST_STATE_FILE, "w") as f:
+            f.write(original_state)
 
 
 def test_crm_export_no_dry_run_field_defaults_to_safe():

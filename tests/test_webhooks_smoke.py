@@ -18,7 +18,8 @@ from mcp.api.main import app
 
 client = TestClient(app)
 
-TEST_STATE_FILE = Path("data/state.json")
+TEST_DATA_DIR = Path("data")
+TEST_STATE_FILE = TEST_DATA_DIR / "state.json"
 
 
 @pytest.fixture(autouse=True)
@@ -28,6 +29,11 @@ def setup_teardown():
     if TEST_STATE_FILE.exists():
         with open(TEST_STATE_FILE, "r") as f:
             original = f.read()
+
+    # Initialize clean state
+    TEST_DATA_DIR.mkdir(exist_ok=True)
+    with open(TEST_STATE_FILE, "w") as f:
+        json.dump({"opportunities": [], "recent_actions": []}, f)
 
     yield
 
