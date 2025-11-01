@@ -37,7 +37,7 @@ def test_account_plan_pdf_afcent():
 
     # Verify filename in Content-Disposition
     assert "content-disposition" in response.headers
-    assert "account_plan_afcent" in response.headers["content-disposition"]
+    assert "account_plan_customer_alpha" in response.headers["content-disposition"]
     assert ".pdf" in response.headers["content-disposition"]
 
 
@@ -57,7 +57,7 @@ def test_account_plan_pdf_aetc():
     assert pdf_content.startswith(b"%PDF-")
 
     # Verify filename contains customer name
-    assert "aetc" in response.headers["content-disposition"].lower()
+    assert "customer_beta" in response.headers["content-disposition"].lower()
 
 
 def test_account_plan_pdf_unknown_customer():

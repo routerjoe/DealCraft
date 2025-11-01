@@ -454,12 +454,18 @@ This plan outlines our strategic approach to maximize capture and delivery succe
         Returns:
             Structured account plan dictionary
         """
-        customer = input_data.get("customer", "").upper()
+        customer_input = input_data.get("customer", "")
 
-        # Validate customer
-        if customer not in self.SUPPORTED_CUSTOMERS:
+        # Validate customer (case-insensitive)
+        customer = None
+        for supported_customer in self.SUPPORTED_CUSTOMERS:
+            if customer_input.upper() == supported_customer.upper():
+                customer = supported_customer  # Use properly cased version
+                break
+
+        if customer is None:
             raise ValueError(
-                f"Unsupported customer: {customer}. "
+                f"Unsupported customer: {customer_input}. "
                 f"Supported customers: {', '.join(self.SUPPORTED_CUSTOMERS)}. "
                 f"Hint: This feature currently supports Customer Alpha and Customer Beta."
             )

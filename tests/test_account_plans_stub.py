@@ -86,7 +86,7 @@ class TestAccountPlansRealImplementation:
         assert "sources_used" in preview
         assert "reasoning" in preview
 
-    def test_aetc_plan_contains_customer_data(self):
+    def test_customer_beta_plan_contains_customer_data(self):
         """Test that Customer Beta plan includes customer-specific data."""
         response = client.post(
             "/v1/account-plans/generate",
@@ -219,7 +219,7 @@ class TestAccountPlansHeaders:
 class TestAccountPlansCustomers:
     """Test customer-specific functionality."""
 
-    def test_afcent_plan_generation(self):
+    def test_customer_alpha_plan_generation(self):
         """Test Customer Alpha account plan generation."""
         response = client.post(
             "/v1/account-plans/generate",
@@ -234,7 +234,7 @@ class TestAccountPlansCustomers:
         data = response.json()
         assert data["preview"]["customer"] == "Customer Alpha"
 
-    def test_aetc_plan_generation(self):
+    def test_customer_beta_plan_generation(self):
         """Test Customer Beta account plan generation."""
         response = client.post(
             "/v1/account-plans/generate",
@@ -310,7 +310,7 @@ class TestAccountPlansFormats:
         assert data["preview"] is not None
 
     def test_pdf_format(self):
-        """Test PDF format selection returns error (not implemented)."""
+        """Test PDF format selection returns PDF file."""
         response = client.post(
             "/v1/account-plans/generate",
             json={
@@ -321,10 +321,10 @@ class TestAccountPlansFormats:
             },
         )
         assert response.status_code == 200
-        data = response.json()
-        # PDF not implemented yet
-        assert data["status"] == "error"
-        assert "not yet implemented" in data["message"]
+        assert response.headers["content-type"] == "application/pdf"
+        # Verify PDF content
+        assert len(response.content) > 1000
+        assert response.content.startswith(b"%PDF-")
 
     def test_json_format(self):
         """Test JSON format selection."""
