@@ -55,3 +55,4 @@ obsidian/
 
 # Pytest cache
 .pytest_cache/
+*.code-workspace

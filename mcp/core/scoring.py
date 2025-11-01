@@ -107,7 +107,7 @@ class OpportunityScorer:
     and business value alignment.
     """
 
-    # OEM alignment scores (based on Red River's strategic partnerships)
+    # OEM alignment scores (based on DealCraft's strategic partnerships)
     OEM_ALIGNMENT_SCORES = {
         "Microsoft": 95,
         "Cisco": 92,
@@ -181,7 +181,7 @@ class OpportunityScorer:
 
     def calculate_contract_vehicle_score(self, vehicle: str) -> float:
         """
-        Calculate contract vehicle score based on Red River's vehicle priorities.
+        Calculate contract vehicle score based on DealCraft's vehicle priorities.
 
         Args:
             vehicle: Contract vehicle name

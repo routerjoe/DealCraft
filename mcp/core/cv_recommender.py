@@ -4,7 +4,7 @@ Contract Vehicle Recommender Engine - Phase 8
 Analyzes opportunities and recommends optimal contract vehicles based on:
 - OEM alignment
 - Customer requirements
-- Existing Red River contracts
+- Existing DealCraft contracts
 - BPA availability
 - Historical success rates
 """
@@ -20,7 +20,7 @@ class CVRecommender:
     based on multiple factors.
     """
 
-    # Contract Vehicle Database with Red River capabilities
+    # Contract Vehicle Database with DealCraft capabilities
     CONTRACT_VEHICLES = {
         "SEWP V": {
             "priority": 95,
@@ -124,7 +124,7 @@ class CVRecommender:
         # BPA bonus
         if cv_data["active_bpas"]:
             score += 3
-            reasons.append(f"✓ Red River has active BPAs on {cv_name}")
+            reasons.append(f"✓ DealCraft has active BPAs on {cv_name}")
 
         # Check amount against ceiling
         amount = float(opportunity.get("amount", opportunity.get("est_amount", 0)))

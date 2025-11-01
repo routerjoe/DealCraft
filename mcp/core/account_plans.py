@@ -127,7 +127,7 @@ class AccountPlanGenerator:
         region = profile.get("region", "the federal sector")
         full_name = profile.get("full_name", customer)
         summary = f"""
-{full_name} represents a strategic opportunity for Red River Technology in {region}.
+{full_name} represents a strategic opportunity for DealCraft in {region}.
 
 Our analysis identifies {total_opps} active opportunities with a combined value of \
 ${total_value:,.0f} and an average win probability of {avg_win_prob:.1f}%.
@@ -516,7 +516,7 @@ This account plan was generated using AI analysis of:
 - {len(oem_strategy)} strategic OEM partnerships
 - {len(cv_strategy)} contract vehicle recommendations
 
-The plan integrates Red River's established capabilities, OEM partnerships, and contract vehicle positions
+The plan integrates DealCraft's established capabilities, OEM partnerships, and contract vehicle positions
 to maximize capture probability and delivery success for {self.CUSTOMER_PROFILES[customer]['full_name']}.
 """.strip()
 
