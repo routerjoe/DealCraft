@@ -295,7 +295,7 @@ async def run_forecast(request: ForecastRequest, x_request_id: str = Header(defa
         return {
             "request_id": x_request_id,
             "forecasts_generated": len(new_forecasts),
-            "forecasts": [f.model_dump() for f in new_forecasts],
+            "forecasts": [f.model_dump(by_alias=True) for f in new_forecasts],
             "latency_ms": round(latency_ms, 2),
         }
 
@@ -321,7 +321,7 @@ async def get_all_forecasts(x_request_id: str = Header(default="unknown")) -> Di
         return {
             "request_id": x_request_id,
             "total": len(forecasts),
-            "forecasts": [f.model_dump() for f in forecasts.values()],
+            "forecasts": [f.model_dump(by_alias=True) for f in forecasts.values()],
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -343,7 +343,7 @@ async def get_forecasts_by_fy(fiscal_year: int, x_request_id: str = Header(defau
         fy_forecasts = []
 
         for forecast in forecasts.values():
-            forecast_dict = forecast.model_dump()
+            forecast_dict = forecast.model_dump(by_alias=True)
             if fy_key in forecast_dict and forecast_dict[fy_key] > 0:
                 fy_forecasts.append(forecast_dict)
 
@@ -396,7 +396,7 @@ async def get_top_forecasts(
                 "limit": limit,
             }
 
-        forecast_list = [f.model_dump() for f in forecasts.values()]
+        forecast_list = [f.model_dump(by_alias=True) for f in forecasts.values()]
 
         # Determine sort key
         if sort_by in ["FY25", "FY26", "FY27"]:
@@ -486,7 +486,7 @@ async def export_forecasts_csv(fiscal_year: Optional[int] = None, x_request_id: 
         writer.writeheader()
 
         for forecast in forecasts.values():
-            row = forecast.model_dump()
+            row = forecast.model_dump(by_alias=True)
 
             # Add calculated fields
             if not fiscal_year:
