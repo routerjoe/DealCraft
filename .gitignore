@@ -45,3 +45,13 @@ __pycache__/
 *.pyc
 legacy_tui_*/
 rr_tui_clean/.venv/
+
+# Obsidian test data
+obsidian/
+
+# Temporary files
+*.tmp
+.*.tmp
+
+# Pytest cache
+.pytest_cache/

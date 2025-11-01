@@ -45,6 +45,8 @@ class ForecastRequest(BaseModel):
 class ForecastData(BaseModel):
     """Forecast data for a single opportunity with intelligent scoring."""
 
+    model_config = {"populate_by_name": True}  # Allow both field name and alias
+
     opportunity_id: str
     opportunity_name: str
     projected_amount_FY25: float
@@ -53,7 +55,7 @@ class ForecastData(BaseModel):
     confidence_score: int  # 0-100 (legacy field)
     reasoning: str
     generated_at: str  # ISO 8601
-    model_used: str
+    llm_model: str = Field(alias="model_used", description="AI model used for forecast generation")
 
     # Phase 5: Intelligent Scoring Fields
     win_prob: float = Field(default=0.0, description="Win probability (0-100)")
@@ -105,7 +107,7 @@ def save_forecasts(forecasts: Dict[str, ForecastData]) -> None:
     temp_file = FORECAST_FILE.with_suffix(".tmp")
     try:
         with open(temp_file, "w") as f:
-            json.dump({k: v.model_dump() for k, v in forecasts.items()}, f, indent=2, default=str)
+            json.dump({k: v.model_dump(by_alias=True) for k, v in forecasts.items()}, f, indent=2, default=str)
         temp_file.replace(FORECAST_FILE)
     except Exception as e:
         if temp_file.exists():
