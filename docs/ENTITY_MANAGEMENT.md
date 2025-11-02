@@ -162,7 +162,71 @@ for oem in active_oems:
     print(f"- {oem.name} ({oem.tier})")
 ```
 
-### 5. Future: REST API (Planned)
+### 5. Claude Desktop (MCP Server) ⭐ **BEST FOR AI-POWERED MANAGEMENT**
+
+The MCP (Model Context Protocol) server allows you to manage entities using natural language through Claude Desktop:
+
+**Setup:**
+
+1. Install the MCP SDK dependency:
+```bash
+pip install -r requirements.txt
+```
+
+2. Configure Claude Desktop to use the DealCraft MCP server:
+
+Edit your Claude Desktop config file:
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+Add the DealCraft MCP server:
+```json
+{
+  "mcpServers": {
+    "dealcraft": {
+      "command": "python3",
+      "args": ["/absolute/path/to/DealCraft/mcp_server.py"],
+      "env": {}
+    }
+  }
+}
+```
+
+**Replace `/absolute/path/to/DealCraft`** with your actual project path.
+
+3. Restart Claude Desktop
+
+**Usage Examples:**
+
+Once configured, you can use natural language in Claude Desktop:
+
+```
+"List all Strategic OEMs"
+"Show me details for the Microsoft OEM"
+"Add a new OEM: Fortinet, tier Gold, programs: Firewall, SASE"
+"Update the Cisco OEM contact email to partners@cisco.com"
+"Deactivate the old-vendor OEM"
+"List all Contract Vehicles with priority above 85"
+"Show me all customers in the East region"
+"List all active Partners"
+```
+
+**Available Operations:**
+- ✅ List entities (OEMs, Contract Vehicles, Customers, Partners, Distributors, Regions)
+- ✅ Get entity details by ID
+- ✅ Add new entities (OEMs, Contract Vehicles, Customers)
+- ✅ Update existing entities
+- ✅ Deactivate entities (soft delete)
+- ✅ Filter by tier, region, active status
+
+**Benefits:**
+- Natural language interaction
+- No need to remember field names or structure
+- AI validates inputs and suggests corrections
+- Seamlessly integrated with your Claude Desktop workflow
+- Same data as TUI and CLI (shared JSON files)
+
+### 6. Future: REST API (Planned)
 
 REST API endpoints are planned for entity management:
 
@@ -448,9 +512,18 @@ The Entity Management System provides:
 - ✅ Centralized configuration
 - ✅ Type-safe validation
 - ✅ Automatic backups
+- ✅ Visual TUI management (press 8 in dashboard)
 - ✅ Easy maintenance via CLI
+- ✅ Natural language management via Claude Desktop (MCP)
 - ✅ Direct JSON editing
 - ✅ Python API for automation
 - ⏳ REST API (coming soon)
+
+**Recommended Workflows:**
+- **Quick browsing**: Use TUI (press 8)
+- **Adding entities**: Use CLI tool (`python3 scripts/manage_entities.py`)
+- **AI-powered management**: Use Claude Desktop with MCP server
+- **Bulk operations**: Write Python scripts using entity stores
+- **Direct edits**: Edit JSON files in `data/entities/`
 
 For questions or issues, check the test files in `tests/test_entity_stores.py` for usage examples.
