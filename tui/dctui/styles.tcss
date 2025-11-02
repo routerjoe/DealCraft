@@ -8,3 +8,15 @@ Screen { layout: vertical; }
 #pipeline { height: 5; }
 #rfq_table { height: 5; }
 #actions { height: 3; }
+
+/* Entity Management Styles */
+#entity_main { layout: vertical; padding: 1; }
+#entity_header { layout: horizontal; height: 3; border: round cyan; padding: 1; margin-bottom: 1; }
+#title_text { width: 30%; }
+#entity_type_display { width: 40%; }
+#entity_count { width: 30%; text-align: right; }
+#entity_content { height: 1fr; margin-bottom: 1; }
+#entity_table { border: round green; }
+#status_bar { height: 3; border: round yellow; padding: 1; }
+#entity_actions { layout: horizontal; height: 3; align: center middle; }
+#entity_actions Button { margin: 0 1; }

@@ -18,6 +18,7 @@ from config.config_loader import load_settings
 from . import rfq_api as rfq_api
 from . import status_bridge as status_bridge
 from .analytics_view import AnalyticsModal
+from .entity_management_view import EntityManagementScreen
 from .intromail_view import IntroMailScreen
 from .rfq_details_modal import RFQDetailsModal
 from .rfq_management_view import RFQManagementScreen
@@ -49,6 +50,7 @@ class Dashboard(App):
         ("2", "govly", "Govly"),
         ("3", "intromail", "IntroMail"),
         ("7", "analytics", "Analytics"),
+        ("8", "entity_management", "Entities"),
         ("9", "settings", "Settings"),
         ("d", "dark", "Dark"),
         ("enter", "open_selected", "Open Details"),
@@ -86,7 +88,7 @@ class Dashboard(App):
     async def refresh_status(self):
         s = status_bridge.get_status()
         self.last_update = datetime.now().strftime("%H:%M:%S")
-        dot = (
+        dot = (  # noqa: E731
             lambda st: "[green]● ONLINE[/]"
             if st == "online"
             else "[yellow]● WARN[/]"
@@ -197,7 +199,8 @@ class Dashboard(App):
             )
 
         act.update(
-            "[b][cyan]Actions[/cyan][/b]  [1] RFQ Emails  [2] Govly  [3] IntroMail  [7] Analytics  [9] Settings  (d) Dark  (q) Quit\n"
+            "[b][cyan]Actions[/cyan][/b]  [1] RFQ Emails  [2] Govly  [3] IntroMail  [7] Analytics  "
+            "[8] Entities  [9] Settings  (d) Dark  (q) Quit\n"
             "[dim]RFQ Table: Top 10 GO opportunities (Score desc). Use Enter or 'o' to open details.[/dim]\n"
             f"{self.toast}"
         )
@@ -283,6 +286,10 @@ class Dashboard(App):
 
     async def action_analytics(self):
         self.push_screen(AnalyticsModal())
+
+    async def action_entity_management(self):
+        """Open the Entity Management screen."""
+        self.push_screen(EntityManagementScreen())
 
     async def action_open_selected(self):
         """Open RFQ Details modal for the selected RFQ."""
