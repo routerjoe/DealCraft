@@ -289,7 +289,13 @@ class Dashboard(App):
 
     async def action_govly(self):
         """Govly integration - Coming Soon"""
-        self.toast = "[yellow]⚠ Govly feature not yet implemented[/yellow]"
+        self.notify(
+            "Govly feature not yet implemented. This will integrate with Govly.com for government contract opportunities.",
+            title="Coming Soon",
+            severity="warning",
+            timeout=5,
+        )
+        self.toast = "[yellow]⚠ Govly integration coming soon[/yellow]"
         await self.refresh_status()
 
     async def action_intromail(self):
