@@ -1,28 +1,36 @@
+import sys
 import time
 from datetime import datetime
 from pathlib import Path
 
-from textual.app import App, ComposeResult
-from textual.containers import Container, Horizontal
-from textual.reactive import reactive
-from textual.widgets import DataTable, Footer, Header, Static
+# Add project root and tui directory to path for imports
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+TUI_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+if str(TUI_ROOT) not in sys.path:
+    sys.path.insert(0, str(TUI_ROOT))
+
+from textual.app import App, ComposeResult  # noqa: E402
+from textual.containers import Container, Horizontal  # noqa: E402
+from textual.reactive import reactive  # noqa: E402
+from textual.widgets import DataTable, Footer, Header, Static  # noqa: E402
 
 try:
-    from dotenv import find_dotenv, load_dotenv
+    from dotenv import find_dotenv, load_dotenv  # noqa: E402
 except Exception:
     load_dotenv = None
     find_dotenv = None
 
-from config.config_loader import load_settings
+from dctui import rfq_api, status_bridge  # noqa: E402
+from dctui.analytics_view import AnalyticsModal  # noqa: E402
+from dctui.entity_management_view import EntityManagementScreen  # noqa: E402
+from dctui.intromail_view import IntroMailScreen  # noqa: E402
+from dctui.rfq_details_modal import RFQDetailsModal  # noqa: E402
+from dctui.rfq_management_view import RFQManagementScreen  # noqa: E402
+from dctui.settings_view import SettingsView  # noqa: E402
 
-from . import rfq_api as rfq_api
-from . import status_bridge as status_bridge
-from .analytics_view import AnalyticsModal
-from .entity_management_view import EntityManagementScreen
-from .intromail_view import IntroMailScreen
-from .rfq_details_modal import RFQDetailsModal
-from .rfq_management_view import RFQManagementScreen
-from .settings_view import SettingsView
+from config.config_loader import load_settings  # noqa: E402
 
 
 # Load .env values (repo root and tui/.env) without requiring shell sourcing
