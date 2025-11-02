@@ -7,9 +7,13 @@ Analyzes opportunities and recommends optimal contract vehicles based on:
 - Existing DealCraft contracts
 - BPA availability
 - Historical success rates
+
+Now uses Entity Management System for contract vehicle data.
 """
 
 from typing import Any, Dict, List, Tuple
+
+from mcp.core.entities import contract_vehicle_store
 
 
 class CVRecommender:
@@ -20,7 +24,11 @@ class CVRecommender:
     based on multiple factors.
     """
 
-    # Contract Vehicle Database with DealCraft capabilities
+    def __init__(self):
+        """Initialize CV recommender with entity store."""
+        self._cv_store = contract_vehicle_store
+
+    # Legacy contract vehicle database for backward compatibility
     CONTRACT_VEHICLES = {
         "SEWP V": {
             "priority": 95,
@@ -80,10 +88,6 @@ class CVRecommender:
         },
     }
 
-    def __init__(self):
-        """Initialize CV recommender."""
-        pass
-
     def calculate_cv_score(self, cv_name: str, opportunity: Dict[str, Any]) -> Tuple[float, List[str]]:
         """
         Calculate fit score for a contract vehicle.
@@ -95,6 +99,59 @@ class CVRecommender:
         Returns:
             Tuple of (score 0-100, list of reasons)
         """
+        # Try entity store first
+        cv_entity = self._cv_store.get_by_name(cv_name)
+
+        if cv_entity:
+            # Use entity store data
+            score = cv_entity.priority_score
+            reasons = []
+
+            # Check OEM alignment
+            oems = opportunity.get("oems", [])
+            if not isinstance(oems, list):
+                oems = [oems] if oems else []
+
+            oem_matches = 0
+            # Convert OEM names to lowercase IDs for matching
+            cv_oem_ids = [oem_id.lower() for oem_id in cv_entity.oems_supported]
+
+            # Check if this CV supports all major OEMs (12+)
+            if len(cv_entity.oems_supported) >= 12:
+                # Treat as "All OEMs" supported
+                for oem in oems:
+                    oem_matches += 1
+                    reasons.append(f"✓ {cv_name} supports all OEMs")
+                    break
+            else:
+                for oem in oems:
+                    oem_lower = oem.lower()
+                    # Check if any supported OEM matches
+                    if any(oem_id in oem_lower or oem_lower in oem_id for oem_id in cv_oem_ids):
+                        oem_matches += 1
+                        reasons.append(f"✓ {cv_name} supports {oem}")
+
+            # OEM alignment bonus
+            if oem_matches > 0:
+                score += min(oem_matches * 2, 5)  # +2 per match, max +5
+
+            # BPA bonus
+            if cv_entity.active_bpas > 0:
+                score += 3
+                reasons.append(f"✓ DealCraft has active BPAs on {cv_name}")
+
+            # Check amount against ceiling
+            amount = float(opportunity.get("amount", opportunity.get("est_amount", 0)))
+            ceiling = cv_entity.ceiling_amount
+            if ceiling and amount <= ceiling:
+                reasons.append(f"✓ Deal size (${amount:,.0f}) within {cv_name} ceiling")
+            elif ceiling and amount > ceiling:
+                score -= 20
+                reasons.append(f"⚠ Deal size (${amount:,.0f}) exceeds {cv_name} ceiling (${ceiling:,.0f})")
+
+            return (min(score, 100.0), reasons)
+
+        # Fallback to legacy data
         if cv_name not in self.CONTRACT_VEHICLES:
             return (50.0, ["Unknown contract vehicle"])
 
@@ -150,18 +207,35 @@ class CVRecommender:
         """
         recommendations = []
 
-        for cv_name in self.CONTRACT_VEHICLES.keys():
-            score, reasons = self.calculate_cv_score(cv_name, opportunity)
+        # Use entity store if available
+        cvs = self._cv_store.get_all(active_only=True)
+        if cvs:
+            for cv in cvs:
+                score, reasons = self.calculate_cv_score(cv.name, opportunity)
 
-            recommendations.append(
-                {
-                    "contract_vehicle": cv_name,
-                    "cv_score": score,
-                    "priority": self.CONTRACT_VEHICLES[cv_name]["priority"],
-                    "reasoning": reasons,
-                    "has_bpa": self.CONTRACT_VEHICLES[cv_name]["active_bpas"],
-                }
-            )
+                recommendations.append(
+                    {
+                        "contract_vehicle": cv.name,
+                        "cv_score": score,
+                        "priority": cv.priority_score,
+                        "reasoning": reasons,
+                        "has_bpa": cv.active_bpas > 0,
+                    }
+                )
+        else:
+            # Fallback to legacy data
+            for cv_name in self.CONTRACT_VEHICLES.keys():
+                score, reasons = self.calculate_cv_score(cv_name, opportunity)
+
+                recommendations.append(
+                    {
+                        "contract_vehicle": cv_name,
+                        "cv_score": score,
+                        "priority": self.CONTRACT_VEHICLES[cv_name]["priority"],
+                        "reasoning": reasons,
+                        "has_bpa": self.CONTRACT_VEHICLES[cv_name]["active_bpas"],
+                    }
+                )
 
         # Sort by score (descending)
         recommendations.sort(key=lambda x: x["cv_score"], reverse=True)
@@ -170,6 +244,11 @@ class CVRecommender:
 
     def get_available_vehicles(self) -> List[str]:
         """Get list of all available contract vehicles."""
+        # Use entity store if available
+        cvs = self._cv_store.get_all(active_only=True)
+        if cvs:
+            return [cv.name for cv in cvs]
+        # Fallback to legacy data
         return list(self.CONTRACT_VEHICLES.keys())
 
 
