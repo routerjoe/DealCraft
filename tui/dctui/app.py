@@ -106,10 +106,14 @@ class Dashboard(App):
             else "[dim]○ OFF[/]"
         )
 
-        sys = self.query_one("#system", Static)
-        prv = self.query_one("#providers", Static)
-        pip = self.query_one("#pipeline", Static)
-        act = self.query_one("#actions", Static)
+        try:
+            sys = self.query_one("#system", Static)
+            prv = self.query_one("#providers", Static)
+            pip = self.query_one("#pipeline", Static)
+            act = self.query_one("#actions", Static)
+        except Exception:
+            # Widgets not yet mounted, skip this refresh
+            return
 
         mcp = s.get("mcp", {})
         watchers = s.get("watchers", {})
