@@ -19,6 +19,8 @@ Sprint 14: v2.1 Audited Bonuses & Guardrails
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from mcp.core.config import scoring_config
+
 # ============================================================================
 # v2.1 Audited Bonus Constants (Sprint 14)
 # ============================================================================
@@ -105,52 +107,30 @@ class OpportunityScorer:
 
     Calculates multi-dimensional scores to predict win probability
     and business value alignment.
+
+    Now uses centralized configuration from scoring_weights.json.
     """
-
-    # OEM alignment scores (based on DealCraft's strategic partnerships)
-    OEM_ALIGNMENT_SCORES = {
-        "Microsoft": 95,
-        "Cisco": 92,
-        "Dell": 90,
-        "HPE": 88,
-        "VMware": 85,
-        "NetApp": 83,
-        "Palo Alto Networks": 88,
-        "Fortinet": 85,
-        "AWS": 80,
-        "Google": 75,
-        "Oracle": 70,
-        "IBM": 68,
-        "Default": 50,
-    }
-
-    # Contract vehicle priority scores
-    CONTRACT_VEHICLE_SCORES = {
-        "GSA Schedule": 90,
-        "SEWP V": 95,
-        "NASA SOLUTIONS": 92,
-        "DHS FirstSource II": 88,
-        "CIO-SP3": 85,
-        "Alliant 2": 83,
-        "8(a) STARS II": 80,
-        "Direct": 60,
-        "Default": 50,
-    }
-
-    # Stage multipliers for win probability
-    STAGE_MULTIPLIERS = {
-        "Qualification": 0.15,
-        "Discovery": 0.25,
-        "Proposal": 0.45,
-        "Negotiation": 0.75,
-        "Closed Won": 1.0,
-        "Closed Lost": 0.0,
-        "Default": 0.20,
-    }
 
     def __init__(self):
         """Initialize the scoring engine."""
         self.historical_win_rates = {}  # Will be populated from historical data
+        # Load configuration from singleton
+        self._config = scoring_config
+
+    @property
+    def OEM_ALIGNMENT_SCORES(self) -> Dict[str, float]:
+        """Get OEM alignment scores from config."""
+        return self._config.oem_alignment_scores
+
+    @property
+    def CONTRACT_VEHICLE_SCORES(self) -> Dict[str, float]:
+        """Get contract vehicle scores from config."""
+        return self._config.contract_vehicle_scores
+
+    @property
+    def STAGE_MULTIPLIERS(self) -> Dict[str, float]:
+        """Get stage multipliers from config."""
+        return self._config.stage_multipliers
 
     def calculate_oem_alignment_score(self, oems: List[str]) -> float:
         """
@@ -383,31 +363,34 @@ class OpportunityScorer:
         stage_prob = self.calculate_stage_probability(stage)
         time_factor = self.calculate_time_decay_factor(close_date)
 
-        # Sprint 14 v2.1: Apply audited bonuses with guardrails
+        # Sprint 14 v2.1: Apply audited bonuses with guardrails (from config)
         # Region bonus (audited based on historical win rates)
         region_bonus = 0.0
-        if region in REGION_BONUS_AUDITED:
-            region_bonus = REGION_BONUS_AUDITED[region]
+        region_bonuses = self._config.region_bonuses
+        if region in region_bonuses:
+            region_bonus = region_bonuses[region]
 
         # Customer org bonus (tiered by strategic value)
         org_bonus = 0.0
+        org_bonuses = self._config.customer_org_bonuses
         if customer_org:
             # Check for DOD/Civilian keywords
             customer_org_upper = customer_org.upper()
             if "DOD" in customer_org_upper or "DEFENSE" in customer_org_upper:
-                org_bonus = CUSTOMER_ORG_BONUS_AUDITED["DOD"]
+                org_bonus = org_bonuses.get("DOD", org_bonuses.get("Default", 2.0))
             elif "CIVIL" in customer_org_upper or "Federal Agency A" in customer_org_upper:
-                org_bonus = CUSTOMER_ORG_BONUS_AUDITED["Civilian"]
+                org_bonus = org_bonuses.get("Civilian", org_bonuses.get("Default", 2.0))
             else:
-                org_bonus = CUSTOMER_ORG_BONUS_AUDITED["Default"]
+                org_bonus = org_bonuses.get("Default", 2.0)
 
         # CV recommendation bonus (scaled by count)
         cv_bonus = 0.0
+        cv_bonuses = self._config.cv_recommendation_bonuses
         if contracts_recommended and len(contracts_recommended) > 0:
             if len(contracts_recommended) == 1:
-                cv_bonus = CV_RECOMMENDATION_BONUS_AUDITED["single"]
+                cv_bonus = cv_bonuses.get("single", 5.0)
             else:  # 2+ CVs
-                cv_bonus = CV_RECOMMENDATION_BONUS_AUDITED["multiple"]
+                cv_bonus = cv_bonuses.get("multiple", 7.0)
 
         # Calculate weighted composite score (0-100)
         weights = {
@@ -426,25 +409,30 @@ class OpportunityScorer:
             + amount_score * weights["amount"]
         )
 
-        # Sprint 14 v2.1: Apply guardrails
+        # Sprint 14 v2.1: Apply guardrails (from config)
         # Cap total bonuses to prevent score inflation
+        guardrails = self._config.guardrails
+        max_total_bonus = guardrails.get("max_total_bonus", 15.0)
+        max_score = guardrails.get("max_score", 100.0)
+        min_win_prob = guardrails.get("min_win_prob", 0.0)
+
         total_bonuses = region_bonus + org_bonus + cv_bonus
 
         # If bonuses exceeded cap, scale them proportionally
-        if total_bonuses > MAX_TOTAL_BONUS:
-            scale_factor = MAX_TOTAL_BONUS / total_bonuses
+        if total_bonuses > max_total_bonus:
+            scale_factor = max_total_bonus / total_bonuses
             region_bonus *= scale_factor
             org_bonus *= scale_factor
             cv_bonus *= scale_factor
 
         # Apply bonuses and cap final score
-        enhanced_score = min(raw_score + region_bonus + org_bonus + cv_bonus, MAX_SCORE)
+        enhanced_score = min(raw_score + region_bonus + org_bonus + cv_bonus, max_score)
 
         # Apply stage probability and time decay to get final win probability
         win_probability = enhanced_score * stage_prob * time_factor / 100.0
 
         # Scale win probability to 0-100 and apply bounds
-        win_prob_scaled = min(max(win_probability * 100, MIN_WIN_PROB * 100), MAX_SCORE)
+        win_prob_scaled = min(max(win_probability * 100, min_win_prob * 100), max_score)
 
         # Build score reasoning (Phase 9)
         score_reasoning = []
