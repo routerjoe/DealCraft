@@ -20,3 +20,46 @@ Screen { layout: vertical; }
 #status_bar { height: 3; border: round yellow; padding: 1; }
 #entity_actions { layout: horizontal; height: 3; align: center middle; }
 #entity_actions Button { margin: 0 1; }
+
+/* Add Entity Modal Styles */
+#add_entity_dialog {
+    width: 60;
+    height: auto;
+    max-height: 90%;
+    border: thick cyan;
+    background: $surface;
+    padding: 1;
+    layout: vertical;
+}
+
+#modal_title {
+    text-align: center;
+    padding: 1;
+    color: $accent;
+}
+
+#form_container {
+    height: 1fr;
+    padding: 1;
+    border: round $primary;
+}
+
+#form_container Label {
+    padding-top: 1;
+    color: $text;
+}
+
+#form_container Input {
+    margin-bottom: 1;
+}
+
+#button_bar {
+    layout: horizontal;
+    height: 3;
+    align: center middle;
+    padding-top: 1;
+}
+
+#button_bar Button {
+    margin: 0 1;
+}

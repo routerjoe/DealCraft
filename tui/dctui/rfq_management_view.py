@@ -19,6 +19,8 @@ from .rfq_details_modal import RFQDetailsModal
 class RFQManagementScreen(Screen):
     """Comprehensive RFQ Management screen with workflow and RFQ operations."""
 
+    INHERIT_BINDINGS = False  # Don't inherit parent app bindings
+
     # Override parent bindings to show only RFQ-specific actions
     BINDINGS = [
         ("escape,q", "app.pop_screen", "Back"),
@@ -113,7 +115,11 @@ class RFQManagementScreen(Screen):
     def update_workflow_panel(self):
         """Update the workflow action panel (shows live progress when available)."""
         content = [
-            "[b][cyan]Workflow:[/cyan][/b]  [yellow][g][/yellow] Get  |  [yellow][p][/yellow] Process  |  [yellow][a][/yellow] Analyze (AI)  |  [yellow][r][/yellow] Full Workflow",
+            (
+                "[b][cyan]Workflow:[/cyan][/b]  [yellow][g][/yellow] Get  |  "
+                "[yellow][p][/yellow] Process  |  [yellow][a][/yellow] Analyze (AI)  |  "
+                "[yellow][r][/yellow] Full Workflow"
+            ),
             "[dim]Get = metadata only (no downloads). Use 'd' on a selected RFQ to download now, or 'p' Process to download for all.[/dim]",
             "",
         ]
@@ -129,7 +135,12 @@ class RFQManagementScreen(Screen):
             content.append(msg)
             content.append("")
         content.append(
-            "[b][cyan]Actions:[/cyan][/b]  [yellow][i][/yellow] Internal Email  |  [yellow][o][/yellow] OEM Email  |  [yellow][l][/yellow] LOM  |  [yellow][f][/yellow] Artifacts  |  [yellow][d][/yellow] Download Attachments  |  [yellow][e][/yellow] Guidance  |  [yellow][x][/yellow] Cleanup  |  [yellow][q][/yellow] Back"
+            (
+                "[b][cyan]Actions:[/cyan][/b]  [yellow][i][/yellow] Internal Email  |  "
+                "[yellow][o][/yellow] OEM Email  |  [yellow][l][/yellow] LOM  |  "
+                "[yellow][f][/yellow] Artifacts  |  [yellow][d][/yellow] Download Attachments  |  "
+                "[yellow][e][/yellow] Guidance  |  [yellow][x][/yellow] Cleanup  |  [yellow][q][/yellow] Back"
+            )
         )
         self._workflow_widget.update("\n".join(content))
 
@@ -417,7 +428,7 @@ class RFQManagementScreen(Screen):
 
         try:
             return json.loads(result.stdout.strip())
-        except:
+        except (json.JSONDecodeError, ValueError):
             return {"success": False, "error": "Invalid response"}
 
     async def _run_operation(self, name: str, func):

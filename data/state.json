@@ -149882,6 +149882,24 @@
   ],
   "recent_actions": [
     {
+      "request_id": "9b9d81f4-ac79-4bee-92c6-ebc32283193a",
+      "timestamp": "2025-11-02T17:07:18.503922+00:00",
+      "method": "GET",
+      "path": "/docs",
+      "latency_ms": 1,
+      "status_code": 200,
+      "context": {}
+    },
+    {
+      "request_id": "d4433919-e6cd-4645-be34-ca05b9a6319c",
+      "timestamp": "2025-11-02T17:07:08.463378+00:00",
+      "method": "GET",
+      "path": "/v1/health",
+      "latency_ms": 8,
+      "status_code": 404,
+      "context": {}
+    },
+    {
       "request_id": "936a737b-30a9-453a-8ae3-bcf0b5abae64",
       "timestamp": "2025-10-31T23:19:09.645202+00:00",
       "method": "GET",
@@ -149952,24 +149970,6 @@
       "method": "GET",
       "path": "/v1/account-plans/formats",
       "latency_ms": 2,
-      "status_code": 200,
-      "context": {}
-    },
-    {
-      "request_id": "5ef17371-ded1-4825-9c1d-050ea624db02",
-      "timestamp": "2025-10-31T23:10:02.827869+00:00",
-      "method": "GET",
-      "path": "/v1/account-plans/formats",
-      "latency_ms": 5,
-      "status_code": 404,
-      "context": {}
-    },
-    {
-      "request_id": "dcf55747-a338-4de2-bdbf-b69704b8c2ff",
-      "timestamp": "2025-10-31T22:51:50.268514+00:00",
-      "method": "GET",
-      "path": "/docs",
-      "latency_ms": 1,
       "status_code": 200,
       "context": {}
     }

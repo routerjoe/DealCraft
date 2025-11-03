@@ -19,6 +19,8 @@ from . import intromail_api
 class IntroMailScreen(Screen):
     """IntroMail campaign management screen with analyzer and draft generation."""
 
+    INHERIT_BINDINGS = False  # Don't inherit parent app bindings
+
     BINDINGS = [
         ("escape,q", "app.pop_screen", "Back"),
         ("a", "analyze_csv", "Analyze CSV"),

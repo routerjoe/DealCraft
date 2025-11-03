@@ -59,6 +59,24 @@ def _normalize_reco(s: str) -> str:
 
 
 def current_status() -> dict:
+    # Get real Govly sync status
+    govly_sync_status = {"state": "off"}
+    try:
+        from mcp.services.govly_sync import get_service
+
+        service = get_service()
+        if service:
+            status = service.get_status()
+            govly_sync_status = {
+                "state": status.get("state", "off"),
+                "last_sync": status.get("last_sync"),
+                "sync_count": status.get("sync_count", 0),
+                "opportunities_added": status.get("opportunities_added", 0),
+            }
+    except Exception:
+        # If service not available, show as offline
+        pass
+
     # Replace these mocks with live signals from your MCP runtime
     return {
         "mcp": {"running": True, "queue": 0, "uptime": "00:42:03"},
@@ -66,7 +84,7 @@ def current_status() -> dict:
             "outlook_rfq": {"state": "online", "last_run": "2025-10-17T12:58:03Z"},
             "fleeting_notes": {"state": "warn", "last_run": "2025-10-17T12:56:00Z"},
             "radar": {"state": "online", "last_run": "2025-10-17T12:50:40Z"},
-            "govly_sync": {"state": "off"},
+            "govly_sync": govly_sync_status,
         },
         "providers": {
             "claude": {"online": True, "p95_ms": 390},

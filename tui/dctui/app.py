@@ -25,6 +25,7 @@ except Exception:
 from dctui import rfq_api, status_bridge  # noqa: E402
 from dctui.analytics_view import AnalyticsModal  # noqa: E402
 from dctui.entity_management_view import EntityManagementScreen  # noqa: E402
+from dctui.govly_view import GovlyViewerScreen  # noqa: E402
 from dctui.intromail_view import IntroMailScreen  # noqa: E402
 from dctui.rfq_details_modal import RFQDetailsModal  # noqa: E402
 from dctui.rfq_management_view import RFQManagementScreen  # noqa: E402
@@ -57,6 +58,7 @@ class Dashboard(App):
         ("1", "rfq_management", "RFQ Emails"),
         ("2", "govly", "Govly"),
         ("3", "intromail", "IntroMail"),
+        ("4", "radar", "Radar"),
         ("7", "analytics", "Analytics"),
         ("8", "entity_management", "Entities"),
         ("9", "settings", "Settings"),
@@ -82,7 +84,9 @@ class Dashboard(App):
         yield Footer()
 
     async def on_mount(self):
-        self.cfg = load_settings()
+        # Load settings from TUI config directory
+        settings_path = TUI_ROOT / "config" / "settings.yaml"
+        self.cfg = load_settings(settings_path)
         # Apply theme
         self.dark = self.cfg.get("ui", {}).get("theme", "light") == "dark"
         # Start refresh timer and keep handle for live updates
@@ -211,8 +215,8 @@ class Dashboard(App):
             )
 
         act.update(
-            "[b][cyan]Actions[/cyan][/b]  [1] RFQ Emails  [2] Govly  [3] IntroMail  [7] Analytics  "
-            "[8] Entities  [9] Settings  (d) Dark  (q) Quit\n"
+            "[b][cyan]Actions[/cyan][/b]  [1] RFQ Emails  [2] Govly  [3] IntroMail  [4] Radar  "
+            "[7] Analytics  [8] Entities  [9] Settings  (d) Dark  (q) Quit\n"
             "[dim]RFQ Table: Top 10 GO opportunities (Score desc). Use Enter or 'o' to open details.[/dim]\n"
             f"{self.toast}"
         )
@@ -288,15 +292,12 @@ class Dashboard(App):
             self.toast = "Settings failed to open"
 
     async def action_govly(self):
-        """Govly integration - Coming Soon"""
-        self.notify(
-            "Govly feature not yet implemented. This will integrate with Govly.com for government contract opportunities.",
-            title="Coming Soon",
-            severity="warning",
-            timeout=5,
-        )
-        self.toast = "[yellow]⚠ Govly integration coming soon[/yellow]"
-        await self.refresh_status()
+        """Open Govly/Radar opportunity viewer"""
+        self.push_screen(GovlyViewerScreen())
+
+    async def action_radar(self):
+        """Open Radar contract monitoring viewer"""
+        self.push_screen(GovlyViewerScreen(initial_filter="radar"))
 
     async def action_intromail(self):
         """Open the IntroMail campaign management screen."""
